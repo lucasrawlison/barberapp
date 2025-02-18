@@ -1,7 +1,5 @@
 "use client";
-import { Suspense } from "react";
 import LoginForm from "./components/login-form";
-import GithubLogin from "./components/github-login";
 import {
   Card,
   CardContent,
@@ -28,9 +26,7 @@ export default function Login() {
             <span className="text-sm text-gray-500">Or continue with</span>
           </div>
           <div className="mt-4 w-full flex justify-center">
-            <Suspense fallback={<div>Loading...</div>}>
-              <GithubLogin />
-            </Suspense>
+            
           </div> 
         </CardContent>
       </Card>
