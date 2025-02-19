@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { Header } from "./components/header/header";
+import { Sidebar } from "./components/sidebar/sidebar";
 
 export default function RootLayout({
   children,
@@ -25,7 +26,7 @@ export default function RootLayout({
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} isMobile={isMobile} /> */}
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} isMobile={isMobile} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header onMenuClick={() => setSidebarOpen(true)} />
         {children}
