@@ -23,18 +23,14 @@ export default function LoginForm() {
       redirect: false, // Evita redirecionamento automático
     });
 
-    if(response?.ok){
+    if(response?.error){
 
+      setLoginError(response.error);
+    }else{
       console.log("Login bem-sucedido:", response);
       // Redirecionar manualmente após o login, se necessário
       router.push("/app/dashboard");
-    }else{
-
-      if (response?.error) {
-        setLoginError(response.error);
-      }
     }
-
   };
 
   const getErrorMessage = (errorCode: string | null) => {

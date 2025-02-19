@@ -18,5 +18,5 @@ model User {
   name           String
   password       String
   /// Could not determine type: the field only had null or empty values in the sample set.
-  profileImgLink Json?
+  profileImgLink String?
 }
