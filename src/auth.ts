@@ -19,12 +19,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null
-          throw new Error("Email e senha são obrigatórios.");
         }
 
         if (typeof credentials.email !== "string") {
           return null
-          throw new Error("string.");
         }
 
         const user = await prisma.user.findUnique({
@@ -33,21 +31,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!user) {
           return null
-          throw new Error("Usuário não encontrado.");
         }
 
-        // 🔹 Comparando senha com bcrypt
-        // const isValidPassword = await bcrypt.compare(credentials.password, user.password);
-        // if (!isValidPassword) {
-        //   throw new Error("s errada.");
-        // }
 
         if(credentials.password !== user.password){
           return null
-          throw new Error("Senha incorreta")
         }
 
-        return { id: user.id, email: user.email, name: user.name, image: user.profileImgLink };
+        return { id: user.id, email: user.email, name: user.name, image: user.profileImgLink as string | null };
       },
     }),
   ],
