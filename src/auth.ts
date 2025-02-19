@@ -67,9 +67,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return token;
     },
-    async redirect({}){
-      return "/app/dashboard"
-    }
+    // async redirect({}){
+    //   return "/app/dashboard"
+    // }
   },
   debug: true, // Mostra logs detalhados no terminal
 });

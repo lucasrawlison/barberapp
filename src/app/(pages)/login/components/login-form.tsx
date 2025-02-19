@@ -6,17 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import {LoaderCircle} from "lucide-react"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError(null); // Limpa erros anteriores
-
+    setIsLoading(true)
     const response = await signIn("credentials", {
       email,
       password,
@@ -24,11 +26,12 @@ export default function LoginForm() {
     });
 
     if(response?.error){
-
+      setIsLoading(false)
       setLoginError(response.error);
     }else{
       console.log("Login bem-sucedido:", response);
       // Redirecionar manualmente após o login, se necessário
+      setIsLoading(false)
       router.push("/app/dashboard");
     }
   };
@@ -75,8 +78,8 @@ export default function LoginForm() {
         </p>
       )}
 
-      <Button type="submit" className="w-full">
-        Entrar
+      <Button disabled={isLoading} type="submit" className="w-full">
+       {isLoading? (<LoaderCircle className=" animate-spin"/>) :"Entrar"}
       </Button>
     </form>
   );
