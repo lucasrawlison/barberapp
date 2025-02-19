@@ -6,7 +6,7 @@ import { useState } from "react";
 import formatarEmReal from "@/app/app/utils/formatarEmReal"
 
 export function CardData() {
-    const [serviceValue, setServiceValue] = useState(0)
+    const [serviceValue,] = useState(0)
 
     const services = [
       {

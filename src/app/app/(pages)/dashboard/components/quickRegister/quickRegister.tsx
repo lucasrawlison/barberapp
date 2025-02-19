@@ -1,14 +1,14 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+// import { Label } from "@/components/ui/label";
 import { NotebookPen } from "lucide-react";
-import { useState } from "react";
+// import { useState } from "react";
 import { CardData } from "./cardData";
 
 export function QuickRegister () {
 
-    const [isLoadin, setIsLoading] = useState(false)
+    // const [isLoadin, setIsLoading] = useState(false)
 
 
     return (
