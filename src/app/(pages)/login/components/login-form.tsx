@@ -25,6 +25,7 @@ export default function LoginForm() {
       redirect: false, // Evita redirecionamento automático
     });
 
+      console.log(response)
     if(response?.error){
       setIsLoading(false)
       setLoginError(response.error);

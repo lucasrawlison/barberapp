@@ -35,7 +35,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             <Button variant="ghost" size="icon" className="mr-2 md:hidden" onClick={onMenuClick}>
               <Menu className="h-6 w-6" />
             </Button>
-            <h2 className="font-semibold text-xl text-gray-800">Minha Lista de Tarefas</h2>
+            <h2 className="font-semibold text-xl text-gray-800">Agile Barber</h2>
           </div>
           <div className="flex items-center">
             <span className="mr-4 text-sm font-medium text-gray-700 hidden sm:inline-block">{user.name}</span>
