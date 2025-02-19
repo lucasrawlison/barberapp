@@ -25,7 +25,7 @@ export default function Dashboard(){
         return (
           <div className="container mx-auto p-6 overflow-auto">
             <header className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold">Configurações do usuário</h1>
+              <h1 className="text-3xl font-bold">Dashboard</h1>
             </header>
 
             <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
