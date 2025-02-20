@@ -2,14 +2,35 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 // import { Label } from "@/components/ui/label";
-import { NotebookPen } from "lucide-react";
+import { LoaderCircle, NotebookPen } from "lucide-react";
 // import { useState } from "react";
 import { CardData } from "./cardData";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
+interface Service {
+  name: string,
+  value: number
+}
 export function QuickRegister () {
+    const [services, setServices] = useState<Service[]>([])
+    const [isLoading, setIsLoading] = useState(false)
 
-    // const [isLoadin, setIsLoading] = useState(false)
+    useEffect(() => {
+      const getServices = async () => {
+        try {
+          setIsLoading(true)
+          const response = await axios.post("/api/getServices");
+          const { servicesTypes } = response.data;
+          setServices(servicesTypes);
+          setIsLoading(false)
+        } catch (error) {
+          console.log(error)
+        }
+      };
 
+      getServices();
+    }, []);
 
     return (
       <Dialog>
@@ -28,13 +49,24 @@ export function QuickRegister () {
             </CardContent>
           </Card>
         </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Registrar Serviço</DialogTitle>
-            <DialogDescription>
-            </DialogDescription>
-          </DialogHeader>
-          <CardData/>
+        <DialogContent className="h-96">
+          {isLoading ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <DialogHeader>
+                <DialogTitle></DialogTitle>
+                <DialogDescription></DialogDescription>
+              </DialogHeader>
+              <LoaderCircle className=" animate-spin" />
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Registrar Serviço</DialogTitle>
+                <DialogDescription></DialogDescription>
+              </DialogHeader>
+              <CardData services={services} />
+            </>
+          )}
         </DialogContent>
       </Dialog>
     );
