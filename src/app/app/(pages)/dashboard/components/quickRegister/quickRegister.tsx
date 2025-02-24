@@ -9,18 +9,20 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 interface Service {
+  id: string,
   name: string,
   value: number
 }
 export function QuickRegister () {
     const [services, setServices] = useState<Service[]>([])
     const [isLoading, setIsLoading] = useState(false)
+    const [isSaved, setIsSaved] = useState(false)
 
     useEffect(() => {
       const getServices = async () => {
         try {
           setIsLoading(true)
-          const response = await axios.post("/api/getServices");
+          const response = await axios.post("/api/getServicesTypes");
           const { servicesTypes } = response.data;
           setServices(servicesTypes);
           setIsLoading(false)
@@ -33,7 +35,7 @@ export function QuickRegister () {
     }, []);
 
     return (
-      <Dialog>
+      <Dialog onOpenChange={()=> setIsSaved(false)}>
         <DialogTrigger asChild>
           <Card className="hover:cursor-pointer h-36 hover:bg-slate-50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -49,7 +51,7 @@ export function QuickRegister () {
             </CardContent>
           </Card>
         </DialogTrigger>
-        <DialogContent className="h-96">
+        <DialogContent className=" min-h-96">
           {isLoading ? (
             <div className="w-full h-full flex items-center justify-center">
               <DialogHeader>
@@ -64,7 +66,10 @@ export function QuickRegister () {
                 <DialogTitle>Registrar Serviço</DialogTitle>
                 <DialogDescription></DialogDescription>
               </DialogHeader>
-              <CardData services={services} />
+              <CardData 
+              isSaved={isSaved}
+              setIsSaved={setIsSaved}
+              services={services} />
             </>
           )}
         </DialogContent>

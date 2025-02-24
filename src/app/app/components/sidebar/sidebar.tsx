@@ -20,12 +20,12 @@ export function Sidebar({ open, onClose, isMobile }: SidebarProps) {
         <span className="text-sm font-medium">Dashboard</span>
       </Link>
       <Link
-        href="/app/tasks"
+        href="/app/services"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
         onClick={isMobile ? onClose : undefined}
       >
         <CheckSquare className="h-5 w-5 mr-3" />
-        <span className="text-sm font-medium">Tarefas</span>
+        <span className="text-sm font-medium">Serviços</span>
       </Link>
       <Link
         href="/app/settings"
