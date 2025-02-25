@@ -24,6 +24,9 @@ export async function POST(req: NextRequest) {
         userId,
       },orderBy:{
         id:"desc"
+      },
+      include:{
+        user: true
       }
     });
     

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {  List, Settings } from "lucide-react";
 import { QuickRegister } from "./components/quickRegister/quickRegister";
+import Link from "next/link";
 
 export default function Dashboard(){
 
@@ -10,12 +11,14 @@ export default function Dashboard(){
         {
             name: "Meus serviços",
             description: "Meus serviços",
+            link: "/app/services",
             image: <List className="text-red-800"/>
             
-        },
-        {
+          },
+          {
             name: "Configurações",
             description: "Edite configurações do aplicativo",
+            link: "/app/settings",
             image: <Settings className="text-sky-800"/>
           }
         ]
@@ -29,25 +32,24 @@ export default function Dashboard(){
             </header>
 
             <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              <QuickRegister/>
+              <QuickRegister />
 
               {options.map((option) => (
-                <Card
-                  key={option.name}
-                  className="hover:cursor-pointer h-36 hover:bg-slate-50"
-                >
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="w-full text-center text-sm font-medium">
-                      {option.description}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-center mt-3 flex-row items-center space-x-2">
-                      <div></div>
-                      {option.image}
-                    </div>
-                  </CardContent>
-                </Card>
+                <Link key={option.name} href={option.link}>
+                  <Card className="hover:cursor-pointer h-36 hover:bg-slate-50">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="w-full text-center text-sm font-medium">
+                        {option.description}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex justify-center mt-3 flex-row items-center space-x-2">
+                        <div></div>
+                        {option.image}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
             <div className="flex justify-end mt-6"></div>
