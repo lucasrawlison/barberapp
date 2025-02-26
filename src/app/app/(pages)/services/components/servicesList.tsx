@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import axios from "axios"
 import { useSession } from "next-auth/react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { CardData } from "./cardData"
 
 
@@ -171,7 +171,11 @@ export function ServicesList() {
               </TableRow>
             ) : (
               currentServices.map((service) => (
-                <TableRow onClick={() => handleSelectService(service)} key={service.id} className="hover:bg-slate-200 hover:cursor-pointer">
+                <TableRow
+                  onClick={() => handleSelectService(service)}
+                  key={service.id}
+                  className="hover:bg-slate-200 hover:cursor-pointer"
+                >
                   <TableCell className="font-medium text-center">
                     {service.code}
                   </TableCell>
@@ -238,7 +242,7 @@ export function ServicesList() {
           <ChevronsRight className="h-4 w-4" />
         </Button>
       </div>
-      <Dialog open={openDialog} onOpenChange={()=>setOpenDialog(!openDialog)}>
+      <Dialog open={openDialog} onOpenChange={() => setOpenDialog(!openDialog)}>
         <DialogContent>
           {!selectedService ? (
             <div className="w-full h-full flex items-center justify-center">
@@ -254,7 +258,11 @@ export function ServicesList() {
                 <DialogTitle>Serviço {selectedService.code}</DialogTitle>
                 <DialogDescription></DialogDescription>
               </DialogHeader>
-              <CardData servicesTypes={servicesTypes} selectedService={selectedService}/>
+              <CardData
+              setSelectedService={setSelectedService}
+                servicesTypes={servicesTypes}
+                selectedService={selectedService}
+              />
             </>
           )}
         </DialogContent>

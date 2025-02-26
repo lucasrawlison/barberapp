@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
@@ -6,92 +6,132 @@ import { Button } from "@/components/ui/button";
 import { Plus, Minus } from "lucide-react";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SelectItem } from "@radix-ui/react-select";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface User {
-  name: string
+  name: string;
 }
 
 interface Type {
-  id: string
-  name: string
-  value: number
+  id: string;
+  name: string;
+  value: number;
 }
 
 interface Service {
-  id: string
-  code: number
-  value: number
-  createdAt: Date
-  servicesTypes: Type[]
-  user: User
+  id: string;
+  code: number;
+  value: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
 }
 
 interface CardDataProps {
-  selectedService: Service | null
-  servicesTypes: Type[]
+  selectedService: Service | null;
+  servicesTypes: Type[];
+  setSelectedService: (value: Service) => void;
 }
 
-export function CardData( {selectedService, servicesTypes} : CardDataProps) {
+export function CardData({ selectedService, servicesTypes, setSelectedService }: CardDataProps) {
+  const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
+
+  useEffect(() => {
+    if (selectedService) {
+      setSelectedTypes(selectedService.servicesTypes);
+    }
+  }, [selectedService]);
   
+
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(price)
-  }
+    }).format(price);
+  };
 
-  useEffect(()=> {
-    const selectedTypes = selectedService?.servicesTypes
-  }, [selectedService])
-  
-  const handleAddService = (serviceName: string) => {
-    const service = servicesTypes.find((s) => s.name === serviceName);
-    if (service && !selectedServices.includes(service)) {
-      setSelectedServices((prev) => [...prev, service]);
-      setTotalValue((prev) => prev + service.value);
+  const handleChangeSelect = (selectedType: Type, newTypeId: string) => {
+    if (selectedType.id === newTypeId) return;
+
+    const newType = servicesTypes.find(type => type.id === newTypeId);
+    if (!newType) return;
+
+    setSelectedTypes(prevTypes =>
+      prevTypes.map(type => (type.id === selectedType.id ? newType : type))
+    );
+
+    if (selectedService) {
+      const updatedTypes = selectedTypes.map(type => (type.id === selectedType.id ? newType : type))
+      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0)
+      setSelectedService({
+        ...selectedService,
+        servicesTypes: updatedTypes,
+        value: value
+      });
     }
+  };
 
+  const handleAddEmptyType = () => {
+    const emptyType: Type = {
+      id: `empty-${Date.now()}`, // Garante um ID único temporário
+      name: "Novo Serviço",
+      value: 0,
+    };
+  
+    setSelectedTypes(prev => [...prev, emptyType]);
+  };
 
-
+  const handleRemoveType = (id: string) => {
+    setSelectedTypes(prev => prev.filter(type => type.id !== id));
   };
 
   return (
     <div className="flex flex-col gap-4">
       <Label className="pb-1">Serviços realizados:</Label>
-      {selectedService?.servicesTypes.map((type) => (
+      {selectedTypes.map((type) => (
         <div key={type.id} className="flex flex-row gap-4">
-          <Select onValueChange={handleAddService}>
+          <Select onValueChange={(typeId) => handleChangeSelect(type, typeId)}>
             <SelectTrigger>
-              <SelectValue placeholder={type.name}/>
+              <SelectValue placeholder={type.name} />
             </SelectTrigger>
             <SelectContent>
-              {servicesTypes.map((service) => (
-                <SelectItem
-                  className="hover:cursor-pointer"
-                  key={service.id}
-                  value={service.name}
-                >
-                  {service.name}
-                </SelectItem>
-              ))}
+              {servicesTypes
+                .filter(
+                  (service) =>
+                    !selectedTypes.some(
+                      (selected) => selected.id === service.id
+                    )
+                )
+                .map((service) => (
+                  <SelectItem
+                    className="hover:cursor-pointer"
+                    key={service.id}
+                    value={service.id}
+                  >
+                    {service.name} - {formatarEmReal(service.value)}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
 
-          <Button className=" rounded-full size-7 bg-red-700">
+          <Button
+            className="rounded-full size-7 bg-red-700"
+            onClick={() => handleRemoveType(type.id)}
+          >
             <Minus />
           </Button>
         </div>
       ))}
 
       <div className="flex w-full justify-center">
-        <Button className=" rounded-full size-8 ">
+        <Button onClick={handleAddEmptyType} className="rounded-full size-8">
           <Plus />
         </Button>
       </div>
 
       <ul>
-        {selectedService?.servicesTypes.map((type) => (
+        {selectedTypes.map((type) => (
           <li key={type.id}>
             <span className="text-sm">
               {type.name} - {formatPrice(type.value)}
@@ -105,7 +145,7 @@ export function CardData( {selectedService, servicesTypes} : CardDataProps) {
       <div className="flex gap-2 items-center">
         <Label>Total:</Label>
         <Label className="text-md">
-          {selectedService?.value ? formatarEmReal(selectedService?.value) : ""}
+          {selectedService?.value ? formatarEmReal(selectedService.value) : ""}
         </Label>
 
         <div className="w-full"></div>
