@@ -3,10 +3,11 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, LoaderCircle } from "lucide-react";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SelectItem } from "@radix-ui/react-select";
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 interface User {
   name: string;
@@ -35,6 +36,11 @@ interface CardDataProps {
 
 export function CardData({ selectedService, servicesTypes, setSelectedService }: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
+  const [isLoading, setIsLoading] = useState(false)
+  
+  useEffect(()=> {
+    console.log(selectedService)
+  },[selectedService])
 
   useEffect(() => {
     if (selectedService) {
@@ -83,8 +89,35 @@ export function CardData({ selectedService, servicesTypes, setSelectedService }:
   };
 
   const handleRemoveType = (id: string) => {
+    
     setSelectedTypes(prev => prev.filter(type => type.id !== id));
+
+    if(selectedService) {
+      const updatedTypes = selectedTypes.filter(type => type.id !== id)
+      setSelectedService({
+        ...selectedService,
+      servicesTypes: updatedTypes
+      })
+    }
   };
+
+  const handleUpdateService = async () => { 
+    try {
+      setIsLoading(true)
+      const response = await axios.post("/api/updateService",{
+        selectedService
+      })
+
+
+      
+console.log(response)    
+
+      setIsLoading(false)
+    } catch (error) {
+      setIsLoading(false)
+      
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -150,7 +183,7 @@ export function CardData({ selectedService, servicesTypes, setSelectedService }:
 
         <div className="w-full"></div>
 
-        <Button>Salvar</Button>
+        <Button onClick={handleUpdateService}>{isLoading ? <LoaderCircle className="animate-spin"/> : "Salvar"}</Button>
       </div>
     </div>
   );
