@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import {LoaderCircle} from "lucide-react"
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
+  const [userName, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false)
@@ -20,7 +20,7 @@ export default function LoginForm() {
     setLoginError(null); // Limpa erros anteriores
     setIsLoading(true)
     const response = await signIn("credentials", {
-      email,
+      userName,
       password,
       redirect: false, // Evita redirecionamento automático
     });
@@ -52,12 +52,12 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Login</Label>
         <Input
           id="email"
-          type="email"
-          placeholder="email@exemplo.com"
-          value={email}
+          
+          placeholder="Email or Username"
+          value={userName}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
