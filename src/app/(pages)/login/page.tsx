@@ -1,4 +1,5 @@
 "use client";
+import { useSession } from "next-auth/react";
 import LoginForm from "./components/login-form";
 import {
   Card,
@@ -7,8 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Login() {
+
+  const { data: session, status } = useSession();
+    const router = useRouter();
+  
+    useEffect(() => {
+      if (status !== "loading") {
+        if (session?.user) {
+          router.push("/app/dashboard");
+        }
+      }
+    }, [session, status, router]); // Dependências para evitar loops infinitos
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <Card className="w-full max-w-md">

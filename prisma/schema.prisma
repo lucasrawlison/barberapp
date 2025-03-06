@@ -33,4 +33,5 @@ model User {
   /// Could not determine type: the field only had null or empty values in the sample set.
   profileImgLink String?
   services       Service[]
+  profileType    String  @default("admin")
 }

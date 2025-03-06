@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log(body);
+    console.log("Este é o body: ", body);
 
     const { userId } = body;
 
@@ -19,30 +19,61 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const services = await prisma.service.findMany({
-      where: {
-        userId,
-      },orderBy:{
-        id:"desc"
-      },
-      include:{
-        user: true
-      }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
-    
 
-    console.log(services);
-
-    if (services) {
+    if (!user) {
       return NextResponse.json(
-        { message: "Services", services },
-        { status: 200 }
+        {
+          message: "User not found",
+        },
+        { status: 400 }
       );
+    }
+
+    if (user.profileType === "admin") {
+      const services = await prisma.service.findMany({
+        orderBy: {
+          id: "desc",
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      if (services) {
+        return NextResponse.json(
+          { message: "Services", services },
+          { status: 200 }
+        );
+      }
+    }
+
+    if (user.profileType === "barber") {
+      const services = await prisma.service.findMany({
+        where: {
+          userId,
+        },
+        orderBy: {
+          id: "desc",
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      if (services) {
+        return NextResponse.json(
+          { message: "Services", services },
+          { status: 200 }
+        );
+      }
     }
   } catch (error) {
     console.error("Error fetching services", error);
     return NextResponse.json(
-      { message: "Internal server error" }, 
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

@@ -114,6 +114,7 @@ console.log(response)
 
       setIsLoading(false)
     } catch (error) {
+      console.log(error)
       setIsLoading(false)
       
     }
