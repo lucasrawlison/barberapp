@@ -8,8 +8,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log("Este é o body: ", body);
 
-    const { userId } = body;
-
+    const { userId, date } = body;
     if (!userId) {
       return NextResponse.json(
         {

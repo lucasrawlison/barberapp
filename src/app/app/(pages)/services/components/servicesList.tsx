@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search, RotateCw } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search, RotateCw, CalendarIcon } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -10,6 +10,9 @@ import axios from "axios"
 import { useSession } from "next-auth/react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { CardData } from "./cardData"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { Calendar } from "@/components/ui/calendar"
 
 
 interface User {
@@ -46,6 +49,8 @@ export function ServicesList() {
   const [openDialog, setOpenDialog] = useState(false)
   const [servicesTypes, setServicesTypes] = useState([])
   const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [date, setDate] = React.useState<Date>()
+
 
   // Define handleConvertDate function before using it
   const handleConvertDate = useCallback((date: string) => {
@@ -69,7 +74,7 @@ export function ServicesList() {
       setIsLoading(true);
       
       const response = await axios.post("/api/getUserServices", {
-        userId: session?.user?.id,
+        userId: session?.user?.id, date
       });
 
       const { services } = response.data;
@@ -96,6 +101,12 @@ export function ServicesList() {
     getServices()
     getServicesTypes()
   }, [session?.user?.id])
+
+  useEffect(() => {
+    if(date) {
+      getServices()
+    }
+  },[date])
 
   const [currentPage, setCurrentPage] = React.useState(1)
   const itemsPerPage = 10
@@ -151,8 +162,37 @@ export function ServicesList() {
             Limpar
           </Button>
         )}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[280px] justify-start text-left font-normal",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon />
+              {date ? (
+                date.toLocaleString("pt-BR", {                 
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
+              ) : (
+                <span>Pick a date</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
-      
       <div>
         <div
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
