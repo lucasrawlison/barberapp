@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search, RotateCw } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -53,39 +53,49 @@ export function ServicesList() {
 
     const formattedDate = newDate.toLocaleString("pt-BR", {
       hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year : "numeric"
     })
 
     return formattedDate
   }, [])
 
+
+  const getServices = async () => {
+    try {
+      setIsLoading(true);
+      
+      const response = await axios.post("/api/getUserServices", {
+        userId: session?.user?.id,
+      });
+
+      const { services } = response.data;
+      console.log(response);
+      setServices(services);
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const getServicesTypes = async () => {
+    try {
+      const response = await axios.post("/api/getServicesTypes")
+      setServicesTypes(response.data.servicesTypes)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  
   useEffect(() => {
-    const getServices = async () => {
-      try {
-        setIsLoading(true)
-        const response = await axios.post("/api/getUserServices", {
-          userId: session?.user?.id,
-        })
+    if (!session?.user?.id) return
 
-        const { services } = response.data
-        console.log(response)
-        setServices(services)
-        setIsLoading(false)
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
-    const getServicesTypes = async () => {
-      try {
-        const response = await axios.post("/api/getServicesTypes")
-        setServicesTypes(response.data.servicesTypes)
-      } catch (error) {
-        console.log(error)
-      }
-    }
     getServices()
     getServicesTypes()
-  }, [session])
+  }, [session?.user?.id])
 
   const [currentPage, setCurrentPage] = React.useState(1)
   const itemsPerPage = 10
@@ -142,8 +152,22 @@ export function ServicesList() {
           </Button>
         )}
       </div>
-
+      
+      <div>
+        <div
+          className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
+          onClick={getServices}
+        >
+          <span className="text-xs">Recarregar</span>
+          <RotateCw className="w-3" />
+        </div>
+      </div>
       <div className="rounded-md border">
+        {isLoading && (
+          <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+            <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+          </div>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -155,13 +179,7 @@ export function ServicesList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  Carregando...
-                </TableCell>
-              </TableRow>
-            ) : filteredServices.length === 0 ? (
+            {filteredServices.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8">
                   {services.length === 0
@@ -259,7 +277,8 @@ export function ServicesList() {
                 <DialogDescription></DialogDescription>
               </DialogHeader>
               <CardData
-              setSelectedService={setSelectedService}
+                getServices={getServices}
+                setSelectedService={setSelectedService}
                 servicesTypes={servicesTypes}
                 selectedService={selectedService}
               />

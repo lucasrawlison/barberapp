@@ -32,9 +32,10 @@ interface CardDataProps {
   selectedService: Service | null;
   servicesTypes: Type[];
   setSelectedService: (value: Service) => void;
+  getServices: () => void;
 }
 
-export function CardData({ selectedService, servicesTypes, setSelectedService }: CardDataProps) {
+export function CardData({ selectedService, servicesTypes, setSelectedService, getServices }: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
   const [isLoading, setIsLoading] = useState(false)
   
@@ -94,9 +95,12 @@ export function CardData({ selectedService, servicesTypes, setSelectedService }:
 
     if(selectedService) {
       const updatedTypes = selectedTypes.filter(type => type.id !== id)
+      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0)
+
       setSelectedService({
         ...selectedService,
-      servicesTypes: updatedTypes
+      servicesTypes: updatedTypes,
+      value: value
       })
     }
   };
@@ -108,9 +112,8 @@ export function CardData({ selectedService, servicesTypes, setSelectedService }:
         selectedService
       })
 
-
-      
-console.log(response)    
+    console.log(response)   
+    getServices() 
 
       setIsLoading(false)
     } catch (error) {
