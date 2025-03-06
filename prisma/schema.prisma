@@ -25,7 +25,7 @@ model Service {
 
 model User {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  active         Boolean
+  active         Boolean @default(true)
   email          String    @unique
   login          String @unique
   name           String
