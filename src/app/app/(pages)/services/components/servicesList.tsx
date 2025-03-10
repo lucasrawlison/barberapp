@@ -49,7 +49,7 @@ export function ServicesList() {
   const [openDialog, setOpenDialog] = useState(false)
   const [servicesTypes, setServicesTypes] = useState([])
   const [selectedService, setSelectedService] = useState<Service | null>(null)
-  const [date, setDate] = React.useState<Date>()
+  const [date, setDate] = React.useState<Date | undefined>(undefined)
 
 
   // Define handleConvertDate function before using it
@@ -103,9 +103,9 @@ export function ServicesList() {
   }, [session?.user?.id])
 
   useEffect(() => {
-    if(date) {
+    
       getServices()
-    }
+    
   },[date])
 
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -157,11 +157,8 @@ export function ServicesList() {
             className="pl-8"
           />
         </div>
-        {filterValue && (
-          <Button variant="ghost" onClick={() => setFilterValue("")} size="sm">
-            Limpar
-          </Button>
-        )}
+        
+        
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -193,7 +190,7 @@ export function ServicesList() {
           </PopoverContent>
         </Popover>
       </div>
-      <div>
+      <div className=" flex flex-rows items-center justify-between">
         <div
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
           onClick={getServices}
@@ -201,6 +198,9 @@ export function ServicesList() {
           <span className="text-xs">Recarregar</span>
           <RotateCw className="w-3" />
         </div>
+                  <Button variant="default" onClick={() => {setFilterValue(""); setDate(undefined)} } size="sm">
+                    Limpar filtros
+                  </Button>
       </div>
       <div className="rounded-md border">
         {isLoading && (
