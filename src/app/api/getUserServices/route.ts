@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { start } from "repl";
 
 const prisma = new PrismaClient();
 
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log("Este é o body: ", body);
 
-    const { userId } = body;
+    const { userId, date } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -33,42 +34,137 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.profileType === "admin") {
-      const services = await prisma.service.findMany({
-        orderBy: {
-          id: "desc",
-        },
-        include: {
-          user: true,
-        },
-      });
+      if(date) {
+        // CASO TENHA DATA
+        const startDate = new Date(date);
+        startDate.setUTCHours(0, 0, 0, 0);
+        const finalDate = new Date(date);
+        finalDate.setUTCHours(23, 59, 59, 999);
 
-      if (services) {
-        return NextResponse.json(
-          { message: "Services", services },
-          { status: 200 }
-        );
+        console.log(startDate, finalDate);
+
+        const services = await prisma.service.findMany({
+          where: {
+            createdAt: {
+              gte: startDate,
+              lte: finalDate,
+            },
+          },
+
+          orderBy: {
+            id: "desc",
+          },
+          include: {
+            user: true,
+          },
+        });
+        if (services) {
+          return NextResponse.json(
+            { message: "Services", services },
+            { status: 200 }
+          );
+        }else{
+          return NextResponse.json(
+            { message: "No services found" },
+            { status: 200 }
+          );
+        }
+      }else{
+        // CASO TENHA DATA
+        const services = await prisma.service.findMany({
+          orderBy: {
+            id: "desc",
+          },
+          include: {
+            user: true,
+          },
+        });
+        if (services) {
+          return NextResponse.json(
+            { message: "Services", services },
+            { status: 200 }
+          );
+        }else{
+          return NextResponse.json(
+            { message: "No services found" },
+            { status: 200 }
+          );
+        }
+        
       }
+
     }
 
-    if (user.profileType === "barber") {
-      const services = await prisma.service.findMany({
-        where: {
-          userId,
-        },
-        orderBy: {
-          id: "desc",
-        },
-        include: {
-          user: true,
-        },
-      });
 
-      if (services) {
-        return NextResponse.json(
-          { message: "Services", services },
-          { status: 200 }
-        );
+    if (user.profileType === "barber") {
+      if(date) {
+        // CASO TENHA DATA
+        const startDate = new Date(date);
+        startDate.setUTCHours(0, 0, 0, 0);
+        const finalDate = new Date(date);
+        finalDate.setUTCHours(23, 59, 59, 999);
+
+        console.log(startDate, finalDate);
+        const services = await prisma.service.findMany({
+          where: {
+            AND: [
+              {
+                createdAt: {
+                  gte: startDate,
+                  lte: finalDate,
+                },
+              },
+              { userId: userId },
+            ],
+          },
+          orderBy: {
+            id: "desc",
+          },
+          include: {
+            user: true,
+          },
+        });
+
+        if (services) {
+          return NextResponse.json(
+            { message: "Services", services },
+            { status: 200 }
+          );
+        }else{
+          return NextResponse.json(
+            { message: "No services found" },
+            { status: 200 }
+          );
+        }
+      }else{
+
+        const services = await prisma.service.findMany({
+          where: {
+            userId: userId,
+          },
+          orderBy: {
+            id: "desc",
+          },
+          include: {
+            user: true,
+          },
+        });
+
+        if (services) {
+          return NextResponse.json(
+            { message: "Services", services },
+            { status: 200 }
+          );
+        }else{
+          return NextResponse.json(
+            { message: "No services found" },
+            { status: 200 }
+          );
+        }
       }
+
+
+      
     }
   } catch (error) {
     console.error("Error fetching services", error);
