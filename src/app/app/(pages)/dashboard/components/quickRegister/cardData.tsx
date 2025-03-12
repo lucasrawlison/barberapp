@@ -14,21 +14,37 @@ interface Service {
   name: string;
   value: number;
 }
+interface BankAccount {
+  id: string;
+  bankName: string;
+
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankAccount: BankAccount
+}
+
 
 interface CardDataProps {
   services: Service[];
   setIsSaved: (value: boolean) => void;
   isSaved: boolean;
+  paymentMethods: PaymentMethod[]
 }
 
-export function CardData({ services, setIsSaved, isSaved }: CardDataProps) {
+export function CardData({ services, setIsSaved, isSaved, paymentMethods }: CardDataProps) {
   const [serviceToSave, setServiceToSave] = useState<Service[]>([]);
+  const [paymentMethodToSave, setPaymentMethodsToSave] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
 
   const handleAddSelect = () => {
     setServiceToSave((prev) => [...prev, { id: "", name: "", value: 0 }]);
   };
+
+
 
   const handleChangeService = (index: number, serviceId: string) => {
     const selectedService = services.find((s) => s.id === serviceId);
@@ -52,6 +68,7 @@ export function CardData({ services, setIsSaved, isSaved }: CardDataProps) {
         value: serviceToSave.reduce((acc, s) => acc + s.value, 0),
         userId: session?.user?.id,
         selectedServices: serviceToSave,
+        paymentMethodId: paymentMethodToSave
       });
       console.log(response);
       setIsLoading(false);
@@ -86,11 +103,24 @@ export function CardData({ services, setIsSaved, isSaved }: CardDataProps) {
           </Button>
         </div>
       ))}
-      <div className="flex w-full justify-center">
+        
+      <div className="flex w-full justify-center mb-8">
         <Button className="rounded-full size-8" onClick={handleAddSelect}>
           <Plus />
         </Button>
       </div>
+        <Select onValueChange={(value) => setPaymentMethodsToSave(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Forma de pagamento" />
+          </SelectTrigger>
+          <SelectContent>
+            {paymentMethods.map((paymentMethod)=>(
+            <SelectItem className="hover:cursor-pointer" key={paymentMethod.id} value={paymentMethod.id}>
+              {paymentMethod.name} - {paymentMethod.bankAccount.bankName}
+            </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>        
       <ul>
         {serviceToSave.map((service) => (
           <li key={service.id} className="flex justify-between text-xs">

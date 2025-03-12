@@ -7,6 +7,7 @@ import { LoaderCircle, NotebookPen } from "lucide-react";
 import { CardData } from "./cardData";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { set } from "date-fns";
 
 interface Service {
   id: string,
@@ -15,22 +16,38 @@ interface Service {
 }
 export function QuickRegister () {
     const [services, setServices] = useState<Service[]>([])
+    const [paymentMethods, setPaymentMethods] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
 
-    useEffect(() => {
-      const getServices = async () => {
-        try {
-          setIsLoading(true)
-          const response = await axios.post("/api/getServicesTypes");
-          const { servicesTypes } = response.data;
-          setServices(servicesTypes);
-          setIsLoading(false)
-        } catch (error) {
-          console.log(error)
-        }
-      };
+    const getServices = async () => {
+      try {
+        setIsLoading(true)
+        const response = await axios.post("/api/getServicesTypes");
+        const { servicesTypes } = response.data;
+        setServices(servicesTypes);
+        setIsLoading(false)
+      } catch (error) {
+        console.log(error)
+        setIsLoading(false)
+      }
+    };
 
+    const getPaymentMethods = async () => {
+      try {
+        setIsLoading(true)
+        
+        const response = await axios.post("/api/getPaymentMethods");
+        const { paymentMethods } = response.data;
+        setPaymentMethods(paymentMethods);
+        setIsLoading(false)
+      } catch (error) {
+        console.log(error)
+        setIsLoading(false)
+      }
+    }
+    useEffect(() => {
+      getPaymentMethods();
       getServices();
     }, []);
 
@@ -69,7 +86,9 @@ export function QuickRegister () {
               <CardData 
               isSaved={isSaved}
               setIsSaved={setIsSaved}
-              services={services} />
+              services={services} 
+              paymentMethods={paymentMethods}
+              />
             </>
           )}
         </DialogContent>
