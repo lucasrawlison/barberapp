@@ -55,6 +55,8 @@ export async function POST(req: NextRequest) {
           },
           include: {
             user: true,
+            paymentMethod: true
+
           },
         });
         if (services) {
@@ -76,6 +78,7 @@ export async function POST(req: NextRequest) {
           },
           include: {
             user: true,
+            paymentMethod: true
           },
         });
         if (services) {
@@ -121,6 +124,7 @@ export async function POST(req: NextRequest) {
           },
           include: {
             user: true,
+            paymentMethod: true
           },
         });
 
@@ -146,6 +150,7 @@ export async function POST(req: NextRequest) {
           },
           include: {
             user: true,
+            paymentMethod: true
           },
         });
 

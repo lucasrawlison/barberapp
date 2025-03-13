@@ -19,6 +19,16 @@ interface Type {
   value: number;
 }
 
+interface BankAccount{
+  id: string;
+  bankName: string;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankAccount: BankAccount
+}
 interface Service {
   id: string;
   code: number;
@@ -26,18 +36,23 @@ interface Service {
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
+  paymentMethodId: string
+  paymentMethod: PaymentMethod
 }
+
 
 interface CardDataProps {
   selectedService: Service | null;
   servicesTypes: Type[];
   setSelectedService: (value: Service) => void;
   getServices: () => void;
+  paymentMethods: PaymentMethod[];
 }
 
-export function CardData({ selectedService, servicesTypes, setSelectedService, getServices }: CardDataProps) {
+export function CardData({ selectedService, servicesTypes, setSelectedService, getServices, paymentMethods }: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
   const [isLoading, setIsLoading] = useState(false)
+  const [paymentMethodsToSelect, setPaymentMethodsToSelect] = useState<PaymentMethod[]>([])
   
   useEffect(()=> {
     console.log(selectedService)
@@ -48,7 +63,7 @@ export function CardData({ selectedService, servicesTypes, setSelectedService, g
       setSelectedTypes(selectedService.servicesTypes);
     }
   }, [selectedService]);
-  
+
 
 
   const formatPrice = (price: number) => {
@@ -78,6 +93,20 @@ export function CardData({ selectedService, servicesTypes, setSelectedService, g
       });
     }
   };
+
+  const handleChangePayentMethod = (paymentId : string) => {
+    if(!paymentId) return;
+    const selectedPaymentMethod = paymentMethods.find((paymentMethod) => paymentMethod.id ===  paymentId)
+    if(!selectedPaymentMethod) return;
+
+    if(selectedService){
+      setSelectedService({
+        ...selectedService,
+        paymentMethod: selectedPaymentMethod,
+      });
+    }
+   }
+
 
   const handleAddEmptyType = () => {
     const emptyType: Type = {
@@ -123,6 +152,12 @@ export function CardData({ selectedService, servicesTypes, setSelectedService, g
     }
   }
 
+  useEffect(()=> {
+    const filteredPayments = paymentMethods.filter(paymentMethod => paymentMethod.id !== selectedService?.paymentMethod.id)
+    setPaymentMethodsToSelect(filteredPayments)
+  },[paymentMethods])
+
+   
   return (
     <div className="flex flex-col gap-4">
       <Label className="pb-1">Serviços realizados:</Label>
@@ -166,7 +201,22 @@ export function CardData({ selectedService, servicesTypes, setSelectedService, g
           <Plus />
         </Button>
       </div>
-
+      <Select  onValueChange={(paymentId) => handleChangePayentMethod(paymentId)}>
+        <SelectTrigger>
+          <SelectValue placeholder={selectedService?.paymentMethod.name} />
+        </SelectTrigger>
+        <SelectContent>
+          {paymentMethodsToSelect.map((paymentMethod) => (
+            <SelectItem
+              className="hover:cursor-pointer"
+              key={paymentMethod.id}
+              value={paymentMethod.id}
+            >
+              {paymentMethod.name} - {paymentMethod.bankAccount.bankName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <ul>
         {selectedTypes.map((type) => (
           <li key={type.id}>
@@ -187,7 +237,9 @@ export function CardData({ selectedService, servicesTypes, setSelectedService, g
 
         <div className="w-full"></div>
 
-        <Button onClick={handleUpdateService}>{isLoading ? <LoaderCircle className="animate-spin"/> : "Salvar"}</Button>
+        <Button onClick={handleUpdateService}>
+          {isLoading ? <LoaderCircle className="animate-spin" /> : "Salvar"}
+        </Button>
       </div>
     </div>
   );

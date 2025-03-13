@@ -25,13 +25,26 @@ interface Type {
   value: number
 }
 
+interface BankAccount{
+  id: string;
+  bankName: string;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankAccount: BankAccount
+}
 interface Service {
-  id: string
-  code: number
-  value: number
-  createdAt: Date
-  servicesTypes: Type[]
-  user: User
+  id: string;
+  code: number;
+  value: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+
+  paymentMethod: PaymentMethod
 }
 
 const formatPrice = (price: number) => {
@@ -50,6 +63,7 @@ export function ServicesList() {
   const [servicesTypes, setServicesTypes] = useState([])
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [date, setDate] = React.useState<Date | undefined>(undefined)
+  const [paymentMethods, setPaymentMethods] = useState([])
 
 
   // Define handleConvertDate function before using it
@@ -94,18 +108,30 @@ export function ServicesList() {
       console.log(error)
     }
   }
+
+  const getPaymentMethods = async () => {
+    try {
+      setIsLoading(true)
+      
+      const response = await axios.post("/api/getPaymentMethods");
+      const { paymentMethods } = response.data;
+      setPaymentMethods(paymentMethods);
+      setIsLoading(false)
+    } catch (error) {
+      console.log(error)
+      setIsLoading(false)
+    }
+  }
   
   useEffect(() => {
     if (!session?.user?.id) return
-
-    getServices()
-    getServicesTypes()
+    getPaymentMethods();
+    getServices();
+    getServicesTypes();
   }, [session?.user?.id])
 
   useEffect(() => {
-    
-      getServices()
-    
+    getServices()
   },[date])
 
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -131,6 +157,10 @@ export function ServicesList() {
   useEffect(() => {
     setCurrentPage(1)
   }, [filterValue])
+
+  useEffect(() => {
+    console.log(selectedService)
+  },[selectedService])
 
   const currentServices = React.useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage
@@ -321,6 +351,8 @@ export function ServicesList() {
                 setSelectedService={setSelectedService}
                 servicesTypes={servicesTypes}
                 selectedService={selectedService}
+                paymentMethods={paymentMethods}
+
               />
             </>
           )}
