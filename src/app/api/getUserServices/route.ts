@@ -55,8 +55,10 @@ export async function POST(req: NextRequest) {
           },
           include: {
             user: true,
-            paymentMethod: true
-
+            paymentMethod: {
+              include:{bankAccount:true}
+            }
+            
           },
         });
         if (services) {
@@ -78,7 +80,10 @@ export async function POST(req: NextRequest) {
           },
           include: {
             user: true,
-            paymentMethod: true
+            paymentMethod: {
+              include:{bankAccount:true}
+            }
+            
           },
         });
         if (services) {
@@ -124,7 +129,10 @@ export async function POST(req: NextRequest) {
           },
           include: {
             user: true,
-            paymentMethod: true
+            paymentMethod: {
+              include:{bankAccount:true}
+            }
+            
           },
         });
 
@@ -150,7 +158,10 @@ export async function POST(req: NextRequest) {
           },
           include: {
             user: true,
-            paymentMethod: true
+            paymentMethod: {
+              include:{bankAccount:true}
+            }
+            
           },
         });
 

@@ -4,7 +4,12 @@ import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, LoaderCircle } from "lucide-react";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SelectItem } from "@radix-ui/react-select";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -19,7 +24,7 @@ interface Type {
   value: number;
 }
 
-interface BankAccount{
+interface BankAccount {
   id: string;
   bankName: string;
 }
@@ -27,7 +32,7 @@ interface BankAccount{
 interface PaymentMethod {
   id: string;
   name: string;
-  bankAccount: BankAccount
+  bankAccount: BankAccount;
 }
 interface Service {
   id: string;
@@ -36,10 +41,9 @@ interface Service {
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
-  paymentMethodId: string
-  paymentMethod: PaymentMethod
+  paymentMethodId: string;
+  paymentMethod: PaymentMethod;
 }
-
 
 interface CardDataProps {
   selectedService: Service | null;
@@ -49,22 +53,28 @@ interface CardDataProps {
   paymentMethods: PaymentMethod[];
 }
 
-export function CardData({ selectedService, servicesTypes, setSelectedService, getServices, paymentMethods }: CardDataProps) {
+export function CardData({
+  selectedService,
+  servicesTypes,
+  setSelectedService,
+  getServices,
+  paymentMethods,
+}: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
-  const [isLoading, setIsLoading] = useState(false)
-  const [paymentMethodsToSelect, setPaymentMethodsToSelect] = useState<PaymentMethod[]>([])
-  
-  useEffect(()=> {
-    console.log(selectedService)
-  },[selectedService])
+  const [isLoading, setIsLoading] = useState(false);
+  const [paymentMethodsToSelect, setPaymentMethodsToSelect] = useState<
+    PaymentMethod[]
+  >([]);
+
+  useEffect(() => {
+    console.log(selectedService);
+  }, [selectedService]);
 
   useEffect(() => {
     if (selectedService) {
       setSelectedTypes(selectedService.servicesTypes);
     }
   }, [selectedService]);
-
-
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -76,37 +86,48 @@ export function CardData({ selectedService, servicesTypes, setSelectedService, g
   const handleChangeSelect = (selectedType: Type, newTypeId: string) => {
     if (selectedType.id === newTypeId) return;
 
-    const newType = servicesTypes.find(type => type.id === newTypeId);
+    const newType = servicesTypes.find((type) => type.id === newTypeId);
     if (!newType) return;
 
-    setSelectedTypes(prevTypes =>
-      prevTypes.map(type => (type.id === selectedType.id ? newType : type))
+    setSelectedTypes((prevTypes) =>
+      prevTypes.map((type) => (type.id === selectedType.id ? newType : type))
     );
 
     if (selectedService) {
-      const updatedTypes = selectedTypes.map(type => (type.id === selectedType.id ? newType : type))
-      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0)
+      const updatedTypes = selectedTypes.map((type) =>
+        type.id === selectedType.id ? newType : type
+      );
+      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0);
       setSelectedService({
         ...selectedService,
         servicesTypes: updatedTypes,
-        value: value
+        value: value,
       });
     }
   };
 
-  const handleChangePayentMethod = (paymentId : string) => {
-    if(!paymentId) return;
-    const selectedPaymentMethod = paymentMethods.find((paymentMethod) => paymentMethod.id ===  paymentId)
-    if(!selectedPaymentMethod) return;
+  const handleChangePayentMethod = (paymentId: string) => {
+    if (!paymentId) return;
 
-    if(selectedService){
-      setSelectedService({
-        ...selectedService,
-        paymentMethod: selectedPaymentMethod,
-      });
-    }
-   }
+    const selectedPaymentMethod = paymentMethods.find(
+      (paymentMethod) => paymentMethod.id === paymentId
+    );
 
+    if (!selectedPaymentMethod || !selectedService) return;
+
+    setSelectedService({
+      ...selectedService,
+      paymentMethod: selectedPaymentMethod,
+      paymentMethodId: selectedPaymentMethod.id,
+    });
+
+    // Atualiza a lista de métodos de pagamento disponíveis sem o selecionado
+    setPaymentMethodsToSelect(
+      paymentMethods.filter(
+        (payment) => payment.id !== selectedPaymentMethod.id
+      )
+    );
+  };
 
   const handleAddEmptyType = () => {
     const emptyType: Type = {
@@ -114,50 +135,49 @@ export function CardData({ selectedService, servicesTypes, setSelectedService, g
       name: "Novo Serviço",
       value: 0,
     };
-  
-    setSelectedTypes(prev => [...prev, emptyType]);
+
+    setSelectedTypes((prev) => [...prev, emptyType]);
   };
 
   const handleRemoveType = (id: string) => {
-    
-    setSelectedTypes(prev => prev.filter(type => type.id !== id));
+    setSelectedTypes((prev) => prev.filter((type) => type.id !== id));
 
-    if(selectedService) {
-      const updatedTypes = selectedTypes.filter(type => type.id !== id)
-      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0)
+    if (selectedService) {
+      const updatedTypes = selectedTypes.filter((type) => type.id !== id);
+      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0);
 
       setSelectedService({
         ...selectedService,
-      servicesTypes: updatedTypes,
-      value: value
-      })
+        servicesTypes: updatedTypes,
+        value: value,
+      });
     }
   };
 
-  const handleUpdateService = async () => { 
+  const handleUpdateService = async () => {
     try {
-      setIsLoading(true)
-      const response = await axios.post("/api/updateService",{
-        selectedService
-      })
+      setIsLoading(true);
+      const response = await axios.post("/api/updateService", {
+        selectedService,
+      });
 
-    console.log(response)   
-    getServices() 
+      console.log(response);
+      getServices();
 
-      setIsLoading(false)
+      setIsLoading(false);
     } catch (error) {
-      console.log(error)
-      setIsLoading(false)
-      
+      console.log(error);
+      setIsLoading(false);
     }
-  }
+  };
 
-  useEffect(()=> {
-    const filteredPayments = paymentMethods.filter(paymentMethod => paymentMethod.id !== selectedService?.paymentMethod.id)
-    setPaymentMethodsToSelect(filteredPayments)
-  },[paymentMethods])
+  useEffect(() => {
+    const filteredPayments = paymentMethods.filter(
+      (paymentMethod) => paymentMethod.id !== selectedService?.paymentMethod.id
+    );
+    setPaymentMethodsToSelect(filteredPayments);
+  }, [paymentMethods]);
 
-   
   return (
     <div className="flex flex-col gap-4">
       <Label className="pb-1">Serviços realizados:</Label>
@@ -201,12 +221,19 @@ export function CardData({ selectedService, servicesTypes, setSelectedService, g
           <Plus />
         </Button>
       </div>
-      <Select  onValueChange={(paymentId) => handleChangePayentMethod(paymentId)}>
+
+      <Select
+        onValueChange={(paymentId) => handleChangePayentMethod(paymentId)}
+      >
         <SelectTrigger>
-          <SelectValue placeholder={selectedService?.paymentMethod.name} />
+          <SelectValue placeholder={`${selectedService?.paymentMethod?.name} - ${selectedService?.paymentMethod?.bankAccount.bankName}`}>
+            {selectedService?.paymentMethod?.name
+              ? `${selectedService.paymentMethod.name} - ${selectedService.paymentMethod.bankAccount.bankName}`
+              : "Escolha uma forma de pagamento"}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {paymentMethodsToSelect.map((paymentMethod) => (
+          {paymentMethods.map((paymentMethod) => (
             <SelectItem
               className="hover:cursor-pointer"
               key={paymentMethod.id}
