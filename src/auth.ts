@@ -38,6 +38,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         } 
 
+        if(!user.active){
+          return null
+        }
+
 
         if(credentials.password !== user.password){
           return null

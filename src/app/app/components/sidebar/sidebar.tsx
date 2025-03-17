@@ -35,6 +35,7 @@ export function Sidebar({ open, onClose, isMobile }: SidebarProps) {
         <DollarSign className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Financeiro</span>
       </Link>
+      
       <Link
         href="/app/users"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
