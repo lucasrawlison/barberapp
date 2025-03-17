@@ -62,9 +62,6 @@ export function CardData({
 }: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [paymentMethodsToSelect, setPaymentMethodsToSelect] = useState<
-    PaymentMethod[]
-  >([]);
 
   useEffect(() => {
     console.log(selectedService);
@@ -121,12 +118,6 @@ export function CardData({
       paymentMethodId: selectedPaymentMethod.id,
     });
 
-    // Atualiza a lista de métodos de pagamento disponíveis sem o selecionado
-    setPaymentMethodsToSelect(
-      paymentMethods.filter(
-        (payment) => payment.id !== selectedPaymentMethod.id
-      )
-    );
   };
 
   const handleAddEmptyType = () => {
@@ -171,12 +162,7 @@ export function CardData({
     }
   };
 
-  useEffect(() => {
-    const filteredPayments = paymentMethods.filter(
-      (paymentMethod) => paymentMethod.id !== selectedService?.paymentMethod.id
-    );
-    setPaymentMethodsToSelect(filteredPayments);
-  }, [paymentMethods]);
+
 
   return (
     <div className="flex flex-col gap-4">

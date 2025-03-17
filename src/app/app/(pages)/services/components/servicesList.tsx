@@ -147,7 +147,7 @@ export function ServicesList() {
   }, [session?.user?.id]);
 
   useEffect(() => {
-    getServices()
+    getServices();
   },[date])
 
   const [currentPage, setCurrentPage] = React.useState(1)
