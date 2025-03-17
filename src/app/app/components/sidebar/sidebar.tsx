@@ -1,14 +1,22 @@
-import { Home, CheckSquare, Settings, Users, DollarSign } from "lucide-react"
+import { Home, CheckSquare, Settings, Users, DollarSign, CircleUserRound } from "lucide-react"
 import Link from "next/link"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 
+interface User {
+  id: string,
+  name: string,
+  email: string,
+  profileType: string,
+}
 interface SidebarProps {
   open: boolean
   onClose: () => void
   isMobile: boolean
+  user: User | undefined
 }
 
-export function Sidebar({ open, onClose, isMobile }: SidebarProps) {
+
+export function Sidebar({ open, onClose, isMobile, user }: SidebarProps) {
   const sidebarContent = (
     <nav className="flex flex-col py-4">
       <Link
@@ -27,6 +35,7 @@ export function Sidebar({ open, onClose, isMobile }: SidebarProps) {
         <CheckSquare className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Serviços</span>
       </Link>
+      {user?.profileType === "admin" && (
       <Link
         href="/app/financial"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
@@ -36,14 +45,27 @@ export function Sidebar({ open, onClose, isMobile }: SidebarProps) {
         <span className="text-sm font-medium">Financeiro</span>
       </Link>
 
+      )}
+
+      <Link
+        href="/app/customers"
+        className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
+        onClick={isMobile ? onClose : undefined}
+      >
+        <Users className="h-5 w-5 mr-3" />
+        <span className="text-sm font-medium">Clientes</span>
+      </Link>
+      {user?.profileType === "admin" && (
+
       <Link
         href="/app/users"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
         onClick={isMobile ? onClose : undefined}
       >
-        <Users className="h-5 w-5 mr-3" />
+        <CircleUserRound className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Usuários</span>
       </Link>
+      )}
       <Link
         href="/app/settings"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"

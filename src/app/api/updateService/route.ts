@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log(body)
+    // console.log(body)
     const { selectedService } = body;   
      
     if (!selectedService) {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         }
     });
 
-    console.log(service)
+    // console.log(service)
 
     if (service) {
       return NextResponse.json(

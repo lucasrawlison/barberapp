@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("ESTE É O BODY--------------------------: ", body)
+    // console.log("ESTE É O BODY--------------------------: ", body)
     const { value, userId, selectedServices, paymentMethodId } = body;
     const randomCode = Math.floor(Math.random() * 1000000); // Gera código único
     
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
         },
     });
 
-    console.log(service)
+    // console.log(service)
 
     if (service) {
       return NextResponse.json(

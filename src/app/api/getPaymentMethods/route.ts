@@ -12,7 +12,7 @@ export async function POST() {
       }
     });
 
-    console.log(paymentMethods)
+    // console.log(paymentMethods)
 
     if (paymentMethods) {
       return NextResponse.json(

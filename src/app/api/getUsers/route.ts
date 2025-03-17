@@ -12,7 +12,7 @@ export async function POST() {
       }
     });
 
-    console.log(users)
+    // console.log(users)
 
     if (users) {
       return NextResponse.json(

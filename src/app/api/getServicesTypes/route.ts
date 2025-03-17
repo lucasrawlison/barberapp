@@ -9,7 +9,7 @@ export async function POST() {
     const servicesTypes = await prisma.servicesTypes.findMany({
     });
 
-    console.log(servicesTypes)
+    // console.log(servicesTypes)
 
     if (servicesTypes) {
       return NextResponse.json(

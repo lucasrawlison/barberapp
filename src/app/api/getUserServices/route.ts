@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("Este é o body: ", body);
+    // console.log("Este é o body: ", body);
 
     const { userId, date } = body;
 
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         const finalDate = new Date(date);
         finalDate.setUTCHours(23, 59, 59, 999);
 
-        console.log(startDate, finalDate);
+        // console.log(startDate, finalDate);
 
         const services = await prisma.service.findMany({
           where: {
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
         const finalDate = new Date(date);
         finalDate.setUTCHours(23, 59, 59, 999);
 
-        console.log(startDate, finalDate);
+        // console.log(startDate, finalDate);
         const services = await prisma.service.findMany({
           where: {
             AND: [
