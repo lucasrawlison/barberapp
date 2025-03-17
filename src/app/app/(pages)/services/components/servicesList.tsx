@@ -124,11 +124,27 @@ export function ServicesList() {
   }
   
   useEffect(() => {
-    if (!session?.user?.id) return
-    getPaymentMethods();
-    getServices();
-    getServicesTypes();
-  }, [session?.user?.id])
+    setIsLoading(true);
+    
+    if (!session?.user?.id) {
+      setIsLoading(false);
+      return;
+    }
+    
+    const fetchData = async () => {
+      try {
+        await getPaymentMethods();
+        await getServices();
+        await getServicesTypes();
+      } catch (error) {
+      console.log("Erro ao carregar dados iniciais", error)
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [session?.user?.id]);
 
   useEffect(() => {
     getServices()
