@@ -35,7 +35,7 @@ export function Sidebar({ open, onClose, isMobile }: SidebarProps) {
         <DollarSign className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Financeiro</span>
       </Link>
-      
+
       <Link
         href="/app/users"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
@@ -72,10 +72,8 @@ export function Sidebar({ open, onClose, isMobile }: SidebarProps) {
   }
 
   return (
-    <div className={`bg-white w-64 min-h-screen flex-shrink-0 ${open ? "" : "hidden"} md:block`}>
-      <div className="flex justify-center items-center h-16 border-b">
-        <h2 className="text-2xl font-semibold">Agile Barber</h2>
-      </div>
+    <div className={`border-r-2 bg-white w-64 min-h-screen flex-shrink-0 ${open ? "" : "hidden"} md:block`}>
+      
       {sidebarContent}
     </div>
   )
