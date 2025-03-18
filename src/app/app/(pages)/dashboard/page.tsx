@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {  List, Settings } from "lucide-react";
+import {  List, Settings, Users } from "lucide-react";
 import { QuickRegister } from "./components/quickRegister/quickRegister";
 import Link from "next/link";
 
@@ -14,6 +14,12 @@ export default function Dashboard(){
             link: "/app/services",
             image: <List className="text-red-800"/>
             
+          },
+          {
+            name: "Clientes",
+            description: "Cadastro e visualização de Clientes",
+            link: "/app/customers",
+            image: <Users className="text-green-800"/>
           },
           {
             name: "Configurações",

@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     // console.log("ESTE É O BODY--------------------------: ", body)
-    const { value, userId, selectedServices, paymentMethodId } = body;
+    const { value, userId, selectedServices, paymentMethodId, customer } = body;
     const randomCode = Math.floor(Math.random() * 1000000); // Gera código único
     
     if (!value || !userId || !selectedServices) {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     
     const service = await prisma.service.create({
         data: {
-            value, userId, servicesTypes: selectedServices, code: randomCode, paymentMethodId,
+            value, userId, servicesTypes: selectedServices, code: randomCode, paymentMethodId, customerId: customer ? customer.id : undefined,
             transactions: {
               create: {
                 value, paymentMethodId, description: `Serviço de código ${randomCode}`, userId, type: "Receita", category: "Serviço"

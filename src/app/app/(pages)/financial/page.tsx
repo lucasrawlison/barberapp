@@ -23,6 +23,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import axios from "axios"
 import { useSession } from "next-auth/react"
+import {NewTransaction} from "./components/newTransaction"
+import { AllTransactions } from "./components/allTransactions"
+import { Reports } from "./components/reports"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Sample data for charts and tables
 const revenueData = [
@@ -122,66 +126,8 @@ export default function FinancialDashboard() {
         <div className="flex items-center">
           <h1 className="text-lg font-semibold md:text-2xl">Financeiro</h1>
           <div className="ml-auto flex items-center gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova transação
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar nova transação</DialogTitle>
-                  <DialogDescription>Insira os detalhes da nova transação abaixo.</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="transaction-type">Tipo de transação</Label>
-                    <RadioGroup defaultValue="income" id="transaction-type">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="income" id="income" />
-                        <Label htmlFor="income">Receita</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="expense" id="expense" />
-                        <Label htmlFor="expense">Despesa</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Descrição</Label>
-                    <Input id="description" placeholder="Enter transaction description" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="amount">Quantidade</Label>
-                    <Input id="amount" placeholder="0.00" type="number" step="0.01" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="date">Data</Label>
-                    <Input id="date" type="date" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="category">Categoria</Label>
-                    <Select>
-                      <SelectTrigger id="category">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="services">Serviço</SelectItem>
-                        <SelectItem value="products">Produto</SelectItem>
-                        <SelectItem value="rent">Aluguel</SelectItem>
-                        <SelectItem value="utilities">Utilidades</SelectItem>
-                        <SelectItem value="supplies">Suprimentos</SelectItem>
-                        <SelectItem value="other">Outros</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="submit">Salvar transação</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <NewTransaction />
+
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Export
@@ -229,32 +175,77 @@ export default function FinancialDashboard() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Receita total</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Receita total
+                  </CardTitle>
                   <TrendingUp className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${income.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">+12% que o último mês</p>
+                  <div className="text-2xl font-bold">
+                    {income ? (
+                      "R$ " + income.toFixed(2)
+                    ) : (
+                      <Skeleton key={1} className="w-52 h-4 mb-4" />
+                    )}
+                  </div>
+                  {income ? (
+                    <p className="text-xs text-muted-foreground">
+                      {" "}
+                      + 12% que o último mês{" "}
+                    </p>
+                  ) : (
+                    <Skeleton key={2} className="w-52 h-2 mb-4" />
+                  )}
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Despesa total</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Despesa total
+                  </CardTitle>
                   <TrendingDown className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${expense.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">+2% que o último mês</p>
+                  <div className="text-2xl font-bold">
+                    {expense ? (
+                      "R$ " + expense.toFixed(2)
+                    ) : (
+                      <Skeleton key={1} className="w-52 h-4 mb-4" />
+                    )}
+                  </div>
+
+                  {expense ? (
+                    <p className="text-xs text-muted-foreground">
+                      + 12% que o último mês"
+                    </p>
+                  ) : (
+                    <Skeleton key={2} className="w-52 h-2 mb-4" />
+                  )}
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Renda Líquida</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Renda Líquida
+                  </CardTitle>
                   <DollarSign className="h-4 w-4 text-blue-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${profit.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">+18% que o último mês</p>
+                  <div className="text-2xl font-bold">
+                    {profit ? (
+                      "R$ " + profit.toFixed(2)
+                    ) : (
+                      <Skeleton key={1} className="w-52 h-4 mb-4" />
+                    )}
+                  </div>
+
+                  {profit ? (
+                    <p className="text-xs text-muted-foreground">
+                      + 12% que o último mês
+                    </p>
+                  ) : (
+                    <Skeleton key={2} className="w-52 h-2 mb-4" />
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -287,7 +278,11 @@ export default function FinancialDashboard() {
                       <XAxis dataKey="month" />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
+                      <Bar
+                        dataKey="revenue"
+                        fill="var(--color-revenue)"
+                        radius={[4, 4, 0, 0]}
+                      />
                     </RechartsBarChart>
                   </ChartContainer>
                 </CardContent>
@@ -320,253 +315,46 @@ export default function FinancialDashboard() {
                       <XAxis dataKey="month" />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
+                      <Bar
+                        dataKey="expenses"
+                        fill="var(--color-expenses)"
+                        radius={[4, 4, 0, 0]}
+                      />
                     </RechartsBarChart>
                   </ChartContainer>
                 </CardContent>
               </Card>
             </div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Transações recentes</CardTitle>
-                <CardDescription>Sua atividade financeira mais recente</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead className="text-right">Quantidade</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {transactions.slice(0, 5).map((transaction) => (
-                      <TableRow key={transaction.id}>
-                        <TableCell>{transaction.date}</TableCell>
-                        <TableCell>{transaction.description}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              transaction.type === "Receita"
-                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                            }`}
-                          >
-                            {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span
-                            className={
-                              transaction.type === "Receita"
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                            }
-                          >
-                            {transaction.type === "Receita" ? "+" : "-"}${transaction.value.toFixed(2)}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full" onClick={() => setActiveTab("transactions")}>
-                  Ver todas as transações
-                </Button>
-              </CardFooter>
-            </Card>
           </div>
         )}
 
         {activeTab === "transactions" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Todas as Transações</CardTitle>
-              <CardDescription>Lista completa de todas as suas transações financeiras</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap items-center gap-4 mb-4">
-                <Input placeholder="Search transactions..." className="max-w-sm" />
-                <Select defaultValue="all">
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as transações</SelectItem>
-                    <SelectItem value="income">Apenas receitas</SelectItem>
-                    <SelectItem value="expense">Apenas despesa</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select defaultValue="newest">
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Novos primeiro</SelectItem>
-                    <SelectItem value="oldest">Antigos primeiro</SelectItem>
-                    <SelectItem value="highest">Maiores</SelectItem>
-                    <SelectItem value="lowest">Menores</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Quantidade</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell>{transaction.date}</TableCell>
-                      <TableCell>{transaction.description}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            transaction.type === "Receita"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                          }`}
-                        >
-                          {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <span
-                          className={
-                            transaction.type === "Receita"
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                          }
-                        >
-                          {transaction.type === "income" ? "+" : "-"}${transaction.value.toFixed(2)}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" disabled>
-                Anterior
-              </Button>
-              <Button variant="outline">Próximo</Button>
-            </CardFooter>
-          </Card>
+          <AllTransactions transactions={transactions} />
         )}
 
-        {activeTab === "reports" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Relatórios financeiros</CardTitle>
-              <CardDescription>Gere e visualize relatórios gerais de finanças</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="report-type">Tipo de relatório</Label>
-                  <Select defaultValue="income-expense">
-                    <SelectTrigger id="report-type">
-                      <SelectValue placeholder="Select report type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="income-expense">Income vs Expenses</SelectItem>
-                      <SelectItem value="profit-loss">Profit & Loss</SelectItem>
-                      <SelectItem value="service-revenue">Service Revenue</SelectItem>
-                      <SelectItem value="expense-categories">Expense Categories</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="time-period">Time Period</Label>
-                  <Select defaultValue="this-month">
-                    <SelectTrigger id="time-period">
-                      <SelectValue placeholder="Select time period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="this-week">This Week</SelectItem>
-                      <SelectItem value="this-month">This Month</SelectItem>
-                      <SelectItem value="last-month">Last Month</SelectItem>
-                      <SelectItem value="this-quarter">This Quarter</SelectItem>
-                      <SelectItem value="this-year">This Year</SelectItem>
-                      <SelectItem value="custom">Custom Range</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="mt-6">
-                <Button>Generate Report</Button>
-              </div>
-              <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Saved Reports</h3>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Report Name</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Date Generated</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Monthly Income Report - March 2023</TableCell>
-                      <TableCell>Income vs Expenses</TableCell>
-                      <TableCell>2023-04-01</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          View
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          Download
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Q1 Profit & Loss</TableCell>
-                      <TableCell>Profit & Loss</TableCell>
-                      <TableCell>2023-04-05</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          View
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          Download
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {activeTab === "reports" && <Reports />}
 
         {activeTab === "calendar" && (
           <Card>
             <CardHeader>
               <CardTitle>Financial Calendar</CardTitle>
-              <CardDescription>View scheduled transactions and financial events</CardDescription>
+              <CardDescription>
+                View scheduled transactions and financial events
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center p-8">
                 <Calendar className="mx-auto h-16 w-16 text-muted-foreground" />
                 <h3 className="mt-4 text-lg font-medium">Calendar View</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Calendar functionality would be implemented here</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Calendar functionality would be implemented here
+                </p>
               </div>
             </CardContent>
           </Card>
         )}
       </main>
     </div>
-  )
+  );
 }
 
