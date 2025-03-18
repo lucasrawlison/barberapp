@@ -1,26 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BarChart, Calendar, CreditCard, DollarSign, Download, Plus, TrendingDown, TrendingUp } from "lucide-react"
+import { BarChart, Calendar, CreditCard, DollarSign, Download, TrendingDown, TrendingUp } from "lucide-react"
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import axios from "axios"
 import { useSession } from "next-auth/react"
 import {NewTransaction} from "./components/newTransaction"
@@ -57,7 +43,7 @@ interface Transactions {
 
 export default function FinancialDashboard() {
   const {data: session} = useSession(); 
-  const [isLoading, setIsLoading] = useState(false)
+  const [, setIsLoading] = useState(false)
   const [transactions, setTransactions] = useState<Transactions[]>([])
   const [activeTab, setActiveTab] = useState("overview")
   const [expense, setExpense] = useState(0)
@@ -105,7 +91,7 @@ export default function FinancialDashboard() {
     }
 
     fetchTransactions();
-  },[])
+  },[session?.user?.id])
 
 
   useEffect(() => {
@@ -216,7 +202,7 @@ export default function FinancialDashboard() {
 
                   {expense ? (
                     <p className="text-xs text-muted-foreground">
-                      + 12% que o último mês"
+                      + 12% que o último mês
                     </p>
                   ) : (
                     <Skeleton key={2} className="w-52 h-2 mb-4" />

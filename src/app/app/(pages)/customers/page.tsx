@@ -154,6 +154,11 @@ export default function ClientesDashboard() {
               </div>
             </CardHeader>
             <CardContent className="px-0">
+            {isLoading && (
+          <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+            <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+          </div>
+        )}
               <div className="overflow-auto">
                 <Table className="text-center">
                   <TableHeader>
