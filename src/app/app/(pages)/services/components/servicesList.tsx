@@ -254,7 +254,7 @@ export function ServicesList() {
             <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
           </div>
         )}
-        <Table>
+        <Table className=" portrait:text-[10px] sm:text-[12px]  md:text-[14px]">
           <TableHeader>
             <TableRow>
               <TableHead className=" text-center">Código</TableHead>

@@ -14,46 +14,63 @@ model ServicesTypes {
 }
 
 model Service {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  code          Int      @unique
-  value         Float
-  servicesTypes Json
-  createdAt     DateTime @default(now())
-  userId        String   @db.ObjectId
-  user          User     @relation(fields: [userId], references: [id])
-  paymentMethodId String @db.ObjectId
-  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  code            Int            @unique
+  value           Float
+  servicesTypes   Json
+  createdAt       DateTime       @default(now())
+  userId          String         @db.ObjectId
+  user            User           @relation(fields: [userId], references: [id])
+  paymentMethodId String         @db.ObjectId
+  paymentMethod   PaymentMethod  @relation(fields: [paymentMethodId], references: [id])
+  transactions    Transactions[]
 }
 
 model User {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  active         Boolean   @default(true)
-  email          String    @unique
-  login          String    @unique
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  active         Boolean        @default(true)
+  email          String         @unique
+  login          String         @unique
   name           String
   password       String
   /// Could not determine type: the field only had null or empty values in the sample set.
   profileImgLink String?
   services       Service[]
-  profileType    String    @default("admin")
+  profileType    String         @default("admin")
+  transactions   Transactions[]
 }
 
-
 model BankAccount {
-  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
   bankName       String
   agency         String?
   accountNumber  String?
   accountType    String?
   accountOwner   String?
   pyamentMethods PaymentMethod[]
-
 }
 
 model PaymentMethod {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-  bankId String @db.ObjectId
-  bankAccount BankAccount @relation(fields: [bankId], references: [id])
-  services Service[]
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  bankId       String         @db.ObjectId
+  bankAccount  BankAccount    @relation(fields: [bankId], references: [id])
+  services     Service[]
+  transactions Transactions[]
+}
+
+model Transactions {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  description     String
+  value           Float
+  date            DateTime      @default(now())
+  serviceId       String?       @db.ObjectId
+  service         Service?      @relation(fields: [serviceId], references: [id])
+  paymentMethodId String        @db.ObjectId
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  category            String
+  type                String
+  userId          String        @db.ObjectId
+  user            User          @relation(fields: [userId], references: [id])
+
 }

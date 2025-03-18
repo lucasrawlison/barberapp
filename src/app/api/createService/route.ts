@@ -19,7 +19,12 @@ export async function POST(req: NextRequest) {
     
     const service = await prisma.service.create({
         data: {
-            value, userId, servicesTypes: selectedServices, code: randomCode, paymentMethodId
+            value, userId, servicesTypes: selectedServices, code: randomCode, paymentMethodId,
+            transactions: {
+              create: {
+                value, paymentMethodId, description: `Serviço de código ${randomCode}`, userId, type: "Receita", category: "Serviço"
+              }
+            }
         },
     });
 

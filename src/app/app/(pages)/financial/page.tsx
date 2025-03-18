@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { BarChart, Calendar, CreditCard, DollarSign, Download, Plus, TrendingDown, TrendingUp } from "lucide-react"
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
@@ -21,6 +21,8 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import axios from "axios"
+import { useSession } from "next-auth/react"
 
 // Sample data for charts and tables
 const revenueData = [
@@ -41,94 +43,142 @@ const expenseData = [
   { month: "Jun", expenses: 2100 },
 ]
 
-const transactionHistory = [
-  { id: 1, date: "2023-03-15", description: "Haircut - Client #1042", amount: 35.0, type: "income" },
-  { id: 2, date: "2023-03-15", description: "Hair products purchase", amount: 120.5, type: "expense" },
-  { id: 3, date: "2023-03-14", description: "Beard trim - Client #1039", amount: 15.0, type: "income" },
-  { id: 4, date: "2023-03-14", description: "Utility bill payment", amount: 85.3, type: "expense" },
-  { id: 5, date: "2023-03-13", description: "Full service - Client #1036", amount: 75.0, type: "income" },
-  { id: 6, date: "2023-03-12", description: "Equipment maintenance", amount: 45.0, type: "expense" },
-  { id: 7, date: "2023-03-12", description: "Haircut & color - Client #1033", amount: 95.0, type: "income" },
-  { id: 8, date: "2023-03-11", description: "Rent payment", amount: 800.0, type: "expense" },
-]
+interface Transactions {
+  id: string,
+  description: string,
+  value: number,
+  date: string,
+  type: string,
+}
 
 export default function FinancialDashboard() {
+  const {data: session} = useSession(); 
+  const [isLoading, setIsLoading] = useState(false)
+  const [transactions, setTransactions] = useState<Transactions[]>([])
   const [activeTab, setActiveTab] = useState("overview")
+  const [expense, setExpense] = useState(0)
+  const [income, setIncome] = useState(0)
+  const [profit, setProfit] = useState(0)
 
-  // Calculate summary data
-  const totalIncome = transactionHistory
-    .filter((t) => t.type === "income")
-    .reduce((sum, transaction) => sum + transaction.amount, 0)
+  const calculate = () => {
+    if(!transactions) return
 
-  const totalExpenses = transactionHistory
-    .filter((t) => t.type === "expense")
-    .reduce((sum, transaction) => sum + transaction.amount, 0)
+    
+    const totalIncome = transactions
+      .filter((t) => t.type === "Receita")
+      .reduce((sum, transaction) => sum + transaction.value, 0)
 
-  const netProfit = totalIncome - totalExpenses
+    setIncome(totalIncome)
+
+
+  
+    const totalExpenses = transactions
+      .filter((t) => t.type === "Despesa")
+      .reduce((sum, transaction) => sum + transaction.value, 0)
+
+    setExpense(totalExpenses)
+  
+    setProfit(totalIncome - totalExpenses)
+  }
+
+  useEffect(()=> {
+    const fetchTransactions = async () => {
+      try {
+        setIsLoading(true)
+        const response = await axios.post("/api/getTransactions", {
+          id: session?.user?.id
+        })
+        
+        if(response){
+          setTransactions(response.data.transactions)
+          // setIsLoading(false)
+        }
+        } catch (error) {
+        console.log(error)
+        setIsLoading(false)
+        
+      }
+    }
+
+    fetchTransactions();
+  },[])
+
+
+  useEffect(() => {
+    calculate();
+    setIsLoading(false)
+  }, [transactions])
+
+
+  
+
+
+
+
 
   return (
     <div className="flex flex-col bg-background overflow-auto">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
         <div className="flex items-center">
-          <h1 className="text-lg font-semibold md:text-2xl">Financial Dashboard</h1>
+          <h1 className="text-lg font-semibold md:text-2xl">Financeiro</h1>
           <div className="ml-auto flex items-center gap-2">
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
-                  New Transaction
+                  Nova transação
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add New Transaction</DialogTitle>
-                  <DialogDescription>Enter the details of the new transaction below.</DialogDescription>
+                  <DialogTitle>Adicionar nova transação</DialogTitle>
+                  <DialogDescription>Insira os detalhes da nova transação abaixo.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="transaction-type">Transaction Type</Label>
+                    <Label htmlFor="transaction-type">Tipo de transação</Label>
                     <RadioGroup defaultValue="income" id="transaction-type">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="income" id="income" />
-                        <Label htmlFor="income">Income</Label>
+                        <Label htmlFor="income">Receita</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="expense" id="expense" />
-                        <Label htmlFor="expense">Expense</Label>
+                        <Label htmlFor="expense">Despesa</Label>
                       </div>
                     </RadioGroup>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">Descrição</Label>
                     <Input id="description" placeholder="Enter transaction description" />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="amount">Amount</Label>
+                    <Label htmlFor="amount">Quantidade</Label>
                     <Input id="amount" placeholder="0.00" type="number" step="0.01" />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
+                    <Label htmlFor="date">Data</Label>
                     <Input id="date" type="date" />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category">Categoria</Label>
                     <Select>
                       <SelectTrigger id="category">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="services">Services</SelectItem>
-                        <SelectItem value="products">Products</SelectItem>
-                        <SelectItem value="rent">Rent</SelectItem>
-                        <SelectItem value="utilities">Utilities</SelectItem>
-                        <SelectItem value="supplies">Supplies</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="services">Serviço</SelectItem>
+                        <SelectItem value="products">Produto</SelectItem>
+                        <SelectItem value="rent">Aluguel</SelectItem>
+                        <SelectItem value="utilities">Utilidades</SelectItem>
+                        <SelectItem value="supplies">Suprimentos</SelectItem>
+                        <SelectItem value="other">Outros</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Save Transaction</Button>
+                  <Button type="submit">Salvar transação</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -146,7 +196,7 @@ export default function FinancialDashboard() {
             className="flex items-center"
           >
             <DollarSign className="mr-2 h-4 w-4" />
-            Overview
+            Geral
           </Button>
           <Button
             variant={activeTab === "transactions" ? "default" : "outline"}
@@ -154,7 +204,7 @@ export default function FinancialDashboard() {
             className="flex items-center"
           >
             <CreditCard className="mr-2 h-4 w-4" />
-            Transactions
+            Transações
           </Button>
           <Button
             variant={activeTab === "reports" ? "default" : "outline"}
@@ -162,7 +212,7 @@ export default function FinancialDashboard() {
             className="flex items-center"
           >
             <BarChart className="mr-2 h-4 w-4" />
-            Reports
+            Relatórios
           </Button>
           <Button
             variant={activeTab === "calendar" ? "default" : "outline"}
@@ -170,7 +220,7 @@ export default function FinancialDashboard() {
             className="flex items-center"
           >
             <Calendar className="mr-2 h-4 w-4" />
-            Calendar
+            Calendário
           </Button>
         </div>
 
@@ -179,45 +229,45 @@ export default function FinancialDashboard() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                  <CardTitle className="text-sm font-medium">Receita total</CardTitle>
                   <TrendingUp className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${totalIncome.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">+12% from last month</p>
+                  <div className="text-2xl font-bold">${income.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">+12% que o último mês</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                  <CardTitle className="text-sm font-medium">Despesa total</CardTitle>
                   <TrendingDown className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${totalExpenses.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">+2% from last month</p>
+                  <div className="text-2xl font-bold">${expense.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">+2% que o último mês</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+                  <CardTitle className="text-sm font-medium">Renda Líquida</CardTitle>
                   <DollarSign className="h-4 w-4 text-blue-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${netProfit.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">+18% from last month</p>
+                  <div className="text-2xl font-bold">${profit.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">+18% que o último mês</p>
                 </CardContent>
               </Card>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Revenue Overview</CardTitle>
-                  <CardDescription>Monthly revenue for the current year</CardDescription>
+                  <CardTitle>Receita geral</CardTitle>
+                  <CardDescription>Receita mensal do ano</CardDescription>
                 </CardHeader>
                 <CardContent className="px-2">
                   <ChartContainer
                     config={{
-                      revenue: {
+                      Receita: {
                         label: "Revenue",
                         color: "hsl(var(--chart-1))",
                       },
@@ -244,8 +294,8 @@ export default function FinancialDashboard() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle>Expense Breakdown</CardTitle>
-                  <CardDescription>Monthly expenses for the current year</CardDescription>
+                  <CardTitle>Divisão de despesa</CardTitle>
+                  <CardDescription>Despesa mensal do ano</CardDescription>
                 </CardHeader>
                 <CardContent className="px-2">
                   <ChartContainer
@@ -278,28 +328,28 @@ export default function FinancialDashboard() {
             </div>
             <Card>
               <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
-                <CardDescription>Your most recent financial activities</CardDescription>
+                <CardTitle>Transações recentes</CardTitle>
+                <CardDescription>Sua atividade financeira mais recente</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead className="text-right">Quantidade</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {transactionHistory.slice(0, 5).map((transaction) => (
+                    {transactions.slice(0, 5).map((transaction) => (
                       <TableRow key={transaction.id}>
                         <TableCell>{transaction.date}</TableCell>
                         <TableCell>{transaction.description}</TableCell>
                         <TableCell>
                           <span
                             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              transaction.type === "income"
+                              transaction.type === "Receita"
                                 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                                 : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
                             }`}
@@ -310,12 +360,12 @@ export default function FinancialDashboard() {
                         <TableCell className="text-right">
                           <span
                             className={
-                              transaction.type === "income"
+                              transaction.type === "Receita"
                                 ? "text-green-600 dark:text-green-400"
                                 : "text-red-600 dark:text-red-400"
                             }
                           >
-                            {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
+                            {transaction.type === "Receita" ? "+" : "-"}${transaction.value.toFixed(2)}
                           </span>
                         </TableCell>
                       </TableRow>
@@ -325,7 +375,7 @@ export default function FinancialDashboard() {
               </CardContent>
               <CardFooter>
                 <Button variant="outline" className="w-full" onClick={() => setActiveTab("transactions")}>
-                  View All Transactions
+                  Ver todas as transações
                 </Button>
               </CardFooter>
             </Card>
@@ -335,8 +385,8 @@ export default function FinancialDashboard() {
         {activeTab === "transactions" && (
           <Card>
             <CardHeader>
-              <CardTitle>All Transactions</CardTitle>
-              <CardDescription>A complete list of all your financial transactions</CardDescription>
+              <CardTitle>Todas as Transações</CardTitle>
+              <CardDescription>Lista completa de todas as suas transações financeiras</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap items-center gap-4 mb-4">
@@ -346,9 +396,9 @@ export default function FinancialDashboard() {
                     <SelectValue placeholder="Filter by type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Transactions</SelectItem>
-                    <SelectItem value="income">Income Only</SelectItem>
-                    <SelectItem value="expense">Expenses Only</SelectItem>
+                    <SelectItem value="all">Todas as transações</SelectItem>
+                    <SelectItem value="income">Apenas receitas</SelectItem>
+                    <SelectItem value="expense">Apenas despesa</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select defaultValue="newest">
@@ -356,31 +406,31 @@ export default function FinancialDashboard() {
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="highest">Highest Amount</SelectItem>
-                    <SelectItem value="lowest">Lowest Amount</SelectItem>
+                    <SelectItem value="newest">Novos primeiro</SelectItem>
+                    <SelectItem value="oldest">Antigos primeiro</SelectItem>
+                    <SelectItem value="highest">Maiores</SelectItem>
+                    <SelectItem value="lowest">Menores</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="text-right">Quantidade</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactionHistory.map((transaction) => (
+                  {transactions.map((transaction) => (
                     <TableRow key={transaction.id}>
                       <TableCell>{transaction.date}</TableCell>
                       <TableCell>{transaction.description}</TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            transaction.type === "income"
+                            transaction.type === "Receita"
                               ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                               : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
                           }`}
@@ -391,12 +441,12 @@ export default function FinancialDashboard() {
                       <TableCell className="text-right">
                         <span
                           className={
-                            transaction.type === "income"
+                            transaction.type === "Receita"
                               ? "text-green-600 dark:text-green-400"
                               : "text-red-600 dark:text-red-400"
                           }
                         >
-                          {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
+                          {transaction.type === "income" ? "+" : "-"}${transaction.value.toFixed(2)}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -406,9 +456,9 @@ export default function FinancialDashboard() {
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button variant="outline" disabled>
-                Previous
+                Anterior
               </Button>
-              <Button variant="outline">Next</Button>
+              <Button variant="outline">Próximo</Button>
             </CardFooter>
           </Card>
         )}
@@ -416,13 +466,13 @@ export default function FinancialDashboard() {
         {activeTab === "reports" && (
           <Card>
             <CardHeader>
-              <CardTitle>Financial Reports</CardTitle>
-              <CardDescription>Generate and view detailed financial reports</CardDescription>
+              <CardTitle>Relatórios financeiros</CardTitle>
+              <CardDescription>Gere e visualize relatórios gerais de finanças</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="report-type">Report Type</Label>
+                  <Label htmlFor="report-type">Tipo de relatório</Label>
                   <Select defaultValue="income-expense">
                     <SelectTrigger id="report-type">
                       <SelectValue placeholder="Select report type" />
