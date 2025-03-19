@@ -1,13 +1,74 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { LoaderCircle, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import ValueInput from "./valueInput";
+import axios from "axios";
 
-export  function NewTransaction () {
-    
+interface Transaction {
+  description: string,
+  value: number,
+  date: string,
+  type: string,
+  category: string,
+}
+
+interface BankAccount {
+  id: string;
+  bankName: string;
+
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankAccount: BankAccount
+}
+
+interface NewTransactionProps {
+  newTransaction: Transaction
+  setNewTransaction: (value: Transaction) => void
+  paymentMethods: PaymentMethod[]
+}
+
+export  function NewTransaction ( {paymentMethods, newTransaction, setNewTransaction} : NewTransactionProps) {
+  const [isSaving, setIsSaving] = useState(false)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewTransaction({
+      ...newTransaction,
+      [name]: name === "value" ? parseFloat(value.replace(/[^\d,]/g, "").replace(",", ".")) || 0 : value,
+    });
+  };
+
+  
+  useEffect(() => {
+    console.log(newTransaction)
+  },[newTransaction])
+
+const handleSaveTransaction = async () => {
+  setIsSaving(true)
+  try {
+    const response = await axios.post("/api/createTransaction", {
+      newTransaction: newTransaction
+    }, {
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if(response){
+      console.log(response)
+      setIsSaving(false)
+    }
+  } catch (error) {
+    setIsSaving(false)
+  }
+}
     return (
       <Dialog>
         <DialogTrigger asChild>
@@ -23,54 +84,90 @@ export  function NewTransaction () {
               Insira os detalhes da nova transação abaixo.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="transaction-type">Tipo de transação</Label>
-              <RadioGroup defaultValue="income" id="transaction-type">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="income" id="income" />
-                  <Label htmlFor="income">Receita</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="expense" id="expense" />
-                  <Label htmlFor="expense">Despesa</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Input
-                id="description"
-                placeholder="Enter transaction description"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="amount">Quantidade</Label>
-              <Input id="amount" placeholder="0.00" type="number" step="0.01" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="date">Data</Label>
-              <Input id="date" type="date" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category">Categoria</Label>
-              <Select>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="services">Serviço</SelectItem>
-                  <SelectItem value="products">Produto</SelectItem>
-                  <SelectItem value="rent">Aluguel</SelectItem>
-                  <SelectItem value="utilities">Utilidades</SelectItem>
-                  <SelectItem value="supplies">Suprimentos</SelectItem>
-                  <SelectItem value="other">Outros</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <Label>Tipo de Transação</Label>
+          <Select
+            value={newTransaction.type}
+            name="type"
+            onValueChange={(value) =>
+              setNewTransaction({ ...newTransaction, type: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem className=" hover: cursor-pointer" value="Receita">
+                Receita
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Despesa">
+                Despesa
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Label>Descrição</Label>
+          <Input
+            placeholder="Deixe uma descrição para a transação"
+            type="text"
+            name="description"
+            value={newTransaction.description}
+            onChange={handleChange}
+          ></Input>
+          <Label>Valor</Label>
+          <ValueInput
+            setNewTransaction={setNewTransaction}
+            newTransaction={newTransaction}
+          />
+
+          <Label htmlFor="date">Date</Label>
+          <Input onChange={handleChange} name="date" id="date" type="date" />
+          <Label>Categoria</Label>
+          <Select
+            value={newTransaction.category}
+            name="category"
+            onValueChange={(value) =>
+              setNewTransaction({ ...newTransaction, category: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem className=" hover: cursor-pointer" value="Produto">
+                Produto
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Serviço">
+                Serviço
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Suprimentos">
+                Suprimentos
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Aluguel">
+                Aluguel
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Material">
+                Material
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Label>Método de pagamento</Label>
+          <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione"></SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {paymentMethods.map((paymentMethod)=> (
+
+              <SelectItem key={paymentMethod.id} className="hover: cursor-pointer" value={paymentMethod.name}>{paymentMethod.bankAccount.bankName + " - " + paymentMethod.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+
+
           <DialogFooter>
-            <Button type="submit">Salvar transação</Button>
+            <Button disabled={isSaving} className="w-[130px]" onClick={handleSaveTransaction} type="submit">{isSaving ? <LoaderCircle className=" animate-spin"/> : "Salvar transação"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

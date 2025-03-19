@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface Transaction {
-    id: string,
     date: string,
     description: string,
     type: string,
@@ -59,8 +58,8 @@ export function AllTransactions ({transactions} : allTransactionsProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
+                  {transactions.map((transaction, index=0) => (
+                    <TableRow key={index + 1}>
                       <TableCell>{transaction.date}</TableCell>
                       <TableCell>{transaction.description}</TableCell>
                       <TableCell>
