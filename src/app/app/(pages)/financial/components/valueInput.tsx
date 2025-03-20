@@ -8,9 +8,9 @@ interface Transaction {
   value: number,
   date: string,
   type: string,
-  category: string,
+  category: string
+  paymentMethodId: string
 }
-
 interface ValueInputProps {
   setNewTransaction : (value: Transaction) => void
   newTransaction: Transaction
@@ -99,6 +99,7 @@ export default function ValueInput({setNewTransaction, newTransaction} : ValueIn
         onKeyDown={handleKeyDown}
         className=""
         placeholder="R$ 0,00"
+        disabled={newTransaction.category==="Serviço"}
       />
   )
 }

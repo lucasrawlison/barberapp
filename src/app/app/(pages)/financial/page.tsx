@@ -1,107 +1,131 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import {  Calendar, CreditCard, DollarSign, Download } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import axios from "axios"
-import { useSession } from "next-auth/react"
-import {NewTransaction} from "./components/newTransaction"
-import { AllTransactions } from "./components/allTransactions"
-import { Reports } from "./components/reports"
-import { Overview } from "./components/overview"
+import { useEffect, useState } from "react";
+import { Calendar, CreditCard, DollarSign, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import axios from "axios";
+import { useSession } from "next-auth/react";
+import { NewTransaction } from "./components/newTransaction";
+import { AllTransactions } from "./components/allTransactions";
+import { Reports } from "./components/reports";
+import { Overview } from "./components/overview";
 
 // Sample data for charts and tables
 
 interface Transaction {
-  description: string,
-  value: number,
-  date: string,
-  type: string,
-  category: string
+  description: string;
+  value: number;
+  date: string;
+  type: string;
+  category: string;
+  paymentMethodId: string;
+}
+
+interface ServiceType {
+  id: string;
+  name: string;
+  value: number;
 }
 
 export default function FinancialDashboard() {
-  const {data: session} = useSession(); 
-  const [, setIsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState("overview")
-  const [expense, setExpense] = useState(0)
-  const [income, setIncome] = useState(0)
-  const [profit, setProfit] = useState(0)
-  const [paymentMethods, setPaymentMethods] = useState([])
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const { data: session } = useSession();
+  const [servicesTypes, setServicesTypes] = useState([]);
+
+  const [, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [expense, setExpense] = useState(0);
+  const [income, setIncome] = useState(0);
+  const [profit, setProfit] = useState(0);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [newTransaction, setNewTransaction] = useState<Transaction>({
     description: "",
     value: 0,
     date: "",
     type: "",
     category: "",
+    paymentMethodId: "",
   });
 
   const getPaymentMethods = async () => {
     try {
-      setIsLoading(true)
-      
+      setIsLoading(true);
+
       const response = await axios.post("/api/getPaymentMethods");
       const { paymentMethods } = response.data;
       setPaymentMethods(paymentMethods);
-      setIsLoading(false)
+      setIsLoading(false);
     } catch (error) {
-      console.log(error)
-      setIsLoading(false)
+      console.log(error);
+      setIsLoading(false);
     }
-  }
+  };
 
   const calculate = () => {
-    if(!transactions) return
+    if (!transactions) return;
 
-    
     const totalIncome = transactions
       .filter((t) => t.type === "Receita")
-      .reduce((sum, transaction) => sum + transaction.value, 0)
+      .reduce((sum, transaction) => sum + transaction.value, 0);
 
-    setIncome(totalIncome)
+    setIncome(totalIncome);
 
-
-  
     const totalExpenses = transactions
       .filter((t) => t.type === "Despesa")
-      .reduce((sum, transaction) => sum + transaction.value, 0)
+      .reduce((sum, transaction) => sum + transaction.value, 0);
 
-    setExpense(totalExpenses)
-  
-    setProfit(totalIncome - totalExpenses)
-  }
+    setExpense(totalExpenses);
 
-  useEffect(()=> {
-    const fetchTransactions = async () => {
-      try {
-        setIsLoading(true)
-        const response = await axios.post("/api/getTransactions", {
-          id: session?.user?.id
-        })
-        
-        if(response){
-          setTransactions(response.data.transactions)
-          // setIsLoading(false)
-        }
-        } catch (error) {
-        console.log(error)
-        setIsLoading(false)
-        
+    setProfit(totalIncome - totalExpenses);
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post("/api/getTransactions", {
+        id: session?.user?.id,
+      });
+
+      if (response) {
+        setTransactions(response.data.transactions);
+        // setIsLoading(false)
       }
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
     }
+  };
+
+  const getServicesTypes = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post("/api/getServicesTypes");
+      const { servicesTypes } = response.data;
+      setServicesTypes(servicesTypes);
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getServicesTypes();
     getPaymentMethods();
     fetchTransactions();
-  },[session?.user?.id])
-
+  }, [session?.user?.id]);
 
   useEffect(() => {
     calculate();
-    setIsLoading(false)
-  }, [transactions])
-
-
+    setIsLoading(false);
+  }, [transactions]);
 
   return (
     <div className="flex flex-col bg-background overflow-auto">
@@ -110,7 +134,9 @@ export default function FinancialDashboard() {
           <h1 className="text-lg font-semibold md:text-2xl">Financeiro</h1>
           <div className="ml-auto flex items-center gap-2">
             <NewTransaction
-            paymentMethods={paymentMethods}
+              servicesTypes={servicesTypes}
+              fetchTransactions={fetchTransactions}
+              paymentMethods={paymentMethods}
               newTransaction={newTransaction}
               setNewTransaction={setNewTransaction}
             />
@@ -190,4 +216,3 @@ export default function FinancialDashboard() {
     </div>
   );
 }
-
