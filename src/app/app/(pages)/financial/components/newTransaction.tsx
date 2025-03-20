@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LoaderCircle, Plus, Search, User, UserSearch } from "lucide-react";
+import { LoaderCircle, Minus, Plus, User, UserSearch } from "lucide-react";
 import { useEffect, useState } from "react";
 import ValueInput from "./valueInput";
 import axios from "axios";
@@ -77,11 +77,25 @@ export function NewTransaction({
 }: NewTransactionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { data: session } = useSession();
+  const [selects, setSelects] = useState<string[]>(["Selecione"])
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>();
   const [isLoadingUsers, setIsloadingUsers] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleAddSelect = () => {
+    setSelects((prev)=> [...prev, "Selecione"])
+  }
+  const handelRemoveSelect = (i: number) => {
+    setSelects((prev)=> prev.filter((_, index) => index !== i));
+  }
 
   const handleGetUsers = async () => {
+    if(!isOpen){
+      setIsOpen(true)
+    }
+
     setIsloadingUsers(true);
 
     try {
@@ -95,6 +109,8 @@ export function NewTransaction({
       console.log(error);
     }
   };
+
+  
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -126,7 +142,8 @@ export function NewTransaction({
         {
           newTransaction: newTransaction,
           userId: session?.user?.id,
-          selectedService,
+          selectedService: selects,
+          selectedUser
         },
         {
           headers: {
@@ -143,6 +160,15 @@ export function NewTransaction({
       setIsSaving(false);
     }
   };
+
+  const handleChangeUser = (
+    e: React.MouseEvent<HTMLDivElement>,
+    user: User
+  ) => {
+    console.log(user);
+    setSelectedUser(user)
+    setIsOpen(false)
+  };
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -151,7 +177,7 @@ export function NewTransaction({
           Nova transação
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-screen overflow-auto">
         <DialogHeader>
           <DialogTitle>Adicionar nova transação</DialogTitle>
           <DialogDescription>
@@ -232,33 +258,58 @@ export function NewTransaction({
         {newTransaction.category === "Serviço" && (
           <>
             <Label>Serviço</Label>
-            <Select onValueChange={(value) => setSelectedService(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o Serviço"></SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {servicesTypes.map((serviceType) => (
-                  <SelectItem
-                    className="hover:cursor-pointer"
-                    key={serviceType.id}
-                    value={serviceType.id}
-                  >
-                    {serviceType.name + " - " + formatPrice(serviceType.value)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {selects.map((select, i) => (
+              <div className="w-full flex flex-row items-center gap-3">
+                <Select
+                  key={i}
+                  onValueChange={(value) =>
+                    setSelects((prev) =>
+                      prev.map((s, index) => (index === i ? value : s))
+                    )
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={select} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {servicesTypes.map((serviceType) => (
+                      <SelectItem
+                        className="hover:cursor-pointer"
+                        key={serviceType.id}
+                        value={serviceType.name}
+                      >
+                        {serviceType.name +
+                          " - " +
+                          formatPrice(serviceType.value)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  className="rounded-full size-7 bg-red-700"
+                  onClick={() => handelRemoveSelect(i)}
+                >
+                  <Minus></Minus>
+                </Button>
+              </div>
+            ))}
+            <div className="flex w-full justify-center mb-8">
+              <Button className="rounded-full size-8" onClick={handleAddSelect}>
+                <Plus />
+              </Button>
+            </div>
+            <Label>Responsável:</Label>
             <div className="w-full gap-3   flex flex-row justify-center items-center">
               <Input
-                value="teste"
+                value={selectedUser?.name || ""}
                 name="user"
                 id="user"
                 type="text"
                 disabled
                 placeholder="Selecione um usuário"
-                className="hover:cursor-default"
+                className="hover:cursor-default text-xs"
               />
-              <Dialog>
+              <Dialog onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
                 <DialogTrigger onClick={handleGetUsers} asChild>
                   <Button>
                     <UserSearch></UserSearch>
@@ -271,8 +322,8 @@ export function NewTransaction({
                       Selecione um usuário para o serviço
                     </DialogDescription>
                   </DialogHeader>
-                    <Input placeholder="Buscar"></Input>
-                    
+                  <Input placeholder="Buscar"></Input>
+
                   <div className="rounded-md border">
                     {isLoadingUsers && (
                       <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
@@ -281,26 +332,36 @@ export function NewTransaction({
                     )}
                   </div>
                   <div className="grid gap-3 grid-cols-3 overflow-auto min-h-[400px] items-center justify-center">
-                    {users?.map((user)=>(
-
-                    <Card key={user.id} className=" hover:cursor-pointer hover:shadow-md  transition-all">
-                      <CardHeader>
-                        <CardTitle className="text-xs text-center">
-                          {user.name}
-                        </CardTitle>
-                        <CardDescription className="text-center">{user.profileType}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="w-full flex items-center justify-center">
-                          {user.profileImgLink ? (
-                            <Image className=" rounded-full" src={user.profileImgLink}  alt={user.name} width={60} height={60} ></Image>
-
-                          ): (
-                            <User size={60}></User>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                    {users?.map((user) => (
+                      <Card
+                        key={user.id}
+                        className=" hover:cursor-pointer hover:shadow-md  transition-all"
+                        onClick={(e) => handleChangeUser(e, user)}
+                      >
+                        <CardHeader>
+                          <CardTitle className="text-xs text-center">
+                            {user.name}
+                          </CardTitle>
+                          <CardDescription className="text-center">
+                            {user.profileType}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="w-full flex items-center justify-center">
+                            {user.profileImgLink ? (
+                              <Image
+                                className=" rounded-full"
+                                src={user.profileImgLink}
+                                alt={user.name}
+                                width={60}
+                                height={60}
+                              ></Image>
+                            ) : (
+                              <User size={60}></User>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </DialogContent>

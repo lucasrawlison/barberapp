@@ -200,7 +200,7 @@ export function ServicesList() {
             placeholder="Filtrar serviços..."
             value={filterValue}
             onChange={(e) => setFilterValue(e.target.value)}
-            className="pl-8"
+            className="pl-8 bg-white"
           />
         </div>
         
@@ -254,7 +254,7 @@ export function ServicesList() {
             <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
           </div>
         )}
-        <Table className=" portrait:text-[10px] sm:text-[12px]  md:text-[14px]">
+        <Table className=" portrait:text-[10px] sm:text-[12px]  md:text-[13px] bg-white rounded-md text-gray-700">
           <TableHeader>
             <TableRow>
               <TableHead className=" text-center">Código</TableHead>
