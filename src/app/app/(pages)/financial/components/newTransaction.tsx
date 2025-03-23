@@ -17,12 +17,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LoaderCircle, Minus, Plus, User, UserSearch } from "lucide-react";
+import { Check, LoaderCircle, Minus, Plus, User, UserSearch } from "lucide-react";
 import { useEffect, useState } from "react";
 import ValueInput from "./valueInput";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Image from "next/image";
 
 interface Transaction {
@@ -77,23 +83,58 @@ export function NewTransaction({
 }: NewTransactionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { data: session } = useSession();
-  const [selects, setSelects] = useState<string[]>(["Selecione"])
+  const [selects, setSelects] = useState<ServiceType[]>([
+    {
+      id: "",
+      name: "Selecione",
+      value: 0,
+    },
+  ]);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>();
   const [isLoadingUsers, setIsloadingUsers] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [servicesTotalValue, setServicesTotalValue] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const eraseData = () => {
+    setIsModalOpen(!isModalOpen);
+    setNewTransaction({
+      description: "",
+      value: 0,
+      date: "",
+      type: "",
+      category: "",
+      paymentMethodId: "",
+    });
+    setSelects([
+      {
+        id: "",
+        name: "Selecione",
+        value: 0,
+      },
+    ]);
+    setIsSaved(false)
+  };
+
+  const handleServiceValues = () => {
+    const total = selects.reduce((soma, service) => soma + service.value, 0);
+    setServicesTotalValue(total);
+  };
 
   const handleAddSelect = () => {
-    setSelects((prev)=> [...prev, "Selecione"])
-  }
+    setSelects((prev) => [...prev, { id: "", name: "Selecione", value: 0 }]);
+  };
+
   const handelRemoveSelect = (i: number) => {
-    setSelects((prev)=> prev.filter((_, index) => index !== i));
-  }
+    setSelects((prev) => prev.filter((_, index) => index !== i));
+  };
 
   const handleGetUsers = async () => {
-    if(!isOpen){
-      setIsOpen(true)
+    if (!isOpen) {
+      setIsOpen(true);
     }
 
     setIsloadingUsers(true);
@@ -109,8 +150,6 @@ export function NewTransaction({
       console.log(error);
     }
   };
-
-  
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -136,28 +175,56 @@ export function NewTransaction({
 
   const handleSaveTransaction = async () => {
     setIsSaving(true);
-    try {
-      const response = await axios.post(
-        "/api/createTransaction",
-        {
-          newTransaction: newTransaction,
-          userId: session?.user?.id,
-          selectedService: selects,
-          selectedUser
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
+    if (
+      newTransaction.type === "Receita" &&
+      newTransaction.category === "Serviço"
+    ) {
+      try {
+        const response = await axios.post("/api/createService", {
+          value: servicesTotalValue,
+          userId: selectedUser?.id,
+          selectedServices: selects,
+          paymentMethodId: newTransaction.paymentMethodId,
+        });
+
+        if (response) {
+          console.log(response);
+          fetchTransactions();
+          setIsSaving(false);
+          setIsSaved(true)
+
         }
-      );
-      if (response) {
-        console.log(response);
-        fetchTransactions();
+      } catch (error) {
+        console.log(error);
         setIsSaving(false);
       }
-    } catch (error) {
-      setIsSaving(false);
+    } else {
+      try {
+        const response = await axios.post(
+          "/api/createTransaction",
+          {
+            newTransaction: newTransaction,
+            userId: session?.user?.id,
+            selectedService: selects,
+            selectedUser,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (response) {
+          console.log(response);
+          fetchTransactions();
+          setIsSaving(false);
+          setIsSaved(true)
+        
+        }
+      } catch (error) {
+        console.log(error);
+        setIsSaving(false);
+      }
     }
   };
 
@@ -166,12 +233,35 @@ export function NewTransaction({
     user: User
   ) => {
     console.log(user);
-    setSelectedUser(user)
-    setIsOpen(false)
+    setSelectedUser(user);
+    setIsOpen(false);
   };
+
+  const handleChangeSelect = (index: number, serviceId: string) => {
+    console.log(index, serviceId);
+    // Encontrar o objeto completo do serviço selecionado
+    const selectedService = servicesTypes.find((s) => s.id === serviceId);
+
+    if (selectedService) {
+      setSelects((prev) => {
+        const updatedServices = [...prev];
+        updatedServices[index] = selectedService;
+        return updatedServices;
+      });
+    }
+  };
+
+  useEffect(() => {
+    handleServiceValues();
+  }, [selects]);
+
+  useEffect(() => {
+    console.log(selects);
+  }, [selects]);
+
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Dialog onOpenChange={() => eraseData()} open={isModalOpen}>
+      <DialogTrigger onClick={() => setIsModalOpen(true)} asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
           Nova transação
@@ -207,14 +297,29 @@ export function NewTransaction({
 
         <Label>Descrição</Label>
         <Input
-          placeholder="Deixe uma descrição para a transação"
+          disabled={
+            newTransaction.category === "Serviço" &&
+            newTransaction.type === "Receita"
+          }
+          placeholder={
+            newTransaction.category === "Serviço" &&
+            newTransaction.type === "Receita"
+              ? "Descrição gerada pelo serviço"
+              : "Deixe uma descrição para a transação"
+          }
           type="text"
           name="description"
-          value={newTransaction.description}
+          value={
+            newTransaction.category === "Serviço" &&
+            newTransaction.type === "Receita"
+              ? "Descrição gerada pelo serviço"
+              : newTransaction.description
+          }
           onChange={handleChange}
         ></Input>
         <Label>Valor</Label>
         <ValueInput
+          servicesTotalValue={servicesTotalValue}
           setNewTransaction={setNewTransaction}
           newTransaction={newTransaction}
         />
@@ -255,120 +360,122 @@ export function NewTransaction({
           </SelectContent>
         </Select>
 
-        {newTransaction.category === "Serviço" && (
-          <>
-            <Label>Serviço</Label>
-            {selects.map((select, i) => (
-              <div className="w-full flex flex-row items-center gap-3">
-                <Select
+        {newTransaction.category === "Serviço" &&
+          newTransaction.type === "Receita" && (
+            <>
+              <Label>Serviço</Label>
+              {selects.map((select, i) => (
+                <div
                   key={i}
-                  onValueChange={(value) =>
-                    setSelects((prev) =>
-                      prev.map((s, index) => (index === i ? value : s))
-                    )
-                  }
+                  className="w-full flex flex-row items-center gap-3"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={select} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {servicesTypes.map((serviceType) => (
-                      <SelectItem
-                        className="hover:cursor-pointer"
-                        key={serviceType.id}
-                        value={serviceType.name}
-                      >
-                        {serviceType.name +
-                          " - " +
-                          formatPrice(serviceType.value)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Select
+                    onValueChange={(value) => handleChangeSelect(i, value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={select.name} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {servicesTypes.map((serviceType) => (
+                        <SelectItem
+                          className="hover:cursor-pointer"
+                          key={serviceType.id}
+                          value={serviceType.id}
+                        >
+                          {serviceType.name +
+                            " - " +
+                            formatPrice(serviceType.value)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    className="rounded-full size-7 bg-red-700"
+                    onClick={() => handelRemoveSelect(i)}
+                  >
+                    <Minus></Minus>
+                  </Button>
+                </div>
+              ))}
+              <div className="flex w-full justify-center mb-8">
                 <Button
-                  className="rounded-full size-7 bg-red-700"
-                  onClick={() => handelRemoveSelect(i)}
+                  className="rounded-full size-8"
+                  onClick={handleAddSelect}
                 >
-                  <Minus></Minus>
+                  <Plus />
                 </Button>
               </div>
-            ))}
-            <div className="flex w-full justify-center mb-8">
-              <Button className="rounded-full size-8" onClick={handleAddSelect}>
-                <Plus />
-              </Button>
-            </div>
-            <Label>Responsável:</Label>
-            <div className="w-full gap-3   flex flex-row justify-center items-center">
-              <Input
-                value={selectedUser?.name || ""}
-                name="user"
-                id="user"
-                type="text"
-                disabled
-                placeholder="Selecione um usuário"
-                className="hover:cursor-default text-xs"
-              />
-              <Dialog onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
-                <DialogTrigger onClick={handleGetUsers} asChild>
-                  <Button>
-                    <UserSearch></UserSearch>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Buscar</DialogTitle>
-                    <DialogDescription>
-                      Selecione um usuário para o serviço
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Input placeholder="Buscar"></Input>
+              <Label>Responsável:</Label>
+              <div className="w-full gap-3   flex flex-row justify-center items-center">
+                <Input
+                  value={selectedUser?.name || ""}
+                  name="user"
+                  id="user"
+                  type="text"
+                  disabled
+                  placeholder="Selecione um usuário"
+                  className="hover:cursor-default text-xs"
+                />
+                <Dialog onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
+                  <DialogTrigger onClick={handleGetUsers} asChild>
+                    <Button>
+                      <UserSearch></UserSearch>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Buscar</DialogTitle>
+                      <DialogDescription>
+                        Selecione um usuário para o serviço
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Input placeholder="Buscar"></Input>
 
-                  <div className="rounded-md border">
-                    {isLoadingUsers && (
-                      <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
-                        <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="grid gap-3 grid-cols-3 overflow-auto min-h-[400px] items-center justify-center">
-                    {users?.map((user) => (
-                      <Card
-                        key={user.id}
-                        className=" hover:cursor-pointer hover:shadow-md  transition-all"
-                        onClick={(e) => handleChangeUser(e, user)}
-                      >
-                        <CardHeader>
-                          <CardTitle className="text-xs text-center">
-                            {user.name}
-                          </CardTitle>
-                          <CardDescription className="text-center">
-                            {user.profileType}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="w-full flex items-center justify-center">
-                            {user.profileImgLink ? (
-                              <Image
-                                className=" rounded-full"
-                                src={user.profileImgLink}
-                                alt={user.name}
-                                width={60}
-                                height={60}
-                              ></Image>
-                            ) : (
-                              <User size={60}></User>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </>
-        )}
+                    <div className="rounded-md border">
+                      {isLoadingUsers && (
+                        <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                          <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="grid gap-3 grid-cols-3 overflow-auto min-h-[400px] items-center justify-center">
+                      {users?.map((user) => (
+                        <Card
+                          key={user.id}
+                          className=" hover:cursor-pointer hover:shadow-md  transition-all"
+                          onClick={(e) => handleChangeUser(e, user)}
+                        >
+                          <CardHeader>
+                            <CardTitle className="text-xs text-center">
+                              {user.name}
+                            </CardTitle>
+                            <CardDescription className="text-center">
+                              {user.profileType}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="w-full flex items-center justify-center">
+                              {user.profileImgLink ? (
+                                <Image
+                                  className=" rounded-full"
+                                  src={user.profileImgLink}
+                                  alt={user.name}
+                                  width={60}
+                                  height={60}
+                                ></Image>
+                              ) : (
+                                <User size={60}></User>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </>
+          )}
 
         <Label>Método de pagamento</Label>
         <Select
@@ -395,18 +502,17 @@ export function NewTransaction({
         </Select>
 
         <DialogFooter>
-          <Button
-            disabled={isSaving}
-            className="w-[130px]"
-            onClick={handleSaveTransaction}
-            type="submit"
-          >
-            {isSaving ? (
-              <LoaderCircle className=" animate-spin" />
-            ) : (
-              "Salvar transação"
-            )}
+          
+            {isSaved ? (
+          <Button disabled>
+            Salvo <Check />
           </Button>
+        ) : (
+          <Button disabled={isSaving} onClick={handleSaveTransaction}>
+            {isSaving ? <LoaderCircle className="animate-spin" /> : "Salvar Transação"}
+          </Button>
+        )}
+          
         </DialogFooter>
       </DialogContent>
     </Dialog>

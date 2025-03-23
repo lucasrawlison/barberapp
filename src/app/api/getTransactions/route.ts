@@ -7,6 +7,9 @@ export async function POST() {
   try {
 
     const transactions = await prisma.transactions.findMany({
+      orderBy: {
+        id: "desc"
+      }
     });
 
 

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useCallback } from "react"
 
 interface Transaction {
     date: string,
@@ -17,6 +18,19 @@ interface allTransactionsProps {
 }
 
 export function AllTransactions ({transactions} : allTransactionsProps) {
+
+  const handleConvertDate = useCallback((date: string) => {
+      const newDate = new Date(date)
+  
+      const formattedDate = newDate.toLocaleString("pt-BR", {
+        
+        day: "2-digit",
+        month: "2-digit",
+        year : "numeric"
+      })
+  
+      return formattedDate
+    }, [])
     return (
         <Card>
             <CardHeader>
@@ -60,7 +74,7 @@ export function AllTransactions ({transactions} : allTransactionsProps) {
                 <TableBody>
                   {transactions.map((transaction, index=0) => (
                     <TableRow key={index + 1}>
-                      <TableCell>{transaction.date}</TableCell>
+                      <TableCell>{handleConvertDate(transaction.date.toString()).toString()}</TableCell>
                       <TableCell>{transaction.description}</TableCell>
                       <TableCell>
                         <span

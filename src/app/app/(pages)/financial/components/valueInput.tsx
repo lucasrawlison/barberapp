@@ -14,8 +14,9 @@ interface Transaction {
 interface ValueInputProps {
   setNewTransaction : (value: Transaction) => void
   newTransaction: Transaction
+  servicesTotalValue: number
 }
-export default function ValueInput({setNewTransaction, newTransaction} : ValueInputProps) {
+export default function ValueInput({setNewTransaction, newTransaction, servicesTotalValue} : ValueInputProps) {
   const [numericString, setNumericString] = useState<string>("")
   const [displayValue, setDisplayValue] = useState<string>("R$ 0,00")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -28,18 +29,28 @@ export default function ValueInput({setNewTransaction, newTransaction} : ValueIn
     });
   }, [numericString])
   // Formata a string como moeda brasileira (R$)
-  const formatCurrency = (value: string): string => {
+  const formatCurrency = (value: string | number): string => {
     if (!value) return "R$ 0,00"
 
     // Converte a string para número (em centavos)
-    const numericValue = Number.parseInt(value) / 100
+    if(typeof value === "string"){
 
-    return numericValue.toLocaleString("pt-BR", {
+      const numericValue = Number.parseInt(value) / 100
+      return numericValue.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    }
+
+    return value.toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })
+
   }
 
   // Converte a string para float
@@ -94,12 +105,12 @@ export default function ValueInput({setNewTransaction, newTransaction} : ValueIn
         ref={inputRef}
         type="text"
         name="value"
-        value={displayValue}
+        value={newTransaction.type === "Receita" && newTransaction.category==="Serviço" ? formatCurrency(servicesTotalValue): displayValue}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         className=""
         placeholder="R$ 0,00"
-        disabled={newTransaction.category==="Serviço"}
+        disabled={newTransaction.type === "Receita" && newTransaction.category==="Serviço"}
       />
   )
 }
