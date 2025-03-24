@@ -241,7 +241,7 @@ export function ServicesList() {
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
           onClick={getServices}
         >
-          <span className="text-xs">Recarregar</span>
+          <span className="text-xs">Atualizar</span>
           <RotateCw className="w-3" />
         </div>
                   <Button variant="default" onClick={() => {setFilterValue(""); setDate(undefined)} } size="sm">

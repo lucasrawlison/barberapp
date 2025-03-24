@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, CreditCard, DollarSign, Download } from "lucide-react";
+import { Calendar, CreditCard, DollarSign, Download, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,7 +38,7 @@ export default function FinancialDashboard() {
   const { data: session } = useSession();
   const [servicesTypes, setServicesTypes] = useState([]);
 
-  const [, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [expense, setExpense] = useState(0);
   const [income, setIncome] = useState(0);
@@ -89,9 +89,7 @@ export default function FinancialDashboard() {
   const fetchTransactions = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.post("/api/getTransactions", {
-        id: session?.user?.id,
-      });
+      const response = await axios.get("/api/getAllTransactions");
 
       if (response) {
         setTransactions(response.data.transactions);
@@ -148,7 +146,7 @@ export default function FinancialDashboard() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 ">
           <Button
             variant={activeTab === "overview" ? "default" : "outline"}
             onClick={() => setActiveTab("overview")}
@@ -183,12 +181,19 @@ export default function FinancialDashboard() {
           </Button> */}
         </div>
 
+        <div
+          className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
+          onClick={fetchTransactions}
+        >
+          <span className="text-xs">Atualizar</span>
+          <RotateCw className="w-3" />
+        </div>
         {activeTab === "overview" && (
-          <Overview income={income} expense={expense} profit={profit} />
+          <Overview isLoading={isLoading} income={income} expense={expense} profit={profit} />
         )}
 
         {activeTab === "transactions" && (
-          <AllTransactions transactions={transactions} />
+          <AllTransactions isLoading={isLoading} transactions={transactions} />
         )}
 
         {activeTab === "reports" && <Reports />}

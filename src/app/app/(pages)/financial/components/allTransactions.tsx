@@ -15,9 +15,10 @@ interface Transaction {
 
 interface allTransactionsProps {
     transactions : Transaction[]
+    isLoading: boolean
 }
 
-export function AllTransactions ({transactions} : allTransactionsProps) {
+export function AllTransactions ({transactions, isLoading} : allTransactionsProps) {
 
   const handleConvertDate = useCallback((date: string) => {
       const newDate = new Date(date)
@@ -62,6 +63,11 @@ export function AllTransactions ({transactions} : allTransactionsProps) {
                   </SelectContent>
                 </Select>
               </div>
+              {isLoading && (
+          <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+            <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+          </div>
+        )}
               <Table>
                 <TableHeader>
                   <TableRow>

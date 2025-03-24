@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import NoWorkResult_ from "postcss/lib/no-work-result";
 
 const prisma = new PrismaClient();
 
-export async function POST() {
+export async function GET() {
   try {
-
+    
     const transactions = await prisma.transactions.findMany({
       orderBy: {
         id: "desc"
-      }
+
+      },
     });
 
 

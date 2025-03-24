@@ -27,166 +27,167 @@ interface OverviewProps {
     income: number,
     expense: number,
     profit: number,
+    isLoading: boolean
 }
 
 
 
-export function Overview ( { income, expense, profit} : OverviewProps) {
+export function Overview ( { income, expense, profit, isLoading} : OverviewProps) {
     return (
-        <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Receita total
-                  </CardTitle>
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {income ? (
-                      "R$ " + income.toFixed(2)
-                    ) : (
-                      <Skeleton key={1} className="w-52 h-4 mb-4" />
-                    )}
-                  </div>
-                  {income ? (
-                    <p className="text-xs text-muted-foreground">
-                      {" "}
-                      + 12% que o último mês{" "}
-                    </p>
-                  ) : (
-                    <Skeleton key={2} className="w-52 h-2 mb-4" />
-                  )}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Despesa total
-                  </CardTitle>
-                  <TrendingDown className="h-4 w-4 text-red-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {expense ? (
-                      "R$ " + expense.toFixed(2)
-                    ) : (
-                      <Skeleton key={1} className="w-52 h-4 mb-4" />
-                    )}
-                  </div>
+      <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Receita total
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {(income && !isLoading ) || (!income && isLoading)? (
+                  "R$ " + income.toFixed(2)
+                ) : (
+                  <Skeleton key={1} className="w-52 h-4 mb-4" />
+                )}
+              </div>
+              {(income && !isLoading ) || (!income && isLoading)? (
+                <p className="text-xs text-muted-foreground">
+                  {" "}
+                  + 12% que o último mês{" "}
+                </p>
+              ) : (
+                <Skeleton key={2} className="w-52 h-2 mb-4" />
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Despesa total
+              </CardTitle>
+              <TrendingDown className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+              {(expense && !isLoading ) || (!expense && isLoading)? (
+                  "R$ " + expense.toFixed(2)
+                ) : (
+                  <Skeleton key={1} className="w-52 h-4 mb-4" />
+                )}
+              </div>
 
-                  {expense ? (
-                    <p className="text-xs text-muted-foreground">
-                      + 12% que o último mês
-                    </p>
-                  ) : (
-                    <Skeleton key={2} className="w-52 h-2 mb-4" />
-                  )}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Renda Líquida
-                  </CardTitle>
-                  <DollarSign className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {profit ? (
-                      "R$ " + profit.toFixed(2)
-                    ) : (
-                      <Skeleton key={1} className="w-52 h-4 mb-4" />
-                    )}
-                  </div>
+              {(expense && !isLoading ) || (!expense && isLoading)? (
+                <p className="text-xs text-muted-foreground">
+                  + 12% que o último mês
+                </p>
+              ) : (
+                <Skeleton key={2} className="w-52 h-2 mb-4" />
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Renda Líquida
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+              {(profit && !isLoading ) || (!profit && isLoading)? (
+                  "R$ " + profit.toFixed(2)
+                ) : (
+                  <Skeleton key={1} className="w-52 h-4 mb-4" />
+                )}
+              </div>
 
-                  {profit ? (
-                    <p className="text-xs text-muted-foreground">
-                      + 12% que o último mês
-                    </p>
-                  ) : (
-                    <Skeleton key={2} className="w-52 h-2 mb-4" />
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Receita geral</CardTitle>
-                  <CardDescription>Receita mensal do ano</CardDescription>
-                </CardHeader>
-                <CardContent className="px-2">
-                  <ChartContainer
-                    config={{
-                      Receita: {
-                        label: "Revenue",
-                        color: "hsl(var(--chart-1))",
-                      },
-                    }}
-                    className="aspect-[4/3]"
-                  >
-                    <RechartsBarChart
-                      data={revenueData}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar
-                        dataKey="revenue"
-                        fill="var(--color-revenue)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </RechartsBarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Divisão de despesa</CardTitle>
-                  <CardDescription>Despesa mensal do ano</CardDescription>
-                </CardHeader>
-                <CardContent className="px-2">
-                  <ChartContainer
-                    config={{
-                      expenses: {
-                        label: "Expenses",
-                        color: "hsl(var(--chart-2))",
-                      },
-                    }}
-                    className="aspect-[4/3]"
-                  >
-                    <RechartsBarChart
-                      data={expenseData}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar
-                        dataKey="expenses"
-                        fill="var(--color-expenses)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </RechartsBarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-    )
+              {(profit && !isLoading ) || (!profit && isLoading)? (
+                <p className="text-xs text-muted-foreground">
+                  + 12% que o último mês
+                </p>
+              ) : (
+                <Skeleton key={2} className="w-52 h-2 mb-4" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Receita geral</CardTitle>
+              <CardDescription>Receita mensal do ano</CardDescription>
+            </CardHeader>
+            <CardContent className="px-2">
+              <ChartContainer
+                config={{
+                  Receita: {
+                    label: "Revenue",
+                    color: "hsl(var(--chart-1))",
+                  },
+                }}
+                className="aspect-[4/3]"
+              >
+                <RechartsBarChart
+                  data={revenueData}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar
+                    dataKey="revenue"
+                    fill="var(--color-revenue)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </RechartsBarChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Divisão de despesa</CardTitle>
+              <CardDescription>Despesa mensal do ano</CardDescription>
+            </CardHeader>
+            <CardContent className="px-2">
+              <ChartContainer
+                config={{
+                  expenses: {
+                    label: "Expenses",
+                    color: "hsl(var(--chart-2))",
+                  },
+                }}
+                className="aspect-[4/3]"
+              >
+                <RechartsBarChart
+                  data={expenseData}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar
+                    dataKey="expenses"
+                    fill="var(--color-expenses)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </RechartsBarChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
 }
