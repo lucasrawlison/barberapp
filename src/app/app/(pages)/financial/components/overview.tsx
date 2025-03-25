@@ -3,10 +3,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { DollarSign, TrendingDown, TrendingUp } from "lucide-react"
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { useEffect } from "react"
 
 const revenueData = [
-    { month: "Jan", revenue: 2400 },
-    { month: "Feb", revenue: 1398 },
+    { month: "Jan", revenue: 2400, expense: 400},
+    { month: "Feb", revenue: 1398, expense: 60000 },
     { month: "Mar", revenue: 9800 },
     { month: "Apr", revenue: 3908 },
     { month: "May", revenue: 4800 },
@@ -22,17 +23,29 @@ const revenueData = [
     { month: "Jun", expenses: 2100 },
   ]
 
+  interface Dados {
+    month: string,
+    revenue: number,
+    expenses: number
+  }
+
 
 interface OverviewProps {
     income: number,
     expense: number,
     profit: number,
     isLoading: boolean
+    chartData: Dados[] | undefined
 }
 
 
 
-export function Overview ( { income, expense, profit, isLoading} : OverviewProps) {
+
+export function Overview ( { income, expense, profit, isLoading, chartData} : OverviewProps) {
+
+  useEffect(()=> {
+    console.log(chartData)
+  }, [chartData])
     return (
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -129,7 +142,7 @@ export function Overview ( { income, expense, profit, isLoading} : OverviewProps
                 className="aspect-[4/3]"
               >
                 <RechartsBarChart
-                  data={revenueData}
+                  data={chartData}
                   margin={{
                     top: 5,
                     right: 30,
@@ -166,7 +179,7 @@ export function Overview ( { income, expense, profit, isLoading} : OverviewProps
                 className="aspect-[4/3]"
               >
                 <RechartsBarChart
-                  data={expenseData}
+                  data={chartData}
                   margin={{
                     top: 5,
                     right: 30,

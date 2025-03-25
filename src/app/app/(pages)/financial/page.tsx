@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, CreditCard, DollarSign, Download, RotateCw } from "lucide-react";
+import { Calendar, CreditCard, DollarSign, Download, LoaderCircle, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,24 +27,28 @@ interface Transaction {
   category: string;
   paymentMethodId: string;
 }
-
-interface ServiceType {
-  id: string;
-  name: string;
-  value: number;
+interface Dados {
+  month: string,
+  revenue: number,
+  expenses: number
 }
+
+
 
 export default function FinancialDashboard() {
   const { data: session } = useSession();
   const [servicesTypes, setServicesTypes] = useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isLoadingMonth, setIsLoadingMonth] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [expense, setExpense] = useState(0);
   const [income, setIncome] = useState(0);
   const [profit, setProfit] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [monthTransactions, setMonthTransactions] = useState<Transaction[]>([]);
   const [newTransaction, setNewTransaction] = useState<Transaction>({
     description: "",
     value: 0,
@@ -53,6 +57,7 @@ export default function FinancialDashboard() {
     category: "",
     paymentMethodId: "",
   });
+const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
 
   const getPaymentMethods = async () => {
     try {
@@ -69,15 +74,15 @@ export default function FinancialDashboard() {
   };
 
   const calculate = () => {
-    if (!transactions) return;
+    if (!monthTransactions) return;
 
-    const totalIncome = transactions
+    const totalIncome = monthTransactions
       .filter((t) => t.type === "Receita")
       .reduce((sum, transaction) => sum + transaction.value, 0);
 
     setIncome(totalIncome);
 
-    const totalExpenses = transactions
+    const totalExpenses = monthTransactions
       .filter((t) => t.type === "Despesa")
       .reduce((sum, transaction) => sum + transaction.value, 0);
 
@@ -101,6 +106,24 @@ export default function FinancialDashboard() {
     }
   };
 
+  const fetchMonthTransactions = async () => {
+    try {
+      setIsLoadingMonth(true);
+      const response = await axios.get("/api/getMonthTransactions");
+
+      if (response) {
+        setMonthTransactions(response.data.transactions);
+        // setIsLoading(false)
+      }
+    } catch (error) {
+      console.log(error);
+      setIsLoadingMonth(false);
+    }
+  };
+  
+
+
+
   const getServicesTypes = async () => {
     try {
       setIsLoading(true);
@@ -117,20 +140,41 @@ export default function FinancialDashboard() {
   useEffect(() => {
     getServicesTypes();
     getPaymentMethods();
+    fetchMonthTransactions();
     fetchTransactions();
   }, [session?.user?.id]);
 
   useEffect(() => {
     calculate();
     setIsLoading(false);
-  }, [transactions]);
+    setIsLoadingMonth(false);
+  }, [transactions, monthTransactions]);
+
+  const fetch = async () => {
+    setIsFetching(true)
+    try {
+      const response = await axios.get("/api/getOverviewData")
+      if(response){
+        console.log(response.data.chartData)
+        setChartData(response.data.chartData)
+        setIsFetching(false)
+
+
+      }
+    } catch (error) {
+      console.log(error)
+      setIsFetching(false)
+    }
+  }
 
   return (
+    
     <div className="flex flex-col bg-background overflow-auto">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
         <div className="flex items-center">
           <h1 className="text-lg font-semibold md:text-2xl">Financeiro</h1>
           <div className="ml-auto flex items-center gap-2">
+            <Button disabled={isFetching} onClick={fetch}>{isFetching ? (<LoaderCircle className="animate-spin"></LoaderCircle>) : "Fetch"}</Button>
             <NewTransaction
               servicesTypes={servicesTypes}
               fetchTransactions={fetchTransactions}
@@ -183,13 +227,16 @@ export default function FinancialDashboard() {
 
         <div
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
-          onClick={fetchTransactions}
+          onClick={()=> {
+            fetchMonthTransactions();
+            fetchTransactions();
+          }}
         >
           <span className="text-xs">Atualizar</span>
           <RotateCw className="w-3" />
         </div>
         {activeTab === "overview" && (
-          <Overview isLoading={isLoading} income={income} expense={expense} profit={profit} />
+          <Overview chartData={chartData} isLoading={isLoadingMonth} income={income} expense={expense} profit={profit} />
         )}
 
         {activeTab === "transactions" && (
