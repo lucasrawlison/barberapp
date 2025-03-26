@@ -27,7 +27,7 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
       ...newTransaction,
       value: getFloatValue(numericString),
     });
-  }, [numericString])
+  }, [numericString, setNewTransaction, newTransaction])
   // Formata a string como moeda brasileira (R$)
   const formatCurrency = (value: string | number): string => {
     if (!value) return "R$ 0,00"

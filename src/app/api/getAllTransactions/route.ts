@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import NoWorkResult_ from "postcss/lib/no-work-result";
 
 const prisma = new PrismaClient();
 

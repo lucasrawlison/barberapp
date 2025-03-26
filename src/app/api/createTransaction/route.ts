@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import axios from "axios";
 
 const prisma = new PrismaClient();
 
@@ -10,7 +9,7 @@ export async function POST(req: NextRequest) {
     console.log("Recebendo body:", body); // Depuração
 
     if (!body?.newTransaction) {
-      console.log("sem transaction")
+      console.log("sem transaction");
       return NextResponse.json(
         { message: "New Transaction Invalid" },
         { status: 400 }
@@ -18,19 +17,11 @@ export async function POST(req: NextRequest) {
     }
 
     const { newTransaction, userId } = body;
-    const {
-      description,
-      value,
-      date,
-      category,
-      type,
-      paymentMethodId,
-      selectedService,
-      selectedUser,
-    } = newTransaction;
+    const { description, value, date, category, type, paymentMethodId } =
+      newTransaction;
 
     if (!userId) {
-      console.log("sem userID")
+      console.log("sem userID");
       return NextResponse.json(
         { message: "User ID is required" },
         { status: 400 }

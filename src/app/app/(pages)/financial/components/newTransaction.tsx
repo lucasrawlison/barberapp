@@ -90,7 +90,7 @@ export function NewTransaction({
       value: 0,
     },
   ]);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  // const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>();
   const [isLoadingUsers, setIsloadingUsers] = useState(false);
@@ -253,7 +253,7 @@ export function NewTransaction({
 
   useEffect(() => {
     handleServiceValues();
-  }, [selects]);
+  }, [selects, handleServiceValues]);
 
   useEffect(() => {
     console.log(selects);

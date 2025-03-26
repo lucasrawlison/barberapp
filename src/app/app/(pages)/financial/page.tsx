@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, CreditCard, DollarSign, Download, LoaderCircle, RotateCw } from "lucide-react";
+import { Calendar, CreditCard, DollarSign, Download, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,9 +38,8 @@ interface Dados {
 export default function FinancialDashboard() {
   const { data: session } = useSession();
   const [servicesTypes, setServicesTypes] = useState([]);
-
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
+  const [,setIsFetching] = useState(false);
   const [isLoadingMonth, setIsLoadingMonth] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [expense, setExpense] = useState(0);
@@ -120,9 +119,6 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
       setIsLoadingMonth(false);
     }
   };
-  
-
-
 
   const getServicesTypes = async () => {
     try {
@@ -137,21 +133,9 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
     }
   };
 
-  useEffect(() => {
-    getServicesTypes();
-    getPaymentMethods();
-    fetchMonthTransactions();
-    fetchTransactions();
-  }, [session?.user?.id]);
-
-  useEffect(() => {
-    calculate();
-    setIsLoading(false);
-    setIsLoadingMonth(false);
-  }, [transactions, monthTransactions]);
-
-  const fetch = async () => {
+  const fetchChartsData = async () => {
     setIsFetching(true)
+    setChartData(undefined)
     try {
       const response = await axios.get("/api/getOverviewData")
       if(response){
@@ -167,6 +151,22 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
     }
   }
 
+  useEffect(() => {
+    getServicesTypes();
+    getPaymentMethods();
+    fetchMonthTransactions();
+    fetchTransactions();
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    calculate();
+    setIsLoading(false);
+    setIsLoadingMonth(false);
+    fetchChartsData();
+  }, [transactions, monthTransactions]);
+
+  
+
   return (
     
     <div className="flex flex-col bg-background overflow-auto">
@@ -174,7 +174,7 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
         <div className="flex items-center">
           <h1 className="text-lg font-semibold md:text-2xl">Financeiro</h1>
           <div className="ml-auto flex items-center gap-2">
-            <Button disabled={isFetching} onClick={fetch}>{isFetching ? (<LoaderCircle className="animate-spin"></LoaderCircle>) : "Fetch"}</Button>
+            {/* <Button disabled={isFetching} onClick={fetch}>{isFetching ? (<LoaderCircle className="animate-spin"></LoaderCircle>) : "Fetch"}</Button> */}
             <NewTransaction
               servicesTypes={servicesTypes}
               fetchTransactions={fetchTransactions}
@@ -230,6 +230,7 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
           onClick={()=> {
             fetchMonthTransactions();
             fetchTransactions();
+            fetchChartsData();
           }}
         >
           <span className="text-xs">Atualizar</span>
