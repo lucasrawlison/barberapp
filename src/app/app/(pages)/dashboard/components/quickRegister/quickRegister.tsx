@@ -79,10 +79,10 @@ export function QuickRegister () {
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Registrar Serviço</DialogTitle>
-                <DialogDescription></DialogDescription>
+                <DialogTitle className="text-left">Serviço</DialogTitle>
+                <DialogDescription className="text-left">Prencha os campos para registrar um serviço</DialogDescription>
               </DialogHeader>
-              <CardData 
+              <CardData
               isSaved={isSaved}
               setIsSaved={setIsSaved}
               services={services} 

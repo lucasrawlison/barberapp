@@ -91,18 +91,18 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 max-w-full overflow-auto">
       <Label className="pb-1">Serviços realizados:</Label>
       {serviceToSave.map((selected, index) => (
-        <div key={index} className="flex items-center gap-2">
+        <div key={index} className="flex items-center gap-2 w-full">
           <Select
             value={selected.id}
             onValueChange={(value) => handleChangeService(index, value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className=" truncate">
               <SelectValue placeholder={selected.name || "Selecione"} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="w-10/12">
               {services
                 .filter(
                   (s) =>
