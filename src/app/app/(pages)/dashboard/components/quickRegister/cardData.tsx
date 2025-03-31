@@ -10,6 +10,7 @@ import axios from "axios";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Service {
   id: string;
@@ -20,6 +21,13 @@ interface BankAccount {
   id: string;
   bankName: string;
 
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
 }
 
 interface PaymentMethod {
@@ -46,9 +54,11 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
   ]);
   const [paymentMethodToSave, setPaymentMethodsToSave] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const { data: session } = useSession();
-  const [selectedCustomer, setSelectedCustomer] = useState(undefined)
-  const [customers, setCustomers] = useState(undefined)
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined)
+  const [customers, setCustomers] = useState<Customer[] | undefined>(undefined)
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleAddSelect = () => {
     setServiceToSave((prev) => [...prev, { id: "", name: "", value: 0 }]);
@@ -79,7 +89,8 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
         value: serviceToSave.reduce((acc, s) => acc + s.value, 0),
         userId: session?.user?.id,
         selectedServices: serviceToSave,
-        paymentMethodId: paymentMethodToSave
+        paymentMethodId: paymentMethodToSave,
+        customerId:  selectedCustomer?.id ?? null
       });
       console.log(response);
       setIsLoading(false);
@@ -90,11 +101,27 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
     }
   };
 
+
+  const handleGetCustomer = async () => {
+    setIsLoadingCustomers(true)
+    try {
+      const response = await axios.get("/api/getCustomers")
+      if (response.status === 200) {
+        setCustomers(response.data.customers)
+        console.log(response.data.customers)
+        setIsLoadingCustomers(false)
+      }
+    } catch (error) {
+      setIsLoadingCustomers(false)
+      console.log(error)
+    }
+  }
+
   return (
-    <div className="flex flex-col gap-4 max-w-full overflow-auto">
+    <div className="p-1 flex flex-col gap-4 max-w-full overflow-auto">
       <Label className="pb-1">Serviços realizados:</Label>
       {serviceToSave.map((selected, index) => (
-        <div key={index} className="flex items-center gap-2 w-full">
+        <div key={index} className=" p-1 flex items-center gap-2 w-full">
           <Select
             value={selected.id}
             onValueChange={(value) => handleChangeService(index, value)}
@@ -138,29 +165,60 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
       <div className="w-full flex flex-row items-center gap-3">
         <Input
           disabled
-          value={selectedCustomer}
+          value={selectedCustomer?.name ?? ""}
           placeholder="Selecione o cliente"
           type="text"
         ></Input>
-        <Dialog>
-          <DialogTrigger asChild>
-        <Button className="hover: cursor-pointer">
-          <UsersIcon />
-        </Button>
-
+        <Dialog open={isOpen} onOpenChange={()=>setIsOpen(!isOpen)}>
+          <DialogTrigger onClick={handleGetCustomer} asChild>
+            <Button className="hover: cursor-pointer">
+              <UsersIcon />
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Clientes</DialogTitle>
-              <DialogDescription>Selecione um cliente para o serviço</DialogDescription>
+              <DialogDescription>
+                Selecione um cliente para o serviço
+              </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col items-center justify-center">
-              
-            <Input placeholder="Buscar" className="w-full"></Input>
-      
+              <Input placeholder="Buscar" className="w-full"></Input>
+              <div className="flex flex-col gap-2 mt-4 max-h-96 overflow-auto w-full">
+                <Table>
+                  <TableCaption> Lista de clientes disponíveis</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-black">Nome</TableHead>
+                      <TableHead className="text-center text-black">
+                        Contato
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customers &&
+                      customers.map((customer) => (
+                        <TableRow
+                          className="hover:cursor-pointer"
+                          key={customer.id}
+                          onClick={() => {
+                            setSelectedCustomer(customer);
+                            setIsOpen(false);
+                          }}
+                        >
+                          <TableCell className="text-sm text-gray-600">
+                            {customer.name}
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600 text-center">
+                            {customer.phone}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </DialogContent>
-
         </Dialog>
       </div>
       <Select onValueChange={(value) => setPaymentMethodsToSave(value)}>
@@ -179,13 +237,7 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
           ))}
         </SelectContent>
       </Select>
-      {/* <ul>
-        {serviceToSave.map((service) => (
-          <li key={service.id} className="flex justify-between text-xs">
-            {service.name} - {formatarEmReal(service.value)}
-          </li>
-        ))}
-      </ul> */}
+
       <Separator className="my-4" />
       <div className="flex gap-2 items-center">
         <Label>Total:</Label>

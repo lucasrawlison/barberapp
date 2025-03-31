@@ -15,7 +15,7 @@ model ServicesTypes {
 
 model Service {
   id              String         @id @default(auto()) @map("_id") @db.ObjectId
-  code            Int            @unique
+  code            String            @unique
   value           Float
   servicesTypes   Json
   createdAt       DateTime       @default(now())
@@ -82,4 +82,9 @@ model Customer {
   email   String?
   phone   String
   service Service[]
+}
+
+model Counters {
+  id    String @id @map("_id")
+  count Int
 }

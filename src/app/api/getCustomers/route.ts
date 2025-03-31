@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function POST() {
+export async function GET() {
   try {
 
     const customers = await prisma.customer.findMany({
