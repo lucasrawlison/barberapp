@@ -15,7 +15,7 @@ export async function GET() {
         { status: 400 }
       );
     }
-
+    console.log(transactions)
     // Objetos para armazenar os valores das receitas e despesas por mês
     const revenueByMonth: { [key: string]: number } = {};
     const expenseByMonth: { [key: string]: number } = {};

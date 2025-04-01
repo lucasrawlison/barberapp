@@ -54,7 +54,7 @@ export default function ClientesDashboard() {
   const handleGetCustomers = async () => {
     setIsLoading(true)
     try {
-      const response = await axios.post("/api/getCustomers")
+      const response = await axios.get("/api/getCustomers")
       if(response){
       setCustomers(response.data.customers)
         
