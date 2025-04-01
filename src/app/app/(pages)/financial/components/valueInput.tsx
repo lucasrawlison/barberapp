@@ -21,14 +21,20 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
   const [displayValue, setDisplayValue] = useState<string>("R$ 0,00")
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(()=> {
-    // console.log(getFloatValue(numericString))
+  useEffect(() => {
+    if (
+      newTransaction.type === "Receita" &&
+      newTransaction.category === "Serviço"
+    ) return; // não atualiza value manualmente nesse caso
+  
+    const floatValue = getFloatValue(numericString);
+  
     setNewTransaction({
       ...newTransaction,
-      value: getFloatValue(numericString),
+      value: floatValue,
     });
-  }, [numericString, setNewTransaction, newTransaction])
-  // Formata a string como moeda brasileira (R$)
+  }, [numericString]);
+  
   const formatCurrency = (value: string | number): string => {
     if (!value) return "R$ 0,00"
 
