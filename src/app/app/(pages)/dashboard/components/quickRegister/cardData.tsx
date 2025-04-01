@@ -185,6 +185,11 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
             <div className="flex flex-col items-center justify-center">
               <Input placeholder="Buscar" className="w-full"></Input>
               <div className="flex flex-col gap-2 mt-4 max-h-96 overflow-auto w-full">
+              {isLoadingCustomers && (
+          <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+            <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+          </div>
+        )}
                 <Table>
                   <TableCaption> Lista de clientes disponíveis</TableCaption>
                   <TableHeader>
