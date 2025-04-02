@@ -179,12 +179,14 @@ export function NewTransaction({
       newTransaction.type === "Receita" &&
       newTransaction.category === "Serviço"
     ) {
+      console.log("é serviço")
       try {
         const response = await axios.post("/api/createService", {
           value: servicesTotalValue,
           userId: selectedUser?.id,
           selectedServices: selects,
           paymentMethodId: newTransaction.paymentMethodId,
+          date: newTransaction.date
         });
 
         if (response) {
