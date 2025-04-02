@@ -325,7 +325,7 @@ export function NewTransaction({
         />
 
         <Label htmlFor="date">Date</Label>
-        <Input onChange={handleChange} name="date" id="date" type="date" />
+        <Input onChange={handleChange} name="date" id="date" type="datetime-local" />
         <Label>Categoria</Label>
         <Select
           value={newTransaction.category}

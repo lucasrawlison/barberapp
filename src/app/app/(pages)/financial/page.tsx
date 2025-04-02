@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Calendar, CreditCard, DollarSign, Download, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +58,8 @@ export default function FinancialDashboard() {
   });
 const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
 
+
+
   const getPaymentMethods = async () => {
     try {
       setIsLoading(true);
@@ -112,7 +114,8 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
 
       if (response) {
         setMonthTransactions(response.data.transactions);
-        // setIsLoading(false)
+        setIsLoadingMonth(false);
+
       }
     } catch (error) {
       console.log(error);
@@ -139,7 +142,7 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
     try {
       const response = await axios.get("/api/getOverviewData")
       if(response){
-        console.log(response.data.chartData)
+        // console.log(response.data.chartData)
         setChartData(response.data.chartData)
         setIsFetching(false)
 
@@ -161,9 +164,11 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
   useEffect(() => {
     calculate();
     setIsLoading(false);
-    setIsLoadingMonth(false);
+    
     fetchChartsData();
   }, [transactions, monthTransactions]);
+
+
 
   
 
@@ -237,7 +242,7 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
           <RotateCw className="w-3" />
         </div>
         {activeTab === "overview" && (
-          <Overview chartData={chartData} isLoading={isLoadingMonth} income={income} expense={expense} profit={profit} />
+          <Overview chartData={chartData} isLoadingMonth={isLoadingMonth} income={income} expense={expense} profit={profit} />
         )}
 
         {activeTab === "transactions" && (

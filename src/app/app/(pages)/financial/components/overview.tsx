@@ -19,7 +19,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useEffect } from "react";
 
 interface Dados {
   month: string;
@@ -31,7 +30,7 @@ interface OverviewProps {
   income: number;
   expense: number;
   profit: number;
-  isLoading: boolean;
+  isLoadingMonth: boolean;
   chartData: Dados[] | undefined;
 }
 
@@ -39,12 +38,10 @@ export function Overview({
   income,
   expense,
   profit,
-  isLoading,
+  isLoadingMonth,
   chartData,
 }: OverviewProps) {
-  useEffect(() => {
-    console.log(chartData);
-  }, [chartData]);
+  
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -55,19 +52,19 @@ export function Overview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(income && !isLoading) || (!income && isLoading) ? (
-                "R$ " + income.toFixed(2)
-              ) : (
+              {isLoadingMonth ? (
                 <Skeleton key={1} className="w-52 h-4 mb-4" />
+              ) : (
+                "R$ " + income.toFixed(2)
               )}
             </div>
-            {(income && !isLoading) || (!income && isLoading) ? (
+            {isLoadingMonth ? (
+              <Skeleton key={2} className="w-52 h-2 mb-4" />
+            ) : (
               <p className="text-xs text-muted-foreground">
                 {" "}
                 + 12% que o último mês{" "}
               </p>
-            ) : (
-              <Skeleton key={2} className="w-52 h-2 mb-4" />
             )}
           </CardContent>
         </Card>
@@ -78,19 +75,19 @@ export function Overview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(expense && !isLoading) || (!expense && isLoading) ? (
+            {isLoadingMonth ? (
+              <Skeleton key={1} className="w-52 h-4 mb-4" />
+            ) : (
                 "R$ " + expense.toFixed(2)
-              ) : (
-                <Skeleton key={1} className="w-52 h-4 mb-4" />
               )}
             </div>
 
-            {(expense && !isLoading) || (!expense && isLoading) ? (
+            {isLoadingMonth ? (
+              <Skeleton key={2} className="w-52 h-2 mb-4" />
+            ) : (
               <p className="text-xs text-muted-foreground">
                 + 12% que o último mês
               </p>
-            ) : (
-              <Skeleton key={2} className="w-52 h-2 mb-4" />
             )}
           </CardContent>
         </Card>
@@ -101,19 +98,19 @@ export function Overview({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(profit && !isLoading) || (!profit && isLoading) ? (
+            {isLoadingMonth ? (
+              <Skeleton key={1} className="w-52 h-4 mb-4" />
+            ) : (
                 "R$ " + profit.toFixed(2)
-              ) : (
-                <Skeleton key={1} className="w-52 h-4 mb-4" />
               )}
             </div>
 
-            {(profit && !isLoading) || (!profit && isLoading) ? (
+            {isLoadingMonth ? (
+            <Skeleton key={2} className="w-52 h-2 mb-4" />
+            ) : (
               <p className="text-xs text-muted-foreground">
                 + 12% que o último mês
               </p>
-            ) : (
-              <Skeleton key={2} className="w-52 h-2 mb-4" />
             )}
           </CardContent>
         </Card>

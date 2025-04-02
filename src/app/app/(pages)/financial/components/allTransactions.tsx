@@ -27,7 +27,9 @@ export function AllTransactions ({transactions, isLoading} : allTransactionsProp
         
         day: "2-digit",
         month: "2-digit",
-        year : "numeric"
+        year : "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       })
   
       return formattedDate
@@ -80,7 +82,7 @@ export function AllTransactions ({transactions, isLoading} : allTransactionsProp
                 <TableBody>
                   {transactions.map((transaction, index=0) => (
                     <TableRow key={index + 1}>
-                      <TableCell>{handleConvertDate(transaction.date.toString()).toString()}</TableCell>
+                      <TableCell>{handleConvertDate(transaction.date)}</TableCell>
                       <TableCell>{transaction.description}</TableCell>
                       <TableCell>
                         <span
