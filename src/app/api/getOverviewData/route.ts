@@ -15,7 +15,7 @@ export async function GET() {
         { status: 400 }
       );
     }
-    console.log(transactions)
+    // console.log(transactions)
     // Objetos para armazenar os valores das receitas e despesas por mês
     const revenueByMonth: { [key: string]: number } = {};
     const expenseByMonth: { [key: string]: number } = {};
@@ -32,15 +32,31 @@ export async function GET() {
         expenseByMonth[formattedMonth] = (expenseByMonth[formattedMonth] || 0) + transaction.value;
       }
     });
-
-    // Criar os arrays de receitas e despesas
-    const chartData = Object.keys(revenueByMonth).map((month) => ({
+   
+    const monthOrder = [
+      "Jan.", "Fev.", "Mar.", "Abr.", "Mai.", "Jun.",
+      "Jul.", "Ago.", "Set.", "Out.", "Nov.", "Dez."
+    ];
+    
+    // Juntar todos os meses únicos
+    const allMonthsSet = new Set([
+      ...Object.keys(revenueByMonth),
+      ...Object.keys(expenseByMonth),
+    ]);
+    
+    // Converter para array e ordenar de acordo com a ordem do mês
+    const allMonths = Array.from(allMonthsSet).sort(
+      (a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b)
+    );
+    
+    // Montar os dados do gráfico
+    const chartData = allMonths.map((month) => ({
       month,
       revenue: revenueByMonth[month] || 0,
       expenses: expenseByMonth[month] || 0,
     }));
 
-    console.log(chartData)
+
     return NextResponse.json({ message: "Chart Data", chartData }, { status: 200 });
   } catch (error) {
     console.error("Error fetching transactions", error);
