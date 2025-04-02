@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search, RotateCw, CalendarIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search, RotateCw, CalendarIcon, Trash2 } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -13,6 +13,7 @@ import { CardData } from "./cardData"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
+import { QuickRegister } from "./quickRegister"
 
 
 interface User {
@@ -191,7 +192,7 @@ export function ServicesList() {
 
   return (
     <div className="space-y-4 p-5">
-      {/* Filter input */}
+        
       <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -203,8 +204,7 @@ export function ServicesList() {
             className="pl-8 bg-white"
           />
         </div>
-        
-        
+
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -216,7 +216,7 @@ export function ServicesList() {
             >
               <CalendarIcon />
               {date ? (
-                date.toLocaleString("pt-BR", {                 
+                date.toLocaleString("pt-BR", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
@@ -244,9 +244,23 @@ export function ServicesList() {
           <span className="text-xs">Atualizar</span>
           <RotateCw className="w-3" />
         </div>
-                  <Button variant="default" onClick={() => {setFilterValue(""); setDate(undefined)} } size="sm">
-                    Limpar filtros
-                  </Button>
+        <div className="flex flex-row gap-2 items-center">
+
+      <QuickRegister/>
+
+        <Button
+          variant="destructive"
+          onClick={() => {
+            setFilterValue("");
+            setDate(undefined);
+          }}
+          size="sm"
+          className="bg-orange-400 hover:bg-orange-500 text-white"
+        >
+          Limpar filtros
+        </Button>
+        </div>
+        
       </div>
       <div className="rounded-md border">
         {isLoading && (
@@ -278,7 +292,7 @@ export function ServicesList() {
                 <TableRow
                   onClick={() => handleSelectService(service)}
                   key={service.id}
-                  className="hover:bg-slate-200 hover:cursor-pointer"
+                  className="hover:bg-gray-50 hover:cursor-pointer"
                 >
                   <TableCell className="font-medium text-center">
                     {service.code}
@@ -300,6 +314,7 @@ export function ServicesList() {
                   <TableCell className="text-center">
                     {service.user.name}
                   </TableCell>
+                  
                 </TableRow>
               ))
             )}
@@ -363,12 +378,12 @@ export function ServicesList() {
                 <DialogDescription></DialogDescription>
               </DialogHeader>
               <CardData
+              setOpenDialog={setOpenDialog}
                 getServices={getServices}
                 setSelectedService={setSelectedService}
                 servicesTypes={servicesTypes}
                 selectedService={selectedService}
                 paymentMethods={paymentMethods}
-
               />
             </>
           )}

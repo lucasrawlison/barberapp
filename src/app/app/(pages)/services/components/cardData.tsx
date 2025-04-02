@@ -51,6 +51,7 @@ interface CardDataProps {
   setSelectedService: (value: Service) => void;
   getServices: () => void;
   paymentMethods: PaymentMethod[];
+  setOpenDialog: (value: boolean) => void;
 }
 
 export function CardData({
@@ -59,6 +60,7 @@ export function CardData({
   setSelectedService,
   getServices,
   paymentMethods,
+  setOpenDialog,
 }: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -162,6 +164,26 @@ export function CardData({
     }
   };
 
+  const handleDeleteService = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post("/api/deleteService", {
+        selectedService,
+      });
+
+
+      if(response.status === 200) {
+      console.log(response);
+      setIsLoading(false);
+      setOpenDialog(false);
+      getServices();
+      }
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
+    }
+  }
+
 
 
   return (
@@ -249,8 +271,10 @@ export function CardData({
         </Label>
 
         <div className="w-full"></div>
-
-        <Button onClick={handleUpdateService}>
+        <Button onClick={handleDeleteService} variant="destructive">
+          {isLoading ? <LoaderCircle className="animate-spin" /> : "Deletar"}
+          </Button>
+        <Button disabled={isLoading} onClick={handleUpdateService}>
           {isLoading ? <LoaderCircle className="animate-spin" /> : "Salvar"}
         </Button>
       </div>
