@@ -42,9 +42,10 @@ interface CardDataProps {
   setIsSaved: (value: boolean) => void;
   isSaved: boolean;
   paymentMethods: PaymentMethod[]
+  getServices: () => void;
 }
 
-export function RegisterCardData({ services, setIsSaved, isSaved, paymentMethods }: CardDataProps) {
+export function RegisterCardData({ services, setIsSaved, isSaved, paymentMethods, getServices }: CardDataProps) {
   const [serviceToSave, setServiceToSave] = useState<Service[]>([
     {
       id: "",
@@ -92,9 +93,13 @@ export function RegisterCardData({ services, setIsSaved, isSaved, paymentMethods
         paymentMethodId: paymentMethodToSave,
         customerId:  selectedCustomer?.id ?? null
       });
-      console.log(response);
-      setIsLoading(false);
-      setIsSaved(true);
+      if(response.status === 200) {
+        console.log(response);
+        getServices()
+        setIsLoading(false);
+        setIsSaved(true);
+
+      }
     } catch (error) {
       console.log(error);
       setIsLoading(false);

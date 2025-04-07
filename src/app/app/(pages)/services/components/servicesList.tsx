@@ -246,7 +246,9 @@ export function ServicesList() {
         </div>
         <div className="flex flex-row gap-2 items-center">
 
-      <QuickRegister/>
+      <QuickRegister
+      getServices={getServices}
+      />
 
         <Button
           variant="destructive"
@@ -262,6 +264,7 @@ export function ServicesList() {
         </div>
         
       </div>
+      
       <div className="rounded-md border">
         {isLoading && (
           <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
@@ -374,7 +377,7 @@ export function ServicesList() {
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Serviço {selectedService.code}</DialogTitle>
+                <DialogTitle>Serviço #{selectedService.code}</DialogTitle>
                 <DialogDescription></DialogDescription>
               </DialogHeader>
               <CardData

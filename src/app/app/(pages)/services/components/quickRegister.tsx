@@ -15,13 +15,18 @@ interface Service {
   name: string,
   value: number
 }
-export function QuickRegister () {
+
+interface QuickRegisterProps {
+  getServices: () => void;
+}
+
+export function QuickRegister ({getServices} : QuickRegisterProps)  {
     const [services, setServices] = useState<Service[]>([])
     const [paymentMethods, setPaymentMethods] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
 
-    const getServices = async () => {
+    const getServicesTypes = async () => {
       try {
         setIsLoading(true)
         const response = await axios.post("/api/getServicesTypes");
@@ -49,7 +54,7 @@ export function QuickRegister () {
     }
     useEffect(() => {
       getPaymentMethods();
-      getServices();
+      getServicesTypes();
     }, []);
 
     return (
@@ -73,6 +78,7 @@ export function QuickRegister () {
                 <DialogDescription className="text-left">Prencha os campos para registrar um serviço</DialogDescription>
               </DialogHeader>
               <RegisterCardData
+              getServices={getServices}
               isSaved={isSaved}
               setIsSaved={setIsSaved}
               services={services} 
