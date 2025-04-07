@@ -65,9 +65,9 @@ export function CardData({
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    console.log(selectedService);
-  }, [selectedService]);
+  // useEffect(() => {
+  //   console.log(selectedService);
+  // }, [selectedService]);
 
   useEffect(() => {
     if (selectedService) {
@@ -184,34 +184,31 @@ export function CardData({
     }
   }
 
+  useEffect(() => {
+    console.log("selectedTypes", selectedTypes);
+  },[selectedTypes])
 
 
   return (
     <div className="flex flex-col gap-4">
       <Label className="pb-1">Serviços realizados:</Label>
-      {selectedTypes.map((type) => (
-        <div key={type.id} className="flex flex-row gap-4">
-          <Select onValueChange={(typeId) => handleChangeSelect(type, typeId)}>
+      {selectedTypes.map((type, i) => (
+        <div key={i} className="flex flex-row gap-4">
+          <Select
+            value={type.id}
+            onValueChange={(typeId) => handleChangeSelect(type, typeId)}
+          >
             <SelectTrigger>
-              <SelectValue placeholder={type.name} />
+              <SelectValue>
+                {type.name} - {formatarEmReal(type.value)}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {servicesTypes
-                .filter(
-                  (service) =>
-                    !selectedTypes.some(
-                      (selected) => selected.id === service.id
-                    )
-                )
-                .map((service) => (
-                  <SelectItem
-                    className="hover:cursor-pointer"
-                    key={service.id}
-                    value={service.id}
-                  >
-                    {service.name} - {formatarEmReal(service.value)}
-                  </SelectItem>
-                ))}
+              {servicesTypes.map((service) => (
+                <SelectItem className="hover:cursor-pointer" key={service.id} value={service.id}>
+                  {service.name} - {formatarEmReal(service.value)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -234,7 +231,9 @@ export function CardData({
         onValueChange={(paymentId) => handleChangePayentMethod(paymentId)}
       >
         <SelectTrigger>
-          <SelectValue placeholder={`${selectedService?.paymentMethod?.name} - ${selectedService?.paymentMethod?.bankAccount.bankName}`}>
+          <SelectValue
+            placeholder={`${selectedService?.paymentMethod?.name} - ${selectedService?.paymentMethod?.bankAccount.bankName}`}
+          >
             {selectedService?.paymentMethod?.name
               ? `${selectedService.paymentMethod.name} - ${selectedService.paymentMethod.bankAccount.bankName}`
               : "Escolha uma forma de pagamento"}
@@ -273,7 +272,7 @@ export function CardData({
         <div className="w-full"></div>
         <Button onClick={handleDeleteService} variant="destructive">
           {isLoading ? <LoaderCircle className="animate-spin" /> : "Deletar"}
-          </Button>
+        </Button>
         <Button disabled={isLoading} onClick={handleUpdateService}>
           {isLoading ? <LoaderCircle className="animate-spin" /> : "Salvar"}
         </Button>

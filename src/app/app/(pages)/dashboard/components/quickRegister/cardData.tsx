@@ -131,11 +131,7 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
             </SelectTrigger>
             <SelectContent className="w-10/12">
               {services
-                .filter(
-                  (s) =>
-                    !serviceToSave.some((sel) => sel.id === s.id) ||
-                    s.id === selected.id
-                )
+                
                 .map((service) => (
                   <SelectItem
                     className="hover:cursor-pointer"

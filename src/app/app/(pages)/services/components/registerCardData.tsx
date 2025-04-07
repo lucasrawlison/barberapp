@@ -136,11 +136,7 @@ export function RegisterCardData({ services, setIsSaved, isSaved, paymentMethods
             </SelectTrigger>
             <SelectContent className="w-10/12">
               {services
-                .filter(
-                  (s) =>
-                    !serviceToSave.some((sel) => sel.id === s.id) ||
-                    s.id === selected.id
-                )
+                
                 .map((service) => (
                   <SelectItem
                     className="hover:cursor-pointer"
