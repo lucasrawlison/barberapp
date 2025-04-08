@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { use, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { RotateCw, Search, Users } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,7 @@ export default function ClientesDashboard() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [busca, setBusca] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined)
 
   const handleGetCustomers = async () => {
     setIsLoading(true)
@@ -54,7 +55,7 @@ export default function ClientesDashboard() {
             <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
             <p className="text-muted-foreground">Gerencie seus clientes e adicione novos registros</p>
           </div>
-          <AddClient/>
+          <AddClient selectedCustomer={selectedCustomer} setSelectedCustomer={setSelectedCustomer} />
         </div>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -100,10 +101,10 @@ export default function ClientesDashboard() {
                   <TableBody>
                     {customers.length > 0 ? (
                       customers.map((customer) => (
-                        <TableRow key={customer.id}>
+                        <TableRow className="hover: cursor-pointer hover:bg-gray-100" onClick={()=>setSelectedCustomer(customer)} key={customer.id}>
                           <TableCell className="font-medium">{customer.name}</TableCell>
                           <TableCell className="table-cell">{customer.phone}</TableCell>
-                          <TableCell className=" hidden md:table-cell">{customer.email}</TableCell>
+                          <TableCell className=" hidden md:table-cell">{customer.email || "-"}</TableCell>
                         </TableRow>
                       ))
                     ) : (
