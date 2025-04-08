@@ -1,25 +1,13 @@
 "use client"
 
 import type React from "react"
-
-import { useEffect, useState } from "react"
-import { Search, UserPlus, Users } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
+import { use, useEffect, useState } from "react"
+import { RotateCw, Search, Users } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 import axios from "axios"
+import AddClient from "./components/addClient"
 
 // Dados de exemplo para clientes
 
@@ -35,21 +23,6 @@ export default function ClientesDashboard() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [busca, setBusca] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [newCustomer, setNewCustomer] = useState<Customer | undefined>(undefined)
-  
-  const [dialogOpen, setDialogOpen] = useState(false)
-
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    if(newCustomer){
-
-      setNewCustomer({
-        ...newCustomer,
-        [name]: value,
-      })
-    }
-  }
 
   const handleGetCustomers = async () => {
     setIsLoading(true)
@@ -72,6 +45,7 @@ export default function ClientesDashboard() {
     handleGetCustomers();
   }, [])
 
+
   return (
     <div className="flex  w-full flex-col overflow-auto">
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -80,57 +54,7 @@ export default function ClientesDashboard() {
             <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
             <p className="text-muted-foreground">Gerencie seus clientes e adicione novos registros</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <UserPlus className="h-4 w-4" />
-                Adicionar Cliente
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Adicionar Novo Cliente</DialogTitle>
-                <DialogDescription>Preencha os dados do cliente para cadastrá-lo no sistema.</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Nome</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={newCustomer?.name}
-                    onChange={handleInputChange}
-                    placeholder="Nome completo"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={newCustomer?.email}
-                    onChange={handleInputChange}
-                    placeholder="email@exemplo.com"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="telefone">Telefone</Label>
-                  <Input
-                    id="telefone"
-                    name="telefone"
-                    value={newCustomer?.phone}
-                    onChange={handleInputChange}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-                
-              </div>
-              <DialogFooter>
-                <Button>Salvar Cliente</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <AddClient/>
         </div>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -144,6 +68,11 @@ export default function ClientesDashboard() {
                 onChange={(e) => setBusca(e.target.value)}
               />
             </div>
+          </div>
+          <div onClick={handleGetCustomers} className="flex m-0 p-0 flex-row gap-1 items-center hover: cursor-pointer">
+
+              <span className="text-xs text-gray-600">Atualizar</span>
+              <RotateCw size={12}/>
           </div>
           <Card>
             <CardHeader className="flex flex-row items-center gap-4 py-4">

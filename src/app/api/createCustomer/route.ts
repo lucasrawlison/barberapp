@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    // console.log("ESTE É O BODY--------------------------: ", body)
+    console.log("ESTE É O BODY--------------------------: ", body)
     const { customer } = body;
     
     if (!customer) {
