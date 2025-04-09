@@ -14,6 +14,7 @@ import AddClient from "./components/addClient"
 interface Customer {
   id: string,
   name: string,
+  code: string,
   email: string,
   phone: string,
   
@@ -55,7 +56,7 @@ export default function ClientesDashboard() {
             <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
             <p className="text-muted-foreground">Gerencie seus clientes e adicione novos registros</p>
           </div>
-          <AddClient selectedCustomer={selectedCustomer} setSelectedCustomer={setSelectedCustomer} />
+          <AddClient handleGetCustomers={handleGetCustomers} selectedCustomer={selectedCustomer} setSelectedCustomer={setSelectedCustomer} />
         </div>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -93,6 +94,7 @@ export default function ClientesDashboard() {
                 <Table className="text-center">
                   <TableHeader>
                     <TableRow >
+                      <TableHead className="text-center">Código</TableHead>
                       <TableHead className="text-center">Nome</TableHead>
                       <TableHead className="text-center ">Telefone</TableHead>
                       <TableHead className="text-center hidden md:table-cell">Email</TableHead>
@@ -102,6 +104,7 @@ export default function ClientesDashboard() {
                     {customers.length > 0 ? (
                       customers.map((customer) => (
                         <TableRow className="hover: cursor-pointer hover:bg-gray-100" onClick={()=>setSelectedCustomer(customer)} key={customer.id}>
+                          <TableCell className="font-medium">{customer.code}</TableCell>
                           <TableCell className="font-medium">{customer.name}</TableCell>
                           <TableCell className="table-cell">{customer.phone}</TableCell>
                           <TableCell className=" hidden md:table-cell">{customer.email || "-"}</TableCell>

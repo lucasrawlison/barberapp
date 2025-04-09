@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search, RotateCw, CalendarIcon, Trash2 } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search, RotateCw, CalendarIcon } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"

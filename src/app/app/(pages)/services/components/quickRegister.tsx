@@ -1,10 +1,8 @@
 "use client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 // import { Label } from "@/components/ui/label";
-import { LoaderCircle, NotebookPen } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 // import { useState } from "react";
-import { CardData } from "./cardData";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { RegisterCardData } from "./registerCardData";

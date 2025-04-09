@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getNextSequence } from "../utils/getNextSequence";
 
 const prisma = new PrismaClient();
 
@@ -15,12 +16,16 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const code = await getNextSequence("customer");
+    
     
     const newCustomer = await prisma.customer.create({
       data: {
         name: customer.name,
         phone: customer.phone,
         email: customer.email,
+        code: code.toString(),
       },
     });
 

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { LoaderCircle, UserPlus } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
 import PhoneInput from "./phoneInput";
@@ -22,22 +22,27 @@ interface Customer {
   name: string;
   email: string;
   phone: string;
+  code: string;
+
 }
 
 interface AddClientsProps {
   selectedCustomer: Customer | undefined;
   setSelectedCustomer: React.Dispatch<React.SetStateAction<Customer | undefined>>;
+  handleGetCustomers: () => Promise<void>;
 }
 
-export default function AddClient({selectedCustomer, setSelectedCustomer} : AddClientsProps){
+export default function AddClient({selectedCustomer, setSelectedCustomer, handleGetCustomers} : AddClientsProps){
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [newCustomer, setNewCustomer] = useState<Customer>({
     id: "",
     name: "",
     email: "",
     phone: "",
+    code:"",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,9 +68,9 @@ export default function AddClient({selectedCustomer, setSelectedCustomer} : AddC
         customer: newCustomer,
       });
       if (response.status === 200) {
+        handleGetCustomers();
         setIsLoading(false);
-        // setDialogOpen(false);
-        setIsSaved(true);
+        setSelectedCustomer(response.data.newCustomer);
       }
     } catch (error) {
       console.log(error);
@@ -76,15 +81,37 @@ export default function AddClient({selectedCustomer, setSelectedCustomer} : AddC
   const handleUpdateCustomer = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.put("/api/updateCustomer", {
+      const response = await axios.post("/api/updateCustomer", {
         customer: selectedCustomer,
       });
       if (response.status === 200) {
         setIsLoading(false);
+        handleGetCustomers();
+        
       }
     } catch (error) {
       console.log(error);
       setIsLoading(false);
+    }
+  }
+
+  const handleDeleteCustomer = async () => {
+    setIsDeleting(true);
+
+    try {
+      const response = await axios.post("/api/deleteCustomer", {
+        id: selectedCustomer?.id,
+      });
+
+      if(response.status === 200){
+        setIsDeleting(false);
+        handleGetCustomers();
+        setSelectedCustomer(undefined);
+        setDialogOpen(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setIsDeleting(false);
     }
   }
 
@@ -96,6 +123,7 @@ export default function AddClient({selectedCustomer, setSelectedCustomer} : AddC
           name: "",
           email: "",
           phone: "",
+          code:"",
         });
         setSelectedCustomer(undefined);
     }
@@ -117,7 +145,7 @@ export default function AddClient({selectedCustomer, setSelectedCustomer} : AddC
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Cliente #{selectedCustomer.id}</DialogTitle>
+            <DialogTitle>Cliente #{selectedCustomer.code}</DialogTitle>
             <DialogDescription>
               Preencha os dados do cliente para alterá-lo no sistema.
             </DialogDescription>
@@ -146,20 +174,29 @@ export default function AddClient({selectedCustomer, setSelectedCustomer} : AddC
             </div>
             <div className="grid gap-2">
               <Label htmlFor="telefone">Telefone</Label>
-              {/* <PhoneInput setNewCustomer={setSelectedCostumer} /> */}
-              
+              <PhoneInput
+                setSelectedCustomer={setSelectedCustomer}
+                selectedCustomer={selectedCustomer}
+                setNewCustomer={setNewCustomer}
+              />
             </div>
           </div>
           <DialogFooter>
-            
-              <Button onClick={handleUpdateCustomer} disabled={isLoading}>
-                {isLoading ? (
-                  <LoaderCircle className=" animate-spin" />
-                ) : (
-                  "Atualizar Cliente"
-                )}
-              </Button>
-          
+            <Button onClick={handleDeleteCustomer} disabled={isDeleting} variant="destructive">
+              {isDeleting ? (
+                <LoaderCircle className=" animate-spin" />
+              ) : (
+                "Deletar"
+              )}
+            </Button>
+
+            <Button onClick={handleUpdateCustomer} disabled={isLoading}>
+              {isLoading ? (
+                <LoaderCircle className=" animate-spin" />
+              ) : (
+                "Atualizar Cliente"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -205,14 +242,7 @@ export default function AddClient({selectedCustomer, setSelectedCustomer} : AddC
             </div>
             <div className="grid gap-2">
               <Label htmlFor="telefone">Telefone</Label>
-              <PhoneInput setNewCustomer={setNewCustomer} />
-              {/* <Input
-                id="phone"
-                name="phone"
-                value={newCustomer?.phone}
-                onChange={handleInputChange}
-                placeholder="(00) 00000-0000"
-              /> */}
+              <PhoneInput setSelectedCustomer={setSelectedCustomer} selectedCustomer={selectedCustomer} setNewCustomer={setNewCustomer} />
             </div>
           </div>
           <DialogFooter>

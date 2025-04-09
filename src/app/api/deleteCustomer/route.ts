@@ -6,38 +6,30 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log(body)
-    const { customer } = body;   
-     
-    if (!customer) {
+    const { id} = body;
+    if (!id) {
       return NextResponse.json(
-        { message: "Value, selectedServices or serviceId missing" },
+        { message: "Id to delete Invalid" },
         { status: 400 }
       );
     }
     
-    const updatedCustomer = await prisma.customer.update({
+    const response = await prisma.customer.delete({
         where: {
-            id: customer.id
-        },
-        data: {
-            name: customer.name,
-            email: customer.email,
-            phone: customer.phone
+            id
         }
     })
 
-    // console.log(service)
 
-    if (customer) {
+    if (response) {
       return NextResponse.json(
-        { message: "Customer updated", updatedCustomer },
+        { message: "Customer deleted", response },
         { status: 200 }
       );
     }
 
   } catch (error) {
-    console.error("Error updating customer", error);
+    console.error("Error while deleting customer", error);
     return NextResponse.json(
       { message: "Internal server error" }, 
       { status: 500 }

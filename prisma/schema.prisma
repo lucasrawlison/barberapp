@@ -77,7 +77,8 @@ model Transactions {
 }
 
 model Customer {
-  id      String    @id @default(auto()) @map("_id") @db.ObjectId
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  code            String            @unique
   name    String
   email   String?
   phone   String

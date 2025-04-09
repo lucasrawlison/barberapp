@@ -7,6 +7,9 @@ export async function GET() {
   try {
 
     const customers = await prisma.customer.findMany({
+      orderBy: {
+        code: "desc",
+      }
     });
 
 

@@ -9,6 +9,7 @@ interface Customer {
     name: string;
     email: string;
     phone: string;
+    code: string;
   }
 
 type PhoneInputProps = {
@@ -17,6 +18,8 @@ type PhoneInputProps = {
   placeholder?: string
   className?: string
   setNewCustomer: React.Dispatch<React.SetStateAction<Customer>>
+  selectedCustomer: Customer | undefined
+  setSelectedCustomer: React.Dispatch<React.SetStateAction<Customer | undefined>>
 }
 
 export default function PhoneInput({
@@ -25,6 +28,8 @@ export default function PhoneInput({
   placeholder = "(00) 00000-0000",
   className = "",
   setNewCustomer,
+  setSelectedCustomer,
+  selectedCustomer,
 }: PhoneInputProps) {
 
   const [formattedValue, setFormattedValue] = useState("")
@@ -51,7 +56,17 @@ export default function PhoneInput({
     const newValue = e.target.value
     const { raw, formatted } = formatPhoneNumber(newValue)
     setFormattedValue(formatted)
-    setNewCustomer((prev: Customer) => ({ ...prev, phone: formatted }));
+    if(selectedCustomer) {
+      setSelectedCustomer((prev) => {
+        if (prev) {
+          return { ...prev, phone: formatted };
+        }
+        return prev;
+      });
+    }else{
+    setNewCustomer((prev: Customer) => ({ ...prev, phone: formatted }))
+
+  }
     onChange?.(raw)
   }
 
@@ -62,11 +77,12 @@ export default function PhoneInput({
     }
   }, [value])
 
+  
   return (
     <Input
       type="tel"
       inputMode="numeric"
-      value={formattedValue}
+      value={selectedCustomer ? selectedCustomer.phone: formattedValue}
       onChange={handleChange}
       placeholder={placeholder}
       className={className}
