@@ -1,5 +1,5 @@
 "use client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
 import { User } from "lucide-react";
 import Image from "next/image";
@@ -37,6 +37,8 @@ export default function Dashboard(){
 
     getUsers()
   },[])
+
+  
       
         return (
           <div className="container mx-auto p-6 overflow-auto">
@@ -48,14 +50,15 @@ export default function Dashboard(){
                 <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
               </div>
             )}
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className=" grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {users.map((user) => (
-                <Card key={user.id} className="hover: cursor-pointer shadow-md ">
+                <Card key={user.id} className="hover:bg-gray-50 hover:cursor-pointer shadow-md  transition-all duration-100 ease-in-out">
                   <CardHeader className="text-wrap flex overflow-hidden">
                     <CardTitle className="text-wrap">{user.name}</CardTitle>
-                    <span className="text-wrap text-xs text-slate-500">
+                    <CardDescription className="text-balance text-xs">{user.email}</CardDescription>
+                    {/* <span className="text-slate-500">
                       {user.email}
-                    </span>
+                    </span> */}
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-row items-center  w-full">

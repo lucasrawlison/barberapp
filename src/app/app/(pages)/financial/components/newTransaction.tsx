@@ -269,7 +269,7 @@ export function NewTransaction({
           Nova transação
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-screen overflow-auto">
+      <DialogContent className="max-h-[600px] sm:max-h-screen overflow-auto portr ">
         <DialogHeader>
           <DialogTitle>Adicionar nova transação</DialogTitle>
           <DialogDescription>
