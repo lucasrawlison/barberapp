@@ -15,7 +15,7 @@ model ServicesTypes {
 
 model Service {
   id              String         @id @default(auto()) @map("_id") @db.ObjectId
-  code            String            @unique
+  code            String         @unique
   value           Float
   servicesTypes   Json
   createdAt       DateTime       @default(now())
@@ -24,12 +24,14 @@ model Service {
   paymentMethodId String         @db.ObjectId
   paymentMethod   PaymentMethod  @relation(fields: [paymentMethodId], references: [id])
   transactions    Transactions[]
-  customerId      String?         @db.ObjectId
-  customer        Customer?       @relation(fields: [customerId], references: [id])
+  customerId      String?        @db.ObjectId
+  customer        Customer?      @relation(fields: [customerId], references: [id])
 }
 
 model User {
-  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  code String  @unique
+  isRoot         Boolean        @default(false)
   active         Boolean        @default(true)
   email          String         @unique
   login          String         @unique
@@ -77,8 +79,8 @@ model Transactions {
 }
 
 model Customer {
-  id              String         @id @default(auto()) @map("_id") @db.ObjectId
-  code            String            @unique
+  id      String    @id @default(auto()) @map("_id") @db.ObjectId
+  code    String    @unique
   name    String
   email   String?
   phone   String
