@@ -5,7 +5,7 @@ import { useState } from "react";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LoaderCircle, Plus, Check, UsersIcon, UserRoundSearch } from "lucide-react";
+import { LoaderCircle, Plus, Check, UserRoundSearch } from "lucide-react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
