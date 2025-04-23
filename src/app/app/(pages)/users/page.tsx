@@ -68,7 +68,6 @@ export default function Dashboard(){
 
   return (
     <div className="container mx-auto p-6 overflow-auto">
-        {activeUser?.name}
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Usuários</h1>
       </header>

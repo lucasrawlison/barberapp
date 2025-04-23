@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
             email: selectedUser.email,
             login: selectedUser.login,
             active: selectedUser.active,
+            profileType: selectedUser.profileType,
 
         }
     })

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import axios from "axios";
 import { LoaderCircle, User } from "lucide-react";
@@ -163,12 +164,27 @@ export default function AddUser({
                 <div className="flex flex-row w-full justify-between items-center pr-14">
                   <div className="flex flex-col gap-2">
                     <div className="flex flex-row gap-3 items-center">
-                      <Label className="text-slate-500 text-sm">
+                      <Label className="text-slate-500 text-sm text-nowrap">
                         Tipo de perfil:
                       </Label>
-                      <span className="text-sm">
-                        {selectedUser?.profileType.toUpperCase()}
-                      </span>
+                      
+                      <Select onValueChange={(value) => {
+                        if (selectedUser) {
+                          setSelectedUser({
+                            ...selectedUser,
+                            profileType: value,
+                          });
+                        }}}>
+                        <SelectTrigger className="w-36 h-8 text-center">
+                          <SelectValue placeholder={selectedUser.profileType}/>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem className="hover:cursor-pointer" value="admin">Administrador</SelectItem>
+                            <SelectItem className="hover:cursor-pointer" value="barber">Barbeiro</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="flex flex-row gap-3 items-center">
                       <Switch
