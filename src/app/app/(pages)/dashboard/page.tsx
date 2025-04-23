@@ -1,3 +1,4 @@
+"use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {  List, Settings, Users } from "lucide-react";
 import { QuickRegister } from "./components/quickRegister/quickRegister";
@@ -28,9 +29,7 @@ export default function Dashboard(){
             image: <Settings className="text-sky-800"/>
           }
         ]
-        
-        
-        
+    
         return (
           <div className="container mx-auto p-6 overflow-auto">
             <header className="flex justify-between items-center mb-6">
