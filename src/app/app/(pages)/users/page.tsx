@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import AddUser from "./components/addUser";
 import { Plus, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { auth } from "@/auth";
 import { useSession } from "next-auth/react";
 
 export default function Dashboard(){
