@@ -309,10 +309,27 @@ export default function AddUser({
             <div className="flex flex-row w-full justify-between items-center pr-14">
               <div className="flex flex-col gap-2">
                 <div className="flex flex-row gap-3 items-center">
-                  <Label className="text-slate-500 text-sm">
-                    Tipo de perfil:
-                  </Label>
-                  <span className="text-sm"></span>
+                <Label className="text-slate-500 text-sm text-nowrap">
+                        Tipo de perfil:
+                      </Label>
+                      
+                      <Select onValueChange={(value) => {
+                        if (newUser) {
+                          setNewUser({
+                            ...newUser,
+                            profileType: value,
+                          });
+                        }}}>
+                        <SelectTrigger className="w-36 h-8 text-center">
+                          <SelectValue defaultValue="barber" placeholder="Barbeiro"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem className="hover:cursor-pointer" value="admin">Administrador</SelectItem>
+                            <SelectItem className="hover:cursor-pointer" value="barber">Barbeiro</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                 </div>
                 <div className="flex flex-row gap-3 items-center">
                   <Switch

@@ -5,12 +5,13 @@ import { useState } from "react";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LoaderCircle, Plus, Check, UsersIcon } from "lucide-react";
+import { LoaderCircle, Plus, Check, UsersIcon, UserRoundSearch } from "lucide-react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import AddClient from "./addClient";
 
 interface Service {
   id: string;
@@ -107,7 +108,7 @@ export function RegisterCardData({ services, setIsSaved, isSaved, paymentMethods
   };
 
 
-  const handleGetCustomer = async () => {
+  const handleGetCustomers = async () => {
     setIsLoadingCustomers(true)
     try {
       const response = await axios.get("/api/getCustomers")
@@ -171,9 +172,9 @@ export function RegisterCardData({ services, setIsSaved, isSaved, paymentMethods
           type="text"
         ></Input>
         <Dialog open={isOpen} onOpenChange={()=>setIsOpen(!isOpen)}>
-          <DialogTrigger onClick={handleGetCustomer} asChild>
+          <DialogTrigger onClick={handleGetCustomers} asChild>
             <Button className="hover: cursor-pointer">
-              <UsersIcon />
+              <UserRoundSearch />
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -226,6 +227,7 @@ export function RegisterCardData({ services, setIsSaved, isSaved, paymentMethods
             </div>
           </DialogContent>
         </Dialog>
+        <AddClient handleGetCustomers={handleGetCustomers} setChosedCustomer={setSelectedCustomer}/>
       </div>
       <Select onValueChange={(value) => setPaymentMethodsToSave(value)}>
         <SelectTrigger>
