@@ -69,7 +69,7 @@ model Transactions {
   value           Float
   date            DateTime      @default(now())
   serviceId       String?       @db.ObjectId
-  service         Service?      @relation(fields: [serviceId], references: [id])
+  service         Service?      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   paymentMethodId String        @db.ObjectId
   paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   category        String
@@ -84,7 +84,7 @@ model Customer {
   name    String
   email   String?
   phone   String
-  service Service[]
+  services Service[] 
 }
 
 model Counters {
