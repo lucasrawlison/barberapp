@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {  List, Settings, Users } from "lucide-react";
 import { QuickRegister } from "./components/quickRegister/quickRegister";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import { use, useEffect } from "react";
 
 export default function Dashboard(){
 
@@ -29,6 +31,15 @@ export default function Dashboard(){
             image: <Settings className="text-sky-800"/>
           }
         ]
+
+        const {toast} = useToast()
+
+        useEffect(() => {
+            toast({
+                title: "Bem-vindo ao Agile Barber!",
+                description: "Gerencie seus serviços, clientes e configurações de forma fácil e rápida.",
+                duration: 5000,})
+        },[])
     
         return (
           <div className="container mx-auto p-6 overflow-auto">
