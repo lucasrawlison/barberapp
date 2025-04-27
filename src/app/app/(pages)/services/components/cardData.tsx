@@ -187,8 +187,7 @@ export function CardData({
   useEffect(() => {
     console.log("selectedTypes", selectedTypes);
   },[selectedTypes])
-
-
+  
   return (
     <div className="flex flex-col gap-4">
       <Label className="pb-1">Serviços realizados:</Label>

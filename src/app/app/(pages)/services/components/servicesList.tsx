@@ -8,12 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import axios from "axios"
 import { useSession } from "next-auth/react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CardData } from "./cardData"
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
-import { QuickRegister } from "./quickRegister"
+import ServiceModal from "./serviceModal"
 
 
 interface User {
@@ -60,11 +59,11 @@ export function ServicesList() {
   const [services, setServices] = useState<Service[]>([])
   const [filterValue, setFilterValue] = useState("")
   const { data: session } = useSession()
-  const [openDialog, setOpenDialog] = useState(false)
   const [servicesTypes, setServicesTypes] = useState([])
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [date, setDate] = React.useState<Date | undefined>(undefined)
   const [paymentMethods, setPaymentMethods] = useState([])
+  const [newService, setNewService] = useState<Service | null>(null)
 
 
   // Define handleConvertDate function before using it
@@ -185,10 +184,6 @@ export function ServicesList() {
     return filteredServices.slice(start, end)
   }, [currentPage, filteredServices, itemsPerPage])
 
-  const handleSelectService = (service : Service) => {
-    setSelectedService(service)
-    setOpenDialog(true)
-  }
 
   return (
     <div className="space-y-4 p-5">
@@ -245,10 +240,20 @@ export function ServicesList() {
           <RotateCw className="w-3" />
         </div>
         <div className="flex flex-row gap-2 items-center">
-
-      <QuickRegister
-      getServices={getServices}
-      />
+        <Button
+        onClick={() => {
+          setNewService({
+            id: "",
+            code: 0,
+            value: 0,
+            createdAt: new Date(),
+            servicesTypes: [],
+            user: { name: ""},
+            paymentMethodId: "",
+            paymentMethod: { id: "", name: "", bankAccount: { id: "", bankName: "" } }
+          })
+        }}
+        >Novo Serviço</Button>
 
         <Button
           variant="destructive"
@@ -293,7 +298,7 @@ export function ServicesList() {
             ) : (
               currentServices.map((service) => (
                 <TableRow
-                  onClick={() => handleSelectService(service)}
+                  onClick={() => setSelectedService(service)}
                   key={service.id}
                   className="hover:bg-gray-50 hover:cursor-pointer"
                 >
@@ -364,34 +369,16 @@ export function ServicesList() {
           <ChevronsRight className="h-4 w-4" />
         </Button>
       </div>
-      <Dialog open={openDialog} onOpenChange={() => setOpenDialog(!openDialog)}>
-        <DialogContent>
-          {!selectedService ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <DialogHeader>
-                <DialogTitle></DialogTitle>
-                <DialogDescription></DialogDescription>
-              </DialogHeader>
-              <LoaderCircle className=" animate-spin" />
-            </div>
-          ) : (
-            <>
-              <DialogHeader>
-                <DialogTitle>Serviço #{selectedService.code}</DialogTitle>
-                <DialogDescription></DialogDescription>
-              </DialogHeader>
-              <CardData
-              setOpenDialog={setOpenDialog}
-                getServices={getServices}
-                setSelectedService={setSelectedService}
-                servicesTypes={servicesTypes}
-                selectedService={selectedService}
-                paymentMethods={paymentMethods}
-              />
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ServiceModal
+      setNewService={setNewService}
+      newService={newService}
+      selectedService={selectedService}
+      getServices={getServices}
+      setSelectedService={setSelectedService}
+      servicesTypes={servicesTypes}
+      paymentMethods={paymentMethods}
+      />
+      
     </div>
   );
 }
