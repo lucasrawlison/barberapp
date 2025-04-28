@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Search, RotateCw, CalendarIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, Search, RotateCw, CalendarIcon } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -35,6 +35,12 @@ interface PaymentMethod {
   name: string;
   bankAccount: BankAccount
 }
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
 interface Service {
   id: string;
   code: number;
@@ -43,7 +49,8 @@ interface Service {
   servicesTypes: Type[];
   user: User;
   paymentMethodId: string
-
+  customerId: string;
+  customer: Customer;
   paymentMethod: PaymentMethod
 }
 
@@ -250,7 +257,9 @@ export function ServicesList() {
             servicesTypes: [],
             user: { name: ""},
             paymentMethodId: "",
-            paymentMethod: { id: "", name: "", bankAccount: { id: "", bankName: "" } }
+            paymentMethod: { id: "", name: "", bankAccount: { id: "", bankName: "" } },
+            customerId: "",
+            customer: { id: "", name: "", email: "", phone: "" },
           })
         }}
         >Novo Serviço</Button>

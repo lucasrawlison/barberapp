@@ -29,6 +29,14 @@ interface PaymentMethod {
   name: string;
   bankAccount: BankAccount;
 }
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
 interface Service {
   id: string;
   code: number;
@@ -37,7 +45,8 @@ interface Service {
   servicesTypes: Type[];
   user: User;
   paymentMethodId: string;
-
+  customerId: string;
+  customer: Customer;
   paymentMethod: PaymentMethod;
 }
 
@@ -126,16 +135,13 @@ export default function ServiceModal({
               Prencha os campos para registrar um serviço
             </DialogDescription>
           </DialogHeader>
-        <RegisterCardData
-         setOpenDialog={setOpenDialog}
-         selectedService={newService}
-         getServices={getServices}
-         setSelectedService={setNewService}
-         servicesTypes={servicesTypes}
-         paymentMethods={paymentMethods}
-         />
-         </DialogContent>
-
+          <RegisterCardData
+            getServices={getServices}
+            selectedService={newService}
+            services={servicesTypes}
+            paymentMethods={paymentMethods}
+          />
+        </DialogContent>
       </Dialog>
     );
   }

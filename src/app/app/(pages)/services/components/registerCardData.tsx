@@ -3,16 +3,37 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, LoaderCircle } from "lucide-react";
+import { Plus, LoaderCircle, UsersIcon, Check } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectTrigger,
   SelectValue,
+  SelectItem,
 } from "@/components/ui/select";
-import { SelectItem } from "@radix-ui/react-select";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useSession } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   name: string;
@@ -45,28 +66,53 @@ interface Service {
   paymentMethod: PaymentMethod;
 }
 
+interface ServiceType {
+  id: string;
+  name: string;
+  value: number;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
 interface CardDataProps {
   selectedService: Service | null;
-  servicesTypes: Type[];
-  setSelectedService: (value: Service) => void;
-  getServices: () => void;
+  services: Type[];
   paymentMethods: PaymentMethod[];
-  setOpenDialog: (value: boolean) => void;
+  getServices: () => void;
 }
 
 export function RegisterCardData({
   selectedService,
-  servicesTypes,
-  setSelectedService,
-  getServices,
+  services,
   paymentMethods,
+  getServices,
 }: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
+  const [serviceToSave, setServiceToSave] = useState<ServiceType[]>([
+    {
+      id: "",
+      name: "Selecione",
+      value: 0,
+    },
+  ]);
+  const [paymentMethodToSave, setPaymentMethodsToSave] = useState<
+    string | undefined
+  >(undefined);
   const [isLoading, setIsLoading] = useState(false);
-
-  // useEffect(() => {
-  //   console.log(selectedService);
-  // }, [selectedService]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const { data: session } = useSession();
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    Customer | undefined
+  >(undefined);
+  const [customers, setCustomers] = useState<Customer[] | undefined>(undefined);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (selectedService) {
@@ -74,168 +120,185 @@ export function RegisterCardData({
     }
   }, [selectedService]);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(price);
+  useEffect(() => {
+    console.log(" services", services);
+  }, [services]);
+
+  useEffect(() => {
+    console.log(serviceToSave);
+  }, [serviceToSave]);
+
+  const handleAddSelect = () => {
+    setServiceToSave((prev) => [...prev, { id: "", name: "", value: 0 }]);
   };
 
-  const handleChangeSelect = (selectedType: Type, newTypeId: string) => {
-    if (selectedType.id === newTypeId) return;
+  const handleChangeService = (index: number, serviceId: string) => {
+    const selectedService = services.find((s) => s.id === serviceId);
+    if (!selectedService) return;
 
-    const newType = servicesTypes.find((type) => type.id === newTypeId);
-    if (!newType) return;
-
-    setSelectedTypes((prevTypes) =>
-      prevTypes.map((type) => (type.id === selectedType.id ? newType : type))
-    );
-
-    if (selectedService) {
-      const updatedTypes = selectedTypes.map((type) =>
-        type.id === selectedType.id ? newType : type
-      );
-      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0);
-      setSelectedService({
-        ...selectedService,
-        servicesTypes: updatedTypes,
-        value: value,
-      });
-    }
-  };
-
-  const handleChangePayentMethod = (paymentId: string) => {
-    if (!paymentId) return;
-
-    const selectedPaymentMethod = paymentMethods.find(
-      (paymentMethod) => paymentMethod.id === paymentId
-    );
-
-    if (!selectedPaymentMethod || !selectedService) return;
-
-    setSelectedService({
-      ...selectedService,
-      paymentMethod: selectedPaymentMethod,
-      paymentMethodId: selectedPaymentMethod.id,
+    setServiceToSave((prev) => {
+      const updatedServices = [...prev];
+      updatedServices[index] = selectedService;
+      return updatedServices;
     });
-
   };
 
-  const handleAddEmptyType = () => {
-    const emptyType: Type = {
-      id: `empty-${Date.now()}`, // Garante um ID único temporário
-      name: "Novo Serviço",
-      value: 0,
-    };
-
-    setSelectedTypes((prev) => [...prev, emptyType]);
+  const handleRemoveService = (index: number) => {
+    setServiceToSave((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleRemoveType = (id: string) => {
-    setSelectedTypes((prev) => prev.filter((type) => type.id !== id));
-
-    if (selectedService) {
-      const updatedTypes = selectedTypes.filter((type) => type.id !== id);
-      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0);
-
-      setSelectedService({
-        ...selectedService,
-        servicesTypes: updatedTypes,
-        value: value,
-      });
-    }
-  };
-
-  const handleUpdateService = async () => {
+  const handleSaveService = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.post("/api/updateService", {
-        selectedService,
+      const response = await axios.post("/api/createService", {
+        value: serviceToSave.reduce((acc, s) => acc + s.value, 0),
+        userId: session?.user?.id,
+        selectedServices: serviceToSave,
+        paymentMethodId: paymentMethodToSave,
+        customerId: selectedCustomer?.id ?? null,
       });
-
-      console.log(response);
-      getServices();
-
-      setIsLoading(false);
-    } catch (error) {
-      console.log(error);
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteService = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.post("/api/deleteService", {
-        selectedService,
-      });
-
-
-      if(response.status === 200) {
-      console.log(response);
-      setIsLoading(false);
-      getServices();
+      if (response.status === 200) {
+        toast({
+          title: "Serviço salvo com sucesso!",
+          description: "O serviço foi salvo com sucesso!",
+          variant: "default",
+        });
+        console.log(response);
+        getServices();
+        setIsLoading(false);
+        setIsSaved(true);
       }
     } catch (error) {
       console.log(error);
       setIsLoading(false);
     }
-  }
+  };
+
+  const handleGetCustomer = async () => {
+    setIsLoadingCustomers(true);
+    try {
+      const response = await axios.get("/api/getCustomers");
+      if (response.status === 200) {
+        setCustomers(response.data.customers);
+        console.log(response.data.customers);
+        setIsLoadingCustomers(false);
+      }
+    } catch (error) {
+      setIsLoadingCustomers(false);
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     console.log("selectedTypes", selectedTypes);
-  },[selectedTypes])
-  
+  }, [selectedTypes]);
+
   return (
-    <div className="flex flex-col gap-4">
-      uyhfg
+    <div className="p-1 flex flex-col gap-4 max-w-full overflow-auto">
       <Label className="pb-1">Serviços realizados:</Label>
-      {selectedTypes.map((type, i) => (
-        <div key={i} className="flex flex-row gap-4">
+      {serviceToSave.map((selected, index) => (
+        <div key={index} className=" p-1 flex items-center gap-2 w-full">
           <Select
-            value={type.id}
-            onValueChange={(typeId) => handleChangeSelect(type, typeId)}
+            value={selected.id}
+            onValueChange={(value) => handleChangeService(index, value)}
           >
-            <SelectTrigger>
-              <SelectValue>
-                {type.name} - {formatarEmReal(type.value)}
-              </SelectValue>
+            <SelectTrigger className=" truncate">
+              <SelectValue placeholder={selected.name || "Selecione"} />
             </SelectTrigger>
-            <SelectContent>
-              {servicesTypes.map((service) => (
-                <SelectItem className="hover:cursor-pointer" key={service.id} value={service.id}>
+            <SelectContent className="w-10/12">
+              {services.map((service) => (
+                <SelectItem
+                  className="hover:cursor-pointer"
+                  key={service.id}
+                  value={service.id}
+                >
                   {service.name} - {formatarEmReal(service.value)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-
           <Button
             className="rounded-full size-7 bg-red-700"
-            onClick={() => handleRemoveType(type.id)}
+            onClick={() => handleRemoveService(index)}
           >
-            <Minus />
+            ✕
           </Button>
         </div>
       ))}
 
-      <div className="flex w-full justify-center">
-        <Button onClick={handleAddEmptyType} className="rounded-full size-8">
+      <div className="flex w-full justify-center mb-8">
+        <Button className="rounded-full size-8" onClick={handleAddSelect}>
           <Plus />
         </Button>
       </div>
-
-      <Select
-        onValueChange={(paymentId) => handleChangePayentMethod(paymentId)}
-      >
+      <Label>Cliente: </Label>
+      <div className="w-full flex flex-row items-center gap-3">
+        <Input
+          disabled
+          value={selectedCustomer?.name ?? ""}
+          placeholder="Selecione o cliente"
+          type="text"
+        ></Input>
+        <Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
+          <DialogTrigger onClick={handleGetCustomer} asChild>
+            <Button className="hover: cursor-pointer">
+              <UsersIcon />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Clientes</DialogTitle>
+              <DialogDescription>
+                Selecione um cliente para o serviço
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center">
+              <Input placeholder="Buscar" className="w-full"></Input>
+              <div className="flex flex-col gap-2 mt-4 max-h-96 overflow-auto w-full">
+                {isLoadingCustomers && (
+                  <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                    <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                  </div>
+                )}
+                <Table>
+                  <TableCaption> Lista de clientes disponíveis</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-black">Nome</TableHead>
+                      <TableHead className="text-center text-black">
+                        Contato
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customers &&
+                      customers.map((customer) => (
+                        <TableRow
+                          className="hover:cursor-pointer"
+                          key={customer.id}
+                          onClick={() => {
+                            setSelectedCustomer(customer);
+                            setIsOpen(false);
+                          }}
+                        >
+                          <TableCell className="text-sm text-gray-600">
+                            {customer.name}
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600 text-center">
+                            {customer.phone}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <Select onValueChange={(value) => setPaymentMethodsToSave(value)}>
         <SelectTrigger>
-          <SelectValue
-            placeholder={`${selectedService?.paymentMethod?.name} - ${selectedService?.paymentMethod?.bankAccount.bankName}`}
-          >
-            {selectedService?.paymentMethod?.name
-              ? `${selectedService.paymentMethod.name} - ${selectedService.paymentMethod.bankAccount.bankName}`
-              : "Escolha uma forma de pagamento"}
-          </SelectValue>
+          <SelectValue placeholder="Forma de pagamento" />
         </SelectTrigger>
         <SelectContent>
           {paymentMethods.map((paymentMethod) => (
@@ -249,31 +312,23 @@ export function RegisterCardData({
           ))}
         </SelectContent>
       </Select>
-      <ul>
-        {selectedTypes.map((type) => (
-          <li key={type.id}>
-            <span className="text-sm">
-              {type.name} - {formatPrice(type.value)}
-            </span>
-          </li>
-        ))}
-      </ul>
 
       <Separator className="my-4" />
-
       <div className="flex gap-2 items-center">
         <Label>Total:</Label>
         <Label className="text-md">
-          {selectedService?.value ? formatarEmReal(selectedService.value) : ""}
+          {formatarEmReal(serviceToSave.reduce((acc, s) => acc + s.value, 0))}
         </Label>
-
         <div className="w-full"></div>
-        <Button onClick={handleDeleteService} variant="destructive">
-          {isLoading ? <LoaderCircle className="animate-spin" /> : "Deletar"}
-        </Button>
-        <Button disabled={isLoading} onClick={handleUpdateService}>
-          {isLoading ? <LoaderCircle className="animate-spin" /> : "Salvar"}
-        </Button>
+        {isSaved ? (
+          <Button disabled>
+            Salvo <Check />
+          </Button>
+        ) : (
+          <Button disabled={isLoading} onClick={handleSaveService}>
+            {isLoading ? <LoaderCircle className="animate-spin" /> : "Salvar"}
+          </Button>
+        )}
       </div>
     </div>
   );

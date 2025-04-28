@@ -3,16 +3,36 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, LoaderCircle } from "lucide-react";
+import { Plus, Minus, LoaderCircle, UsersIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectTrigger,
   SelectValue,
+  SelectItem,
 } from "@/components/ui/select";
-import { SelectItem } from "@radix-ui/react-select";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   name: string;
@@ -43,6 +63,15 @@ interface Service {
   user: User;
   paymentMethodId: string;
   paymentMethod: PaymentMethod;
+  customerId: string;
+  customer: Customer;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
 }
 
 interface CardDataProps {
@@ -64,6 +93,10 @@ export function CardData({
 }: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [customers, setCustomers] = useState<Customer[] | undefined>(undefined);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
 
   // useEffect(() => {
   //   console.log(selectedService);
@@ -119,7 +152,6 @@ export function CardData({
       paymentMethod: selectedPaymentMethod,
       paymentMethodId: selectedPaymentMethod.id,
     });
-
   };
 
   const handleAddEmptyType = () => {
@@ -154,10 +186,17 @@ export function CardData({
         selectedService,
       });
 
-      console.log(response);
-      getServices();
-
-      setIsLoading(false);
+      if(response.status === 200) {
+        toast({
+          title: "Sucesso",
+          description: "Serviço atualizado com sucesso!",
+          duration: 2000,
+          variant: "default",
+        });
+      
+        setIsLoading(false);
+        getServices();
+      }
     } catch (error) {
       console.log(error);
       setIsLoading(false);
@@ -171,23 +210,43 @@ export function CardData({
         selectedService,
       });
 
-
-      if(response.status === 200) {
-      console.log(response);
-      setIsLoading(false);
-      setOpenDialog(false);
-      getServices();
+      if (response.status === 200) {
+        toast({
+          title: "Sucesso",
+          description: "Serviço deletado com sucesso!",
+          duration: 2000,
+          variant: "default",
+        });
+        console.log(response);
+        setIsLoading(false);
+        setOpenDialog(false);
+        getServices();
       }
     } catch (error) {
       console.log(error);
       setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     console.log("selectedTypes", selectedTypes);
-  },[selectedTypes])
-  
+  }, [selectedTypes]);
+
+  const handleGetCustomer = async () => {
+    setIsLoadingCustomers(true);
+    try {
+      const response = await axios.get("/api/getCustomers");
+      if (response.status === 200) {
+        setCustomers(response.data.customers);
+        console.log(response.data.customers);
+        setIsLoadingCustomers(false);
+      }
+    } catch (error) {
+      setIsLoadingCustomers(false);
+      console.log(error);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <Label className="pb-1">Serviços realizados:</Label>
@@ -204,7 +263,11 @@ export function CardData({
             </SelectTrigger>
             <SelectContent>
               {servicesTypes.map((service) => (
-                <SelectItem className="hover:cursor-pointer" key={service.id} value={service.id}>
+                <SelectItem
+                  className="hover:cursor-pointer"
+                  key={service.id}
+                  value={service.id}
+                >
                   {service.name} - {formatarEmReal(service.value)}
                 </SelectItem>
               ))}
@@ -224,6 +287,76 @@ export function CardData({
         <Button onClick={handleAddEmptyType} className="rounded-full size-8">
           <Plus />
         </Button>
+      </div>
+      <Label>Cliente: </Label>
+      <div className="w-full flex flex-row items-center gap-3">
+        <Input
+          disabled
+          value={selectedService?.customer.name ?? ""}
+          placeholder="Selecione o cliente"
+          type="text"
+        ></Input>
+        <Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
+          <DialogTrigger onClick={handleGetCustomer} asChild>
+            <Button className="hover: cursor-pointer">
+              <UsersIcon />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Clientes</DialogTitle>
+              <DialogDescription>
+                Selecione um cliente para o serviço
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center">
+              <Input placeholder="Buscar" className="w-full"></Input>
+              <div className="flex flex-col gap-2 mt-4 max-h-96 overflow-auto w-full">
+                {isLoadingCustomers && (
+                  <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                    <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                  </div>
+                )}
+                <Table>
+                  <TableCaption> Lista de clientes disponíveis</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-black">Nome</TableHead>
+                      <TableHead className="text-center text-black">
+                        Contato
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customers &&
+                      customers.map((customer) => (
+                        <TableRow
+                          className="hover:cursor-pointer"
+                          key={customer.id}
+                          onClick={() => {
+                            if (!selectedService) return;
+                            setSelectedService({
+                              ...selectedService,
+                              customerId: customer.id,
+                              customer: customer, // 👈 atualiza o objeto também
+                            });
+                            setIsOpen(false);
+                          }}
+                        >
+                          <TableCell className="text-sm text-gray-600">
+                            {customer.name}
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600 text-center">
+                            {customer.phone}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Select

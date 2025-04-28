@@ -57,7 +57,8 @@ export async function POST(req: NextRequest) {
             user: true,
             paymentMethod: {
               include:{bankAccount:true}
-            }
+            },
+            customer: true,
             
           },
         });
@@ -82,7 +83,9 @@ export async function POST(req: NextRequest) {
             user: true,
             paymentMethod: {
               include:{bankAccount:true}
-            }
+            },
+            customer: true,
+
             
           },
         });
@@ -131,7 +134,9 @@ export async function POST(req: NextRequest) {
             user: true,
             paymentMethod: {
               include:{bankAccount:true}
-            }
+            },
+            customer: true,
+
             
           },
         });
@@ -160,7 +165,9 @@ export async function POST(req: NextRequest) {
             user: true,
             paymentMethod: {
               include:{bankAccount:true}
-            }
+            },
+            customer: true,
+
             
           },
         });
