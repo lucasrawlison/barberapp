@@ -99,7 +99,7 @@ export function ServicesList() {
       });
 
       const { services } = response.data;
-      console.log(response);
+      console.log(response.data);
       setServices(services);
       setIsLoading(false);
     } catch (error) {

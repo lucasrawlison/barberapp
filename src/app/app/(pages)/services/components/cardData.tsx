@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, LoaderCircle, UsersIcon } from "lucide-react";
+import { Plus, Minus, LoaderCircle, UsersIcon, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import AddClient from "./addClient";
+import { set } from "date-fns";
 
 interface User {
   name: string;
@@ -247,6 +249,20 @@ export function CardData({
     }
   };
 
+  const handleSetSelectedCustomer = (customer: Customer | undefined) => {
+    if(customer === undefined) return;
+    if(selectedService){
+
+      setSelectedService({...selectedService,
+        customerId: customer.id,
+        customer: customer,
+      })
+    }
+  }
+
+  
+  
+
   return (
     <div className="flex flex-col gap-4">
       <Label className="pb-1">Serviços realizados:</Label>
@@ -278,7 +294,7 @@ export function CardData({
             className="rounded-full size-7 bg-red-700"
             onClick={() => handleRemoveType(type.id)}
           >
-            <Minus />
+            <Trash2 className="text-white" />
           </Button>
         </div>
       ))}
@@ -357,6 +373,8 @@ export function CardData({
             </div>
           </DialogContent>
         </Dialog>
+        <AddClient setChosedCustomer={handleSetSelectedCustomer}
+                handleGetCustomers={handleGetCustomer} />
       </div>
 
       <Select

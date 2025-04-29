@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
-import { Plus, LoaderCircle, UsersIcon, Check } from "lucide-react";
+import { Plus, LoaderCircle, UsersIcon, Check, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/use-toast";
+import AddClient from "./addClient";
 
 interface User {
   name: string;
@@ -221,7 +222,7 @@ export function RegisterCardData({
             className="rounded-full size-7 bg-red-700"
             onClick={() => handleRemoveService(index)}
           >
-            ✕
+            <Trash2 className="text-white" />
           </Button>
         </div>
       ))}
@@ -295,6 +296,8 @@ export function RegisterCardData({
             </div>
           </DialogContent>
         </Dialog>
+        <AddClient setChosedCustomer={setSelectedCustomer}
+        handleGetCustomers={handleGetCustomer} />
       </div>
       <Select onValueChange={(value) => setPaymentMethodsToSave(value)}>
         <SelectTrigger>

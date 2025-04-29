@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const {id, value, servicesTypes, paymentMethod} = selectedService
+    const {id, value, servicesTypes, paymentMethod, customerId} = selectedService
     
 
     const service = await prisma.service.update({
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
         id
       }, 
       data: {
-            value, servicesTypes, paymentMethodId: paymentMethod.id
+            value, servicesTypes, paymentMethodId: paymentMethod.id, customerId
         },
         include:{
           user:true,
