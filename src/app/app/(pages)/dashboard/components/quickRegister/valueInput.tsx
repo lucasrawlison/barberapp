@@ -3,14 +3,7 @@
 import { useState, useRef, type KeyboardEvent, type ChangeEvent, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 
-interface Transaction {
-  description: string,
-  value: number,
-  date: string,
-  type: string,
-  category: string
-  paymentMethodId: string
-}
+
 interface ValueInputProps {
   setDesconto: (value: number) => void
   desconto: number
