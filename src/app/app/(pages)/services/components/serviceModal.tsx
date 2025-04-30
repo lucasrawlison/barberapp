@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { CardData } from "./cardData";
 import { useEffect, useState } from "react";
-import { LoaderCircle } from "lucide-react";
 import { RegisterCardData } from "./registerCardData";
 interface User {
   name: string;
@@ -41,6 +40,8 @@ interface Service {
   id: string;
   code: number;
   value: number;
+  servicesValue: number;
+  discount: number;
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
@@ -94,18 +95,8 @@ export default function ServiceModal({
 
   if (selectedService) {
     return (
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent>
-          {!selectedService ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <DialogHeader>
-                <DialogTitle></DialogTitle>
-                <DialogDescription></DialogDescription>
-              </DialogHeader>
-              <LoaderCircle className=" animate-spin" />
-            </div>
-          ) : (
-            <>
+      <Dialog  open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className=" overflow-auto max-h-[650px]">
               <DialogHeader>
                 <DialogTitle>Serviço #{selectedService.code}</DialogTitle>
                 <DialogDescription></DialogDescription>
@@ -118,8 +109,6 @@ export default function ServiceModal({
                 selectedService={selectedService}
                 paymentMethods={paymentMethods}
               />
-            </>
-          )}
         </DialogContent>
       </Dialog>
     );
@@ -128,7 +117,7 @@ export default function ServiceModal({
   if (newService) {
     return (
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className=" min-h-96">
+        <DialogContent className=" overflow-auto max-h-[650px]">
           <DialogHeader>
             <DialogTitle className="text-left">Serviço</DialogTitle>
             <DialogDescription className="text-left">

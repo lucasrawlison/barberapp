@@ -1,16 +1,19 @@
 "use client"
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LoaderCircle, Plus, Check, UsersIcon } from "lucide-react";
+import { LoaderCircle, Plus, Check, UsersIcon, Trash2 } from "lucide-react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import AddClient from "./addClient";
+import { useToast } from "@/hooks/use-toast";
+import ValueInput from "./valueInput";
 
 interface Service {
   id: string;
@@ -59,6 +62,11 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined)
   const [customers, setCustomers] = useState<Customer[] | undefined>(undefined)
   const [isOpen, setIsOpen] = useState(false)
+  const {toast} = useToast()
+    const [desconto, setDesconto] = useState<number>(0);
+      const [total, setTotal] = useState<number>(0);
+    
+  
 
   const handleAddSelect = () => {
     setServiceToSave((prev) => [...prev, { id: "", name: "", value: 0 }]);
@@ -79,6 +87,9 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
   };
 
   const handleRemoveService = (index: number) => {
+    if(serviceToSave.length === 1) {
+      toast({title: "Escolha ao menos um serviço", variant: "destructive", duration: 2000})
+      return}
     setServiceToSave((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -86,15 +97,28 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
     try {
       setIsLoading(true);
       const response = await axios.post("/api/createService", {
-        value: serviceToSave.reduce((acc, s) => acc + s.value, 0),
+        value: total,
+        discount: desconto,
+        servicesValue: serviceToSave.reduce(
+          (acc, service) => acc + service.value,
+          0
+        ),
         userId: session?.user?.id,
         selectedServices: serviceToSave,
         paymentMethodId: paymentMethodToSave,
-        customerId:  selectedCustomer?.id ?? null
+        customerId: selectedCustomer?.id ?? null,
       });
-      console.log(response);
-      setIsLoading(false);
-      setIsSaved(true);
+      if (response.status === 200) {
+        toast({
+          title: "Serviço salvo com sucesso!",
+          description: "O serviço foi salvo com sucesso!",
+          variant: "default",
+          duration: 2000,
+        });
+        console.log(response);
+        setIsLoading(false);
+        setIsSaved(true);
+      }
     } catch (error) {
       console.log(error);
       setIsLoading(false);
@@ -116,6 +140,11 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
       console.log(error)
     }
   }
+
+    useEffect(() => {
+      const soma = serviceToSave.reduce((acc, s) => acc + s.value, 0);
+      setTotal(soma - desconto);
+    }, [serviceToSave, desconto]);
 
   return (
     <div className="p-1 flex flex-col gap-4 max-w-full overflow-auto">
@@ -147,7 +176,7 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
             className="rounded-full size-7 bg-red-700"
             onClick={() => handleRemoveService(index)}
           >
-            ✕
+            <Trash2 className="text-white" />
           </Button>
         </div>
       ))}
@@ -221,6 +250,8 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
             </div>
           </DialogContent>
         </Dialog>
+        <AddClient setChosedCustomer={setSelectedCustomer}
+                handleGetCustomers={handleGetCustomer} />
       </div>
       <Select onValueChange={(value) => setPaymentMethodsToSave(value)}>
         <SelectTrigger>
@@ -240,10 +271,41 @@ export function CardData({ services, setIsSaved, isSaved, paymentMethods }: Card
       </Select>
 
       <Separator className="my-4" />
+      <Label>Desconto:</Label>
+            <ValueInput setDesconto={setDesconto} desconto={desconto} />
+      <Separator className="my-4" />
+      <div className="flex flex-col gap-2 outline outline-1 p-3 outline-gray-300">
+      
+              <Label className="mt-3">Resumo:</Label>
+            <Table className="w-full">
+              <TableBody>
+                {serviceToSave.map((service, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="text-xs text-green-700">
+                      {service.name}
+                    </TableCell>
+                    <TableCell className="text-xs text-green-700 text-right">
+                      + {formatarEmReal(service.value)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {desconto> 0 && (
+                  <TableRow >
+                    <TableCell className="text-xs text-red-700">Desconto</TableCell>
+                    <TableCell className="text-xs text-red-700 text-right">
+                     - {formatarEmReal(desconto)}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+      </div>
+      
+            <Separator className="my-4" />
       <div className="flex gap-2 items-center">
         <Label>Total:</Label>
         <Label className="text-md">
-          {formatarEmReal(serviceToSave.reduce((acc, s) => acc + s.value, 0))}
+          {formatarEmReal(total - desconto)}
         </Label>
         <div className="w-full"></div>
         {isSaved ? (

@@ -17,6 +17,8 @@ model Service {
   id              String         @id @default(auto()) @map("_id") @db.ObjectId
   code            String         @unique
   value           Float
+  servicesValue   Float?
+  discount           Float @default(0)
   servicesTypes   Json
   createdAt       DateTime       @default(now())
   userId          String         @db.ObjectId

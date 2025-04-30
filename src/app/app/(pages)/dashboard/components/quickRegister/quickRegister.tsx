@@ -67,7 +67,7 @@ export function QuickRegister () {
             </CardContent>
           </Card>
         </DialogTrigger>
-        <DialogContent className=" min-h-96">
+        <DialogContent className=" max-h-[650px] overflow-auto">
           {isLoading ? (
             <div className="w-full h-full flex items-center justify-center">
               <DialogHeader>

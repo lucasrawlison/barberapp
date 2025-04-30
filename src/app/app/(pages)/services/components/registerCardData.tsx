@@ -35,6 +35,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/use-toast";
 import AddClient from "./addClient";
+import ValueInput from "./valueInput";
 
 interface User {
   name: string;
@@ -60,9 +61,11 @@ interface Service {
   id: string;
   code: number;
   value: number;
+  discount: number;
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
+
   paymentMethodId: string;
   paymentMethod: PaymentMethod;
 }
@@ -114,6 +117,8 @@ export function RegisterCardData({
   const [isOpen, setIsOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const { toast } = useToast();
+  const [desconto, setDesconto] = useState<number>(0);
+  const [total, setTotal] = useState<number>(0);
 
   useEffect(() => {
     if (selectedService) {
@@ -145,6 +150,9 @@ export function RegisterCardData({
   };
 
   const handleRemoveService = (index: number) => {
+    if(serviceToSave.length === 1) {
+      toast({title: "Escolha ao menos um serviço", variant: "destructive", duration: 2000})
+      return}
     setServiceToSave((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -152,7 +160,12 @@ export function RegisterCardData({
     try {
       setIsLoading(true);
       const response = await axios.post("/api/createService", {
-        value: serviceToSave.reduce((acc, s) => acc + s.value, 0),
+        value: total,
+        discount: desconto,
+        servicesValue: serviceToSave.reduce(
+          (acc, service) => acc + service.value,
+          0
+        ),
         userId: session?.user?.id,
         selectedServices: serviceToSave,
         paymentMethodId: paymentMethodToSave,
@@ -163,6 +176,7 @@ export function RegisterCardData({
           title: "Serviço salvo com sucesso!",
           description: "O serviço foi salvo com sucesso!",
           variant: "default",
+          duration: 2000,
         });
         console.log(response);
         getServices();
@@ -193,6 +207,11 @@ export function RegisterCardData({
   useEffect(() => {
     console.log("selectedTypes", selectedTypes);
   }, [selectedTypes]);
+
+  useEffect(() => {
+    const soma = serviceToSave.reduce((acc, s) => acc + s.value, 0);
+    setTotal(soma - desconto);
+  }, [serviceToSave, desconto]);
 
   return (
     <div className="p-1 flex flex-col gap-4 max-w-full overflow-auto">
@@ -315,12 +334,42 @@ export function RegisterCardData({
           ))}
         </SelectContent>
       </Select>
+      <Separator className="my-4" />
+      <Label>Desconto:</Label>
+      <ValueInput setDesconto={setDesconto} desconto={desconto} />
+<Separator className="my-4" />
+<div className="flex flex-col gap-2 outline outline-1 p-3 outline-gray-300">
+
+        <Label className="mt-3">Resumo:</Label>
+      <Table className="w-full">
+        <TableBody>
+          {serviceToSave.map((service, index) => (
+            <TableRow key={index}>
+              <TableCell className="text-xs text-green-700">
+                {service.name}
+              </TableCell>
+              <TableCell className="text-xs text-green-700 text-right">
+                + {formatarEmReal(service.value)}
+              </TableCell>
+            </TableRow>
+          ))}
+          {desconto> 0 && (
+            <TableRow >
+              <TableCell className="text-xs text-red-700">Desconto</TableCell>
+              <TableCell className="text-xs text-red-700 text-right">
+               - {formatarEmReal(desconto)}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+</div>
 
       <Separator className="my-4" />
       <div className="flex gap-2 items-center">
         <Label>Total:</Label>
-        <Label className="text-md">
-          {formatarEmReal(serviceToSave.reduce((acc, s) => acc + s.value, 0))}
+        <Label className=" text-nowrap">
+          {formatarEmReal(total)}
         </Label>
         <div className="w-full"></div>
         {isSaved ? (

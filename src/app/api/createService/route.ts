@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     console.log("ESTE É O BODY--------------------------: ", body)
-    const { value, userId, selectedServices, paymentMethodId, customerId, date} = body;
+    const { value, userId,servicesValue, selectedServices, paymentMethodId, customerId, date, discount} = body;
     const randomCode = await getNextSequence("service");
     
     if (!value || !userId || !selectedServices) {
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     
     const service = await prisma.service.create({
         data: {
-            value, createdAt: date ? new Date(date): new Date(), userId, servicesTypes: selectedServices, code: randomCode.toString(), paymentMethodId, customerId: customerId ?? null,
+            value, servicesValue, discount, createdAt: date ? new Date(date): new Date(), userId, servicesTypes: selectedServices, code: randomCode.toString(), paymentMethodId, customerId: customerId ?? null,
             transactions: {
               create: {
                 value, date: date ? new Date(date): new Date(), paymentMethodId, description: `Serviço de código ${randomCode}`, userId, type: "Receita", category: "Serviço"

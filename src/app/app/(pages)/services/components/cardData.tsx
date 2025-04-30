@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, LoaderCircle, UsersIcon, Trash2 } from "lucide-react";
+import { Plus, LoaderCircle, UsersIcon, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,7 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import {
   Dialog,
   DialogContent,
@@ -34,7 +33,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import AddClient from "./addClient";
-import { set } from "date-fns";
 
 interface User {
   name: string;
@@ -56,10 +54,20 @@ interface PaymentMethod {
   name: string;
   bankAccount: BankAccount;
 }
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
 interface Service {
   id: string;
   code: number;
   value: number;
+  discount: number;
+  servicesValue: number;
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
@@ -69,15 +77,8 @@ interface Service {
   customer: Customer;
 }
 
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-}
-
 interface CardDataProps {
-  selectedService: Service | null;
+  selectedService: Service;
   servicesTypes: Type[];
   setSelectedService: (value: Service) => void;
   getServices: () => void;
@@ -93,62 +94,41 @@ export function CardData({
   paymentMethods,
   setOpenDialog,
 }: CardDataProps) {
-  const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [customers, setCustomers] = useState<Customer[] | undefined>(undefined);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
-  // useEffect(() => {
-  //   console.log(selectedService);
-  // }, [selectedService]);
-
   useEffect(() => {
-    if (selectedService) {
-      setSelectedTypes(selectedService.servicesTypes);
-    }
-  }, [selectedService]);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(price);
-  };
+    if (!selectedService) return;
+    const soma = selectedService.servicesTypes.reduce((acc, type) => acc + type.value, 0);
+    const valorTotal = soma - selectedService.discount;
+    setSelectedService({
+      ...selectedService,
+      value: valorTotal,
+      servicesValue: soma,
+    });
+  }, [selectedService.servicesTypes, selectedService.discount]);
 
   const handleChangeSelect = (selectedType: Type, newTypeId: string) => {
     if (selectedType.id === newTypeId) return;
-
     const newType = servicesTypes.find((type) => type.id === newTypeId);
     if (!newType) return;
-
-    setSelectedTypes((prevTypes) =>
-      prevTypes.map((type) => (type.id === selectedType.id ? newType : type))
+    const updatedTypes = selectedService.servicesTypes.map((type) =>
+      type.id === selectedType.id ? newType : type
     );
-
-    if (selectedService) {
-      const updatedTypes = selectedTypes.map((type) =>
-        type.id === selectedType.id ? newType : type
-      );
-      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0);
-      setSelectedService({
-        ...selectedService,
-        servicesTypes: updatedTypes,
-        value: value,
-      });
-    }
+    setSelectedService({
+      ...selectedService,
+      servicesTypes: updatedTypes,
+    });
   };
 
   const handleChangePayentMethod = (paymentId: string) => {
-    if (!paymentId) return;
-
     const selectedPaymentMethod = paymentMethods.find(
       (paymentMethod) => paymentMethod.id === paymentId
     );
-
-    if (!selectedPaymentMethod || !selectedService) return;
-
+    if (!selectedPaymentMethod) return;
     setSelectedService({
       ...selectedService,
       paymentMethod: selectedPaymentMethod,
@@ -158,27 +138,31 @@ export function CardData({
 
   const handleAddEmptyType = () => {
     const emptyType: Type = {
-      id: `empty-${Date.now()}`, // Garante um ID único temporário
-      name: "Novo Serviço",
+      id: `empty-${Date.now()}`,
+      name: "Selecione",
       value: 0,
     };
-
-    setSelectedTypes((prev) => [...prev, emptyType]);
+    setSelectedService({
+      ...selectedService,
+      servicesTypes: [...selectedService.servicesTypes, emptyType],
+    });
   };
 
-  const handleRemoveType = (id: string) => {
-    setSelectedTypes((prev) => prev.filter((type) => type.id !== id));
-
-    if (selectedService) {
-      const updatedTypes = selectedTypes.filter((type) => type.id !== id);
-      const value = updatedTypes.reduce((acc, type) => acc + type.value, 0);
-
-      setSelectedService({
-        ...selectedService,
-        servicesTypes: updatedTypes,
-        value: value,
+  const handleRemoveType = (index: number) => {
+    if (selectedService.servicesTypes.length === 1) {
+      toast({
+        title: "Escolha ao menos um serviço",
+        variant: "destructive",
+        duration: 2000,
       });
+      return;
     }
+    const updatedTypes = selectedService.servicesTypes.filter((_, i) => i !== index);
+    setSelectedService({
+      ...selectedService,
+      servicesTypes: updatedTypes
+
+    });
   };
 
   const handleUpdateService = async () => {
@@ -187,20 +171,17 @@ export function CardData({
       const response = await axios.post("/api/updateService", {
         selectedService,
       });
-
-      if(response.status === 200) {
+      if (response.status === 200) {
         toast({
           title: "Sucesso",
           description: "Serviço atualizado com sucesso!",
           duration: 2000,
-          variant: "default",
         });
-      
-        setIsLoading(false);
         getServices();
       }
     } catch (error) {
       console.log(error);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -211,28 +192,21 @@ export function CardData({
       const response = await axios.post("/api/deleteService", {
         selectedService,
       });
-
       if (response.status === 200) {
         toast({
           title: "Sucesso",
           description: "Serviço deletado com sucesso!",
           duration: 2000,
-          variant: "default",
         });
-        console.log(response);
-        setIsLoading(false);
         setOpenDialog(false);
         getServices();
       }
     } catch (error) {
       console.log(error);
+    } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    console.log("selectedTypes", selectedTypes);
-  }, [selectedTypes]);
 
   const handleGetCustomer = async () => {
     setIsLoadingCustomers(true);
@@ -240,34 +214,28 @@ export function CardData({
       const response = await axios.get("/api/getCustomers");
       if (response.status === 200) {
         setCustomers(response.data.customers);
-        console.log(response.data.customers);
-        setIsLoadingCustomers(false);
       }
     } catch (error) {
-      setIsLoadingCustomers(false);
       console.log(error);
+    } finally {
+      setIsLoadingCustomers(false);
     }
   };
 
   const handleSetSelectedCustomer = (customer: Customer | undefined) => {
-    if(customer === undefined) return;
-    if(selectedService){
-
-      setSelectedService({...selectedService,
-        customerId: customer.id,
-        customer: customer,
-      })
-    }
-  }
-
-  
-  
+    if (!customer) return;
+    setSelectedService({
+      ...selectedService,
+      customerId: customer.id,
+      customer,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-4">
       <Label className="pb-1">Serviços realizados:</Label>
-      {selectedTypes.map((type, i) => (
-        <div key={i} className="flex flex-row gap-4">
+      {selectedService.servicesTypes.map((type, index) => (
+        <div key={index} className="flex flex-row gap-4">
           <Select
             value={type.id}
             onValueChange={(typeId) => handleChangeSelect(type, typeId)}
@@ -278,27 +246,26 @@ export function CardData({
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
+              {!servicesTypes.find((s) => s.id === type.id) && (
+                <SelectItem value={type.id}>
+                  {type.name} - {formatarEmReal(type.value)}
+                </SelectItem>
+              )}
               {servicesTypes.map((service) => (
-                <SelectItem
-                  className="hover:cursor-pointer"
-                  key={service.id}
-                  value={service.id}
-                >
+                <SelectItem key={service.id} value={service.id}>
                   {service.name} - {formatarEmReal(service.value)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-
           <Button
             className="rounded-full size-7 bg-red-700"
-            onClick={() => handleRemoveType(type.id)}
+            onClick={() => handleRemoveType(index)}
           >
             <Trash2 className="text-white" />
           </Button>
         </div>
       ))}
-
       <div className="flex w-full justify-center">
         <Button onClick={handleAddEmptyType} className="rounded-full size-8">
           <Plus />
@@ -310,11 +277,10 @@ export function CardData({
           disabled
           value={selectedService?.customer.name ?? ""}
           placeholder="Selecione o cliente"
-          type="text"
-        ></Input>
+        />
         <Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
           <DialogTrigger onClick={handleGetCustomer} asChild>
-            <Button className="hover: cursor-pointer">
+            <Button>
               <UsersIcon />
             </Button>
           </DialogTrigger>
@@ -326,7 +292,7 @@ export function CardData({
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col items-center justify-center">
-              <Input placeholder="Buscar" className="w-full"></Input>
+              <Input placeholder="Buscar" className="w-full" />
               <div className="flex flex-col gap-2 mt-4 max-h-96 overflow-auto w-full">
                 {isLoadingCustomers && (
                   <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
@@ -334,92 +300,95 @@ export function CardData({
                   </div>
                 )}
                 <Table>
-                  <TableCaption> Lista de clientes disponíveis</TableCaption>
+                  <TableCaption>Lista de clientes disponíveis</TableCaption>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-black">Nome</TableHead>
-                      <TableHead className="text-center text-black">
-                        Contato
-                      </TableHead>
+                      <TableHead className="text-center text-black">Contato</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {customers &&
-                      customers.map((customer) => (
-                        <TableRow
-                          className="hover:cursor-pointer"
-                          key={customer.id}
-                          onClick={() => {
-                            if (!selectedService) return;
-                            setSelectedService({
-                              ...selectedService,
-                              customerId: customer.id,
-                              customer: customer, // 👈 atualiza o objeto também
-                            });
-                            setIsOpen(false);
-                          }}
-                        >
-                          <TableCell className="text-sm text-gray-600">
-                            {customer.name}
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-600 text-center">
-                            {customer.phone}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                    {customers?.map((customer) => (
+                      <TableRow
+                        className="hover:cursor-pointer"
+                        key={customer.id}
+                        onClick={() => {
+                          setSelectedService({
+                            ...selectedService,
+                            customerId: customer.id,
+                            customer,
+                          });
+                          setIsOpen(false);
+                        }}
+                      >
+                        <TableCell className="text-sm text-gray-600">{customer.name}</TableCell>
+                        <TableCell className="text-sm text-gray-600 text-center">
+                          {customer.phone}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </div>
             </div>
           </DialogContent>
         </Dialog>
-        <AddClient setChosedCustomer={handleSetSelectedCustomer}
-                handleGetCustomers={handleGetCustomer} />
+        <AddClient
+          setChosedCustomer={handleSetSelectedCustomer}
+          handleGetCustomers={handleGetCustomer}
+        />
       </div>
-
-      <Select
-        onValueChange={(paymentId) => handleChangePayentMethod(paymentId)}
-      >
+      <Select onValueChange={handleChangePayentMethod}>
         <SelectTrigger>
           <SelectValue
-            placeholder={`${selectedService?.paymentMethod?.name} - ${selectedService?.paymentMethod?.bankAccount.bankName}`}
-          >
-            {selectedService?.paymentMethod?.name
-              ? `${selectedService.paymentMethod.name} - ${selectedService.paymentMethod.bankAccount.bankName}`
-              : "Escolha uma forma de pagamento"}
-          </SelectValue>
+            placeholder={
+              selectedService?.paymentMethod
+                ? `${selectedService.paymentMethod.name} - ${selectedService.paymentMethod.bankAccount.bankName}`
+                : "Escolha uma forma de pagamento"
+            }
+          />
         </SelectTrigger>
         <SelectContent>
           {paymentMethods.map((paymentMethod) => (
-            <SelectItem
-              className="hover:cursor-pointer"
-              key={paymentMethod.id}
-              value={paymentMethod.id}
-            >
+            <SelectItem key={paymentMethod.id} value={paymentMethod.id}>
               {paymentMethod.name} - {paymentMethod.bankAccount.bankName}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      <ul>
-        {selectedTypes.map((type) => (
-          <li key={type.id}>
-            <span className="text-sm">
-              {type.name} - {formatPrice(type.value)}
-            </span>
-          </li>
-        ))}
-      </ul>
-
       <Separator className="my-4" />
-
+      <Label>Desconto:</Label>
+      <Separator className="my-4" />
+      <div className="flex flex-col gap-2 outline outline-1 p-3 outline-gray-300">
+        <Label className="mt-3">Resumo:</Label>
+        <Table className="w-full">
+          <TableBody>
+            {selectedService.servicesTypes.map((service, index) => (
+              <TableRow key={index}>
+                <TableCell className="text-xs text-green-700">{service.name}</TableCell>
+                <TableCell className="text-xs text-green-700 text-right">
+                  + {formatarEmReal(service.value)}
+                </TableCell>
+              </TableRow>
+            ))}
+            {selectedService.discount > 0 && (
+              <TableRow>
+                <TableCell className="text-xs text-red-700">Desconto</TableCell>
+                <TableCell className="text-xs text-red-700 text-right">
+                  - {formatarEmReal(selectedService.discount)}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <Separator className="my-4" />
       <div className="flex gap-2 items-center">
         <Label>Total:</Label>
         <Label className="text-md">
           {selectedService?.value ? formatarEmReal(selectedService.value) : ""}
         </Label>
-
-        <div className="w-full"></div>
+        <div className="w-full" />
         <Button onClick={handleDeleteService} variant="destructive">
           {isLoading ? <LoaderCircle className="animate-spin" /> : "Deletar"}
         </Button>

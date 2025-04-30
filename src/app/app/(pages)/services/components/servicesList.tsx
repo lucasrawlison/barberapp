@@ -45,6 +45,8 @@ interface Service {
   id: string;
   code: number;
   value: number;
+  servicesValue: number;
+  discount: number;
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
@@ -253,6 +255,8 @@ export function ServicesList() {
             id: "",
             code: 0,
             value: 0,
+            servicesValue: 0,
+            discount: 0,
             createdAt: new Date(),
             servicesTypes: [],
             user: { name: ""},
