@@ -12,17 +12,63 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { LoaderCircle, UserPlus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
 import PhoneInput from "./phoneInput";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import formatarEmReal from "@/app/app/utils/formatarEmReal";
 
+interface BankAccount{
+  id: string;
+  bankName: string;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankAccount: BankAccount
+}
+interface Type {
+  id: string
+  name: string
+  value: number
+}
+interface User {
+  name: string
+}
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+  customerId: string;
+  customer: Customer;
+  paymentMethod: PaymentMethod
+}
+
+interface Customer {
+  id: string,
+  name: string,
+  code: string,
+  email: string,
+  phone: string,
+  services: Service[];
+}
 interface Customer {
   id: string;
   name: string;
   email: string;
   phone: string;
   code: string;
+  services: Service[];
+
 
 }
 
@@ -43,6 +89,7 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
     email: "",
     phone: "",
     code:"",
+    services: [],
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,6 +171,7 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
           email: "",
           phone: "",
           code:"",
+          services: [],
         });
         setSelectedCustomer(undefined);
     }
@@ -134,6 +182,20 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
       setDialogOpen(true);}
     },[selectedCustomer])
 
+    const handleConvertDate = useCallback((date: string) => {
+        const newDate = new Date(date)
+    
+        const formattedDate = newDate.toLocaleString("pt-BR", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          day: "2-digit",
+          month: "2-digit",
+          year : "numeric"
+        })
+    
+        return formattedDate
+      }, [])
   if(selectedCustomer){
     return (
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -143,46 +205,105 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
             Adicionar Cliente
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] min-h-[450px] flex flex-col align-top max-h-[450px]">
           <DialogHeader>
             <DialogTitle>Cliente #{selectedCustomer.code}</DialogTitle>
             <DialogDescription>
               Preencha os dados do cliente para alterá-lo no sistema.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nome</Label>
-              <Input
-                id="name"
-                name="name"
-                value={selectedCustomer?.name}
-                onChange={handleInputChange}
-                placeholder="Nome completo"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={selectedCustomer?.email}
-                onChange={handleInputChange}
-                placeholder="email@exemplo.com"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="telefone">Telefone</Label>
-              <PhoneInput
-                setSelectedCustomer={setSelectedCustomer}
-                selectedCustomer={selectedCustomer}
-                setNewCustomer={setNewCustomer}
-              />
-            </div>
-          </div>
+          <Tabs defaultValue="geral" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="overview">Geral</TabsTrigger>
+              <TabsTrigger value="services">Serviços {`(${selectedCustomer.services.length})`}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Nome</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={selectedCustomer?.name}
+                    onChange={handleInputChange}
+                    placeholder="Nome completo"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={selectedCustomer?.email}
+                    onChange={handleInputChange}
+                    placeholder="email@exemplo.com"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="telefone">Telefone</Label>
+                  <PhoneInput
+                    setSelectedCustomer={setSelectedCustomer}
+                    selectedCustomer={selectedCustomer}
+                    setNewCustomer={setNewCustomer}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="services">
+              <div className="h-full overflow-auto max-h-[250px] flex">
+
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left">Código</TableHead>
+                    <TableHead className="text-left">Serviços</TableHead>
+                    <TableHead className="text-left">Data</TableHead>
+                    <TableHead className="text-left">Valor</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedCustomer.services ? (
+                    selectedCustomer?.services.map((service) => (
+                      <TableRow
+                        className="hover:bg-slate-50 hover:cursor-pointer"
+                        key={service.id}
+                      >
+                        <TableCell className="text-xs text-left">
+                          {service.code}
+                        </TableCell>
+                        <TableCell className="text-xs text-left">
+                          {service.servicesTypes
+                            .map((type) => type.name)
+                            .join(", ")}
+                        </TableCell>
+                        <TableCell className="text-xs text-left">
+                          {handleConvertDate(service.createdAt.toString())}
+                        </TableCell>
+                        <TableCell className="text-xs text-left">
+                          {formatarEmReal(service.value)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center">
+                        Nenhum serviço encontrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              </div>
+            </TabsContent>
+          </Tabs>
           <DialogFooter>
-            <Button onClick={handleDeleteCustomer} disabled={isDeleting} variant="destructive">
+            <Button
+              onClick={handleDeleteCustomer}
+              disabled={isDeleting}
+              variant="destructive"
+            >
               {isDeleting ? (
                 <LoaderCircle className=" animate-spin" />
               ) : (

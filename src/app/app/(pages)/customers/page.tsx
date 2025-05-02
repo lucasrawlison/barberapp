@@ -8,8 +8,38 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import axios from "axios"
 import AddClient from "./components/addClient"
+interface BankAccount{
+  id: string;
+  bankName: string;
+}
 
-// Dados de exemplo para clientes
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankAccount: BankAccount
+}
+interface Type {
+  id: string
+  name: string
+  value: number
+}
+interface User {
+  name: string
+}
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+  customerId: string;
+  customer: Customer;
+  paymentMethod: PaymentMethod
+}
 
 interface Customer {
   id: string,
@@ -17,7 +47,7 @@ interface Customer {
   code: string,
   email: string,
   phone: string,
-  
+  services: Service[];
 }
 
 export default function ClientesDashboard() {
@@ -32,7 +62,7 @@ export default function ClientesDashboard() {
       const response = await axios.get("/api/getCustomers")
       if(response){
       setCustomers(response.data.customers)
-        
+        console.log(response.data.customers)
       }
     } catch (error) {
       console.log(error)

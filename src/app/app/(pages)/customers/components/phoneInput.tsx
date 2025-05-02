@@ -4,13 +4,57 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 
+interface BankAccount{
+  id: string;
+  bankName: string;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankAccount: BankAccount
+}
+interface Type {
+  id: string
+  name: string
+  value: number
+}
+interface User {
+  name: string
+}
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+  customerId: string;
+  customer: Customer;
+  paymentMethod: PaymentMethod
+}
+
 interface Customer {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    code: string;
-  }
+  id: string,
+  name: string,
+  code: string,
+  email: string,
+  phone: string,
+  services: Service[];
+}
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  code: string;
+  services: Service[];
+
+
+}
 
 type PhoneInputProps = {
   value?: string
