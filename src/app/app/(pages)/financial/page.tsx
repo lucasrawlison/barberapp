@@ -57,6 +57,12 @@ export default function FinancialDashboard() {
     paymentMethodId: "",
   });
 const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
+const [pagination, setPagination] = useState({
+  total: 0,
+  page: 1,
+  limit: 10,
+  totalPages: 0,
+})
 
 
 
@@ -92,12 +98,19 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
     setProfit(totalIncome - totalExpenses);
   };
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (pageNumber: number) => {
     try {
       setIsLoading(true);
-      const response = await axios.get("/api/getAllTransactions");
+      const response = await axios.get("/api/getAllTransactions", {
+        params: {
+          page: pageNumber || 1,
+          limit: 10,
+        },
+      });
 
       if (response) {
+        console.log(response.data)
+        setPagination(response.data.pagination)
         setTransactions(response.data.transactions);
         // setIsLoading(false)
       }
@@ -158,7 +171,7 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
     getServicesTypes();
     getPaymentMethods();
     fetchMonthTransactions();
-    fetchTransactions();
+    fetchTransactions(1);
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -186,6 +199,7 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
               paymentMethods={paymentMethods}
               newTransaction={newTransaction}
               setNewTransaction={setNewTransaction}
+              pagination={pagination}
             />
 
             <Button variant="outline">
@@ -234,7 +248,7 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
           onClick={()=> {
             fetchMonthTransactions();
-            fetchTransactions();
+            fetchTransactions(pagination.page);
             fetchChartsData();
           }}
         >
@@ -246,7 +260,7 @@ const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
         )}
 
         {activeTab === "transactions" && (
-          <AllTransactions isLoading={isLoading} transactions={transactions} />
+          <AllTransactions isLoading={isLoading} transactions={transactions} pagination={pagination} fetchTransactions={fetchTransactions} />
         )}
 
         {activeTab === "reports" && <Reports />}

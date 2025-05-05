@@ -8,7 +8,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     // console.log("Este é o body: ", body);
 
-    const { userId, date } = body;
+    const { userId, date, page, limit } = body;
+    const skip = (page - 1) * limit;
+    
 
     if (!userId) {
       return NextResponse.json(
@@ -42,32 +44,52 @@ export async function POST(req: NextRequest) {
 
         // console.log(startDate, finalDate);
 
-        const services = await prisma.service.findMany({
-          where: {
-            createdAt: {
-              gte: startDate,
-              lte: finalDate,
-            },
-          },
-
-          orderBy: {
-            id: "desc",
-          },
-          include: {
-            user: true,
-            paymentMethod: {
-              include:{bankAccount:true}
-            },
-            customer: true,
-            transactions: true,
-            
-          },
-        });
-        if (services) {
-          return NextResponse.json(
-            { message: "Services", services },
-            { status: 200 }
-          );
+        const [services, total] =  await Promise.all(
+          [
+            prisma.service.findMany({
+              skip,
+              take: limit,
+              where: {
+                createdAt: {
+                  gte: startDate,
+                  lte: finalDate,
+                },
+              },
+    
+              orderBy: {
+                id: "desc",
+              },
+              include: {
+                user: true,
+                paymentMethod: {
+                  include:{bankAccount:true}
+                },
+                customer: true,
+                transactions: true,
+                
+              },
+            }),
+            prisma.service.count({
+              where: {
+                createdAt: {
+                  gte: startDate,
+                  lte: finalDate,
+                },
+              },
+            }),
+          ]) 
+          if (services) {
+            return NextResponse.json(
+              { message: "Services", services,
+                pagination: {
+                  total,
+                  page,
+                  limit,
+                  totalPages: Math.ceil(total / limit),
+                },
+               },
+              { status: 200 }
+            );
         }else{
           return NextResponse.json(
             { message: "No services found" },
@@ -75,25 +97,39 @@ export async function POST(req: NextRequest) {
           );
         }
       }else{
-        // CASO TENHA DATA
-        const services = await prisma.service.findMany({
-          orderBy: {
-            id: "desc",
-          },
-          include: {
-            user: true,
-            paymentMethod: {
-              include:{bankAccount:true}
-            },
-            customer: true,
-            transactions: true,
+        // CASO NÃO TENHA DATA
 
-            
-          },
-        });
+        const [services, total] = await Promise.all([
+
+          prisma.service.findMany({
+            skip,
+              take: limit,
+           orderBy: {
+             id: "desc",
+           },
+           include: {
+             user: true,
+             paymentMethod: {
+               include:{bankAccount:true}
+             },
+             customer: true,
+             transactions: true,
+ 
+             
+           },
+         }),
+          prisma.service.count(),
+        ])
         if (services) {
           return NextResponse.json(
-            { message: "Services", services },
+            { message: "Services", services,
+              pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+              },
+             },
             { status: 200 }
           );
         }else{
@@ -117,36 +153,61 @@ export async function POST(req: NextRequest) {
         finalDate.setUTCHours(23, 59, 59, 999);
 
         // console.log(startDate, finalDate);
-        const services = await prisma.service.findMany({
-          where: {
-            AND: [
-              {
-                createdAt: {
-                  gte: startDate,
-                  lte: finalDate,
-                },
-              },
-              { userId: userId },
-            ],
-          },
-          orderBy: {
-            id: "desc",
-          },
-          include: {
-            user: true,
-            paymentMethod: {
-              include:{bankAccount:true}
-            },
-            customer: true,
-            transactions: true,
+        const [services, total] = await Promise.all([
 
-            
-          },
-        });
+          prisma.service.findMany({
+            skip,
+              take: limit,
+            where: {
+              AND: [
+                {
+                  createdAt: {
+                    gte: startDate,
+                    lte: finalDate,
+                  },
+                },
+                { userId: userId },
+              ],
+            },
+            orderBy: {
+              id: "desc",
+            },
+            include: {
+              user: true,
+              paymentMethod: {
+                include:{bankAccount:true}
+              },
+              customer: true,
+              transactions: true,
+  
+              
+            },
+          }),
+          prisma.service.count({
+            where: {
+              AND: [
+                {
+                  createdAt: {
+                    gte: startDate,
+                    lte: finalDate,
+                  },
+                },
+                { userId: userId },
+              ],
+            },
+          }),
+        ]) 
 
         if (services) {
           return NextResponse.json(
-            { message: "Services", services },
+            { message: "Services", services,
+              pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+              },
+             },
             { status: 200 }
           );
         }else{
@@ -157,28 +218,45 @@ export async function POST(req: NextRequest) {
         }
       }else{
 
-        const services = await prisma.service.findMany({
-          where: {
-            userId: userId,
-          },
-          orderBy: {
-            id: "desc",
-          },
-          include: {
-            user: true,
-            paymentMethod: {
-              include:{bankAccount:true}
-            },
-            customer: true,
-            transactions: true,
+        const [services, total] = await Promise.all([
 
-            
-          },
-        });
+          prisma.service.findMany({
+            skip,
+              take: limit,
+           where: {
+             userId: userId,
+           },
+           orderBy: {
+             id: "desc",
+           },
+           include: {
+             user: true,
+             paymentMethod: {
+               include:{bankAccount:true}
+             },
+             customer: true,
+             transactions: true,
+ 
+             
+           },
+         }),
+          prisma.service.count({
+            where: {
+              userId: userId,
+            },
+          }),
+        ])
 
         if (services) {
           return NextResponse.json(
-            { message: "Services", services },
+            { message: "Services", services,
+              pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+              },
+             },
             { status: 200 }
           );
         }else{

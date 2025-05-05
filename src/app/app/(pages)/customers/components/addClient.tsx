@@ -212,10 +212,10 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
               Preencha os dados do cliente para alterá-lo no sistema.
             </DialogDescription>
           </DialogHeader>
-          <Tabs defaultValue="geral" className="w-full">
+          <Tabs defaultValue="overview" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="overview">Geral</TabsTrigger>
-              <TabsTrigger value="services">Serviços {`(${selectedCustomer.services.length})`}</TabsTrigger>
+              <TabsTrigger value="services">Serviços {`(${selectedCustomer.services?.length || 0})`}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">

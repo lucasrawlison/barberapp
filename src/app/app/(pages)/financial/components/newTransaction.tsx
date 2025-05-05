@@ -30,6 +30,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
+import { Pagination } from "@/components/ui/pagination";
 
 interface Transaction {
   description: string;
@@ -70,8 +71,14 @@ interface NewTransactionProps {
   newTransaction: Transaction;
   setNewTransaction: (value: Transaction) => void;
   paymentMethods: PaymentMethod[];
-  fetchTransactions: () => void;
+  fetchTransactions: (value: number) => void;
   servicesTypes: ServiceType[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export function NewTransaction({
@@ -80,6 +87,7 @@ export function NewTransaction({
   setNewTransaction,
   fetchTransactions,
   servicesTypes,
+  pagination,
 }: NewTransactionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { data: session } = useSession();
@@ -191,7 +199,7 @@ export function NewTransaction({
 
         if (response) {
           console.log(response);
-          fetchTransactions();
+          fetchTransactions(pagination.page);
           setIsSaving(false);
           setIsSaved(true)
 
@@ -218,7 +226,7 @@ export function NewTransaction({
         );
         if (response) {
           console.log(response);
-          fetchTransactions();
+          fetchTransactions(1);
           setIsSaving(false);
           setIsSaved(true)
         

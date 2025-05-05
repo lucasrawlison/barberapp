@@ -56,6 +56,13 @@ interface Service {
   paymentMethod: PaymentMethod
 }
 
+interface Pagination {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -73,6 +80,12 @@ export function ServicesList() {
   const [date, setDate] = React.useState<Date | undefined>(undefined)
   const [paymentMethods, setPaymentMethods] = useState([])
   const [newService, setNewService] = useState<Service | null>(null)
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  })
 
 
   // Define handleConvertDate function before using it
@@ -92,18 +105,24 @@ export function ServicesList() {
   }, [])
 
 
-  const getServices = async () => {
+  const getServices = async ( pageNumber: number) => {
     try {
       setIsLoading(true);
       
       const response = await axios.post("/api/getUserServices", {
-        userId: session?.user?.id, date
+        userId: session?.user?.id,
+        date,
+        page: pageNumber || 1,
+        limit: 10,
       });
+      if(response.status === 200) {
 
-      const { services } = response.data;
-      console.log(response.data);
-      setServices(services);
-      setIsLoading(false);
+        const { services, pagination } = response.data;
+        // console.log(response.data);
+        setPagination(pagination);
+        setServices(services);
+        setIsLoading(false);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -121,7 +140,7 @@ export function ServicesList() {
   const getPaymentMethods = async () => {
     try {
       setIsLoading(true)
-      
+    
       const response = await axios.post("/api/getPaymentMethods");
       const { paymentMethods } = response.data;
       setPaymentMethods(paymentMethods);
@@ -143,7 +162,7 @@ export function ServicesList() {
     const fetchData = async () => {
       try {
         await getPaymentMethods();
-        await getServices();
+        await getServices(1);
         await getServicesTypes();
       } catch (error) {
       console.log("Erro ao carregar dados iniciais", error)
@@ -156,47 +175,20 @@ export function ServicesList() {
   }, [session?.user?.id]);
 
   useEffect(() => {
-    getServices();
+    getServices(1);
   },[date])
 
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const itemsPerPage = 10
 
-  // Filter services based on search input
-  const filteredServices = useMemo(() => {
-    if (!filterValue.trim()) return services
-
-    return services.filter((service) => {
-      const searchLower = filterValue.toLowerCase()
-      const codeMatch = service.code.toString().includes(searchLower)
-      const valueMatch = service.value.toString().includes(searchLower)
-      const dateMatch = handleConvertDate(service.createdAt.toString()).toLowerCase().includes(searchLower)
-
-      return codeMatch || valueMatch || dateMatch
-    })
-  }, [services, filterValue, handleConvertDate])
-
-  const totalPages = Math.ceil(filteredServices.length / itemsPerPage)
-
-  // Reset to first page when filter changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [filterValue])
 
   useEffect(() => {
     console.log(selectedService)
   },[selectedService])
 
-  const currentServices = React.useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage
-    const end = start + itemsPerPage
-    return filteredServices.slice(start, end)
-  }, [currentPage, filteredServices, itemsPerPage])
+
 
 
   return (
     <div className="space-y-4 p-5">
-        
       <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -243,46 +235,51 @@ export function ServicesList() {
       <div className=" flex flex-rows items-center justify-between">
         <div
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
-          onClick={getServices}
+          onClick={() => getServices(pagination.page)}
         >
           <span className="text-xs">Atualizar</span>
           <RotateCw className="w-3" />
         </div>
         <div className="flex flex-row gap-2 items-center">
-        <Button
-        onClick={() => {
-          setNewService({
-            id: "",
-            code: 0,
-            value: 0,
-            servicesValue: 0,
-            discount: 0,
-            createdAt: new Date(),
-            servicesTypes: [],
-            user: { name: ""},
-            paymentMethodId: "",
-            paymentMethod: { id: "", name: "", bankAccount: { id: "", bankName: "" } },
-            customerId: "",
-            customer: { id: "", name: "", email: "", phone: "" },
-          })
-        }}
-        >Novo Serviço</Button>
+          <Button
+            onClick={() => {
+              setNewService({
+                id: "",
+                code: 0,
+                value: 0,
+                servicesValue: 0,
+                discount: 0,
+                createdAt: new Date(),
+                servicesTypes: [],
+                user: { name: "" },
+                paymentMethodId: "",
+                paymentMethod: {
+                  id: "",
+                  name: "",
+                  bankAccount: { id: "", bankName: "" },
+                },
+                customerId: "",
+                customer: { id: "", name: "", email: "", phone: "" },
+              });
+            }}
+          >
+            Novo Serviço
+          </Button>
 
-        <Button
-          variant="destructive"
-          onClick={() => {
-            setFilterValue("");
-            setDate(undefined);
-          }}
-          size="sm"
-          className="bg-orange-400 hover:bg-orange-500 text-white"
-        >
-          Limpar filtros
-        </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              setFilterValue("");
+              setDate(undefined);
+            }}
+            size="sm"
+            className="bg-orange-400 hover:bg-orange-500 text-white"
+          >
+            Limpar filtros
+          </Button>
         </div>
-        
       </div>
-      
+
       <div className="rounded-md border">
         {isLoading && (
           <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
@@ -300,7 +297,7 @@ export function ServicesList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredServices.length === 0 ? (
+            {services.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8">
                   {services.length === 0
@@ -309,7 +306,7 @@ export function ServicesList() {
                 </TableCell>
               </TableRow>
             ) : (
-              currentServices.map((service) => (
+              services.map((service) => (
                 <TableRow
                   onClick={() => setSelectedService(service)}
                   key={service.id}
@@ -335,7 +332,6 @@ export function ServicesList() {
                   <TableCell className="text-center">
                     {service.user.name}
                   </TableCell>
-                  
                 </TableRow>
               ))
             )}
@@ -347,51 +343,56 @@ export function ServicesList() {
         <Button
           variant="outline"
           size="icon"
-          onClick={() => setCurrentPage(1)}
-          disabled={currentPage === 1}
+          onClick={() => getServices(1)}
+          disabled={pagination.page === 1}
         >
           <ChevronsLeft className="h-4 w-4" />
         </Button>
         <Button
           variant="outline"
           size="icon"
-          onClick={() => setCurrentPage((current) => Math.max(1, current - 1))}
-          disabled={currentPage === 1}
+          onClick={() => getServices(pagination.page - 1)}
+          disabled={pagination.page === 1}
         >
           <ChevronLeftIcon className="h-4 w-4" />
         </Button>
         <span className="text-sm font-medium">
-          Página {currentPage} de {totalPages || 1}
+          Página {pagination.page} de {pagination.totalPages || 1}
         </span>
         <Button
           variant="outline"
           size="icon"
-          onClick={() =>
-            setCurrentPage((current) => Math.min(totalPages, current + 1))
+          onClick={() => getServices(pagination.page + 1)}
+          disabled={
+            pagination.page === pagination.totalPages ||
+            pagination.totalPages === 0
           }
-          disabled={currentPage === totalPages || totalPages === 0}
         >
           <ChevronRightIcon className="h-4 w-4" />
         </Button>
         <Button
           variant="outline"
           size="icon"
-          onClick={() => setCurrentPage(totalPages)}
-          disabled={currentPage === totalPages || totalPages === 0}
+          onClick={() => getServices(pagination.totalPages)}
+          disabled={
+            pagination.page === pagination.totalPages ||
+            pagination.totalPages === 0
+          }
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
       </div>
       <ServiceModal
-      setNewService={setNewService}
-      newService={newService}
-      selectedService={selectedService}
-      getServices={getServices}
-      setSelectedService={setSelectedService}
-      servicesTypes={servicesTypes}
-      paymentMethods={paymentMethods}
+        setNewService={setNewService}
+        newService={newService}
+        selectedService={selectedService}
+        getServices={getServices}
+        setSelectedService={setSelectedService}
+        servicesTypes={servicesTypes}
+        paymentMethods={paymentMethods}
+        pagination={pagination}
+        setPagination={setPagination}
       />
-      
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { Button } from "@/components/ui/button";
-import { Plus, LoaderCircle, UsersIcon, Check, Trash2 } from "lucide-react";
+import { Plus, LoaderCircle, UsersIcon, Check, Trash2, ChevronRightIcon, ChevronsRight, ChevronLeftIcon, ChevronsLeft } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -83,11 +83,21 @@ interface Customer {
   phone: string;
 }
 
+
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 interface CardDataProps {
   selectedService: Service | null;
   services: Type[];
   paymentMethods: PaymentMethod[];
-  getServices: () => void;
+  getServices: (value:number) => void;
+  pagination: Pagination,
+setPagination: (value: Pagination) => void;
 }
 
 export function RegisterCardData({
@@ -95,6 +105,8 @@ export function RegisterCardData({
   services,
   paymentMethods,
   getServices,
+  pagination,
+  setPagination,
 }: CardDataProps) {
   const [selectedTypes, setSelectedTypes] = useState<Type[]>([]);
   const [serviceToSave, setServiceToSave] = useState<ServiceType[]>([
@@ -179,7 +191,7 @@ export function RegisterCardData({
           duration: 2000,
         });
         console.log(response);
-        getServices();
+        getServices(pagination.page);
         setIsLoading(false);
         setIsSaved(true);
       }
@@ -189,18 +201,23 @@ export function RegisterCardData({
     }
   };
 
-  const handleGetCustomer = async () => {
+  const handleGetCustomer = async ( pageNumber: number) => {
     setIsLoadingCustomers(true);
     try {
-      const response = await axios.get("/api/getCustomers");
+      const response = await axios.get("/api/getCustomers", {
+        params: {
+          page: pageNumber,
+          limit: 10,
+        },
+      });
       if (response.status === 200) {
+        setPagination(response.data.pagination);
         setCustomers(response.data.customers);
-        console.log(response.data.customers);
-        setIsLoadingCustomers(false);
       }
     } catch (error) {
-      setIsLoadingCustomers(false);
       console.log(error);
+    } finally {
+      setIsLoadingCustomers(false);
     }
   };
 
@@ -260,7 +277,7 @@ export function RegisterCardData({
           type="text"
         ></Input>
         <Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
-          <DialogTrigger onClick={handleGetCustomer} asChild>
+          <DialogTrigger onClick={()=>handleGetCustomer(1)} asChild>
             <Button className="hover: cursor-pointer">
               <UsersIcon />
             </Button>
@@ -311,11 +328,54 @@ export function RegisterCardData({
                       ))}
                   </TableBody>
                 </Table>
+                <div className="flex items-center justify-center space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleGetCustomer(1)}
+                                  disabled={pagination.page === 1}
+                                >
+                                  <ChevronsLeft className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleGetCustomer(pagination.page - 1)}
+                                  disabled={pagination.page === 1}
+                                >
+                                  <ChevronLeftIcon className="h-4 w-4" />
+                                </Button>
+                                <span className="text-sm font-medium">
+                                  Página {pagination.page} de {pagination.totalPages || 1}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleGetCustomer(pagination.page + 1)}
+                                  disabled={
+                                    pagination.page === pagination.totalPages ||
+                                    pagination.totalPages === 0
+                                  }
+                                >
+                                  <ChevronRightIcon className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleGetCustomer(pagination.totalPages)}
+                                  disabled={
+                                    pagination.page === pagination.totalPages ||
+                                    pagination.totalPages === 0
+                                  }
+                                >
+                                  <ChevronsRight className="h-4 w-4" />
+                                </Button>
+                              </div>
               </div>
             </div>
           </DialogContent>
         </Dialog>
-        <AddClient setChosedCustomer={setSelectedCustomer}
+        <AddClient pagination={pagination} setChosedCustomer={setSelectedCustomer}
         handleGetCustomers={handleGetCustomer} />
       </div>
       <Select onValueChange={(value) => setPaymentMethodsToSave(value)}>

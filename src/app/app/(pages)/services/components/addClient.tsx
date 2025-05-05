@@ -26,12 +26,21 @@ interface Customer {
 
 }
 
-interface AddClientsProps {
-  handleGetCustomers: () => Promise<void>;
-  setChosedCustomer: (customer: Customer | undefined) => void;
+
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
-export default function AddClient({handleGetCustomers, setChosedCustomer} : AddClientsProps) {
+interface AddClientsProps {
+  handleGetCustomers: (value: number) => Promise<void>;
+  setChosedCustomer: (customer: Customer | undefined) => void;
+  pagination: Pagination
+}
+
+export default function AddClient({handleGetCustomers, setChosedCustomer, pagination} : AddClientsProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +77,7 @@ export default function AddClient({handleGetCustomers, setChosedCustomer} : AddC
         customer: newCustomer,
       });
       if (response.status === 200) {
-        handleGetCustomers();
+        handleGetCustomers(pagination.page);
         setIsLoading(false);
         setSelectedCustomer(response.data.newCustomer);
         setChosedCustomer(response.data.newCustomer);
@@ -87,7 +96,7 @@ export default function AddClient({handleGetCustomers, setChosedCustomer} : AddC
       });
       if (response.status === 200) {
         setIsLoading(false);
-        handleGetCustomers();
+        handleGetCustomers(pagination.page);
         
       }
     } catch (error) {
@@ -107,7 +116,7 @@ export default function AddClient({handleGetCustomers, setChosedCustomer} : AddC
       if(response.status === 200){
         setIsDeleting(false);
         setChosedCustomer(undefined);
-        handleGetCustomers();
+        handleGetCustomers(pagination.page);
         setSelectedCustomer(undefined);
         setDialogOpen(false);
       }

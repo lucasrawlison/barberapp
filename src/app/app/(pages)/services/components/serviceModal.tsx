@@ -51,14 +51,23 @@ interface Service {
   paymentMethod: PaymentMethod;
 }
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 interface ServiceModalProps {
   selectedService: Service | null;
-  getServices: () => void;
+  getServices: (value: number) => void;
   setSelectedService: (value: Service | null) => void;
   servicesTypes: Type[];
   paymentMethods: PaymentMethod[];
   newService: Service | null;
   setNewService: (value: Service | null) => void;
+  pagination: Pagination,
+  setPagination: (value: Pagination) => void;
 }
 
 export default function ServiceModal({
@@ -69,6 +78,8 @@ export default function ServiceModal({
   setSelectedService,
   servicesTypes,
   paymentMethods,
+  pagination,
+  setPagination,
 }: ServiceModalProps) {
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -95,20 +106,22 @@ export default function ServiceModal({
 
   if (selectedService) {
     return (
-      <Dialog  open={openDialog} onOpenChange={setOpenDialog}>
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className=" overflow-auto max-h-[650px]">
-              <DialogHeader>
-                <DialogTitle>Serviço #{selectedService.code}</DialogTitle>
-                <DialogDescription></DialogDescription>
-              </DialogHeader>
-              <CardData
-                setOpenDialog={setOpenDialog}
-                getServices={getServices}
-                setSelectedService={setSelectedService}
-                servicesTypes={servicesTypes}
-                selectedService={selectedService}
-                paymentMethods={paymentMethods}
-              />
+          <DialogHeader>
+            <DialogTitle>Serviço #{selectedService.code}</DialogTitle>
+            <DialogDescription></DialogDescription>
+          </DialogHeader>
+          <CardData
+            pagination={pagination}
+            setPagination={setPagination}
+            setOpenDialog={setOpenDialog}
+            getServices={getServices}
+            setSelectedService={setSelectedService}
+            servicesTypes={servicesTypes}
+            selectedService={selectedService}
+            paymentMethods={paymentMethods}
+          />
         </DialogContent>
       </Dialog>
     );
@@ -125,6 +138,8 @@ export default function ServiceModal({
             </DialogDescription>
           </DialogHeader>
           <RegisterCardData
+            setPagination={setPagination}
+            pagination={pagination}
             getServices={getServices}
             selectedService={newService}
             services={servicesTypes}
