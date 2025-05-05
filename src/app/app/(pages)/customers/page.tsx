@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import axios from "axios"
 import AddClient from "./components/addClient"
 import { Button } from "@/components/ui/button"
-import { set } from "date-fns"
+
 interface BankAccount{
   id: string;
   bankName: string;

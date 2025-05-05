@@ -30,7 +30,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import { Pagination } from "@/components/ui/pagination";
 
 interface Transaction {
   description: string;
