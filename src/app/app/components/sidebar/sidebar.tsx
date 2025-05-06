@@ -13,16 +13,21 @@ interface SidebarProps {
   onClose: () => void
   isMobile: boolean
   user: User | undefined
+  setPageTitle: (value: string)=> void
 }
 
 
-export function Sidebar({ open, onClose, isMobile, user }: SidebarProps) {
+export function Sidebar({ open, onClose, isMobile, user, setPageTitle }: SidebarProps) {
   const sidebarContent = (
     <nav className="flex flex-col py-4">
       <Link
         href="/app/dashboard"
         className="flex items-center px-6 pt-6 py-3 text-gray-600 hover:bg-gray-100"
-        onClick={isMobile ? onClose : undefined}
+        onClick={()=>{
+          if(isMobile)onClose()
+          setPageTitle("Dashboard")
+          }
+        } 
       >
         <Home className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Dashboard</span>
@@ -30,7 +35,11 @@ export function Sidebar({ open, onClose, isMobile, user }: SidebarProps) {
       <Link
         href="/app/services"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
-        onClick={isMobile ? onClose : undefined}
+        onClick={()=>{
+          if(isMobile)onClose()
+          setPageTitle("Serviços")
+          }
+        } 
       >
         <CheckSquare className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Serviços</span>
@@ -39,8 +48,11 @@ export function Sidebar({ open, onClose, isMobile, user }: SidebarProps) {
       <Link
         href="/app/financial"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
-        onClick={isMobile ? onClose : undefined}
-      >
+        onClick={()=>{
+          if(isMobile)onClose()
+          setPageTitle("Financeiro")
+          }
+        }       >
         <DollarSign className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Financeiro</span>
       </Link>
@@ -50,8 +62,11 @@ export function Sidebar({ open, onClose, isMobile, user }: SidebarProps) {
       <Link
         href="/app/customers"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
-        onClick={isMobile ? onClose : undefined}
-      >
+        onClick={()=>{
+          if(isMobile)onClose()
+          setPageTitle("Clientes")
+          }
+        }      >
         <Users className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Clientes</span>
       </Link>
@@ -60,8 +75,11 @@ export function Sidebar({ open, onClose, isMobile, user }: SidebarProps) {
       <Link
         href="/app/users"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
-        onClick={isMobile ? onClose : undefined}
-      >
+        onClick={()=>{
+          if(isMobile)onClose()
+          setPageTitle("Usuários")
+          }
+        }       >
         <CircleUserRound className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Usuários</span>
       </Link>
@@ -69,8 +87,11 @@ export function Sidebar({ open, onClose, isMobile, user }: SidebarProps) {
       <Link
         href="/app/settings"
         className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
-        onClick={isMobile ? onClose : undefined}
-      >
+        onClick={()=>{
+          if(isMobile)onClose()
+          setPageTitle("Configurações")
+          }
+        }      >
         <Settings className="h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Configurações</span>
       </Link>

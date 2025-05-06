@@ -28,6 +28,7 @@ export default function RootLayout({
   const [isLoading, setIsloading] = useState(false);
   const [user, setUser] = useState<User | undefined>(undefined);
   const router = useRouter();
+  const [pageTitle, setPageTitle] = useState("Dashboard")
 
   useEffect(() => {
     console.log(user)
@@ -96,10 +97,12 @@ export default function RootLayout({
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar
+      setPageTitle={setPageTitle}
       user={user} 
       open={sidebarOpen} onClose={() => setSidebarOpen(false)} isMobile={isMobile} />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <Header onMenuClick={() => setSidebarOpen(true)}
+        pageTitle={pageTitle} />
         {children}
       </div>
     </div>

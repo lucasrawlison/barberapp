@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 // import { Label } from "@/components/ui/label";
-import { LoaderCircle, NotebookPen } from "lucide-react";
+import { ClipboardEdit, LoaderCircle, NotebookPen } from "lucide-react";
 // import { useState } from "react";
 import { CardData } from "./cardData";
 import { useEffect, useState } from "react";
@@ -51,18 +51,19 @@ export function QuickRegister () {
     }, []);
 
     return (
-      <Dialog onOpenChange={()=> setIsSaved(false)}>
+      <Dialog onOpenChange={() => setIsSaved(false)}>
         <DialogTrigger asChild>
-          <Card className="hover:cursor-pointer h-36 hover:bg-slate-50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="w-full text-center text-sm font-medium">
-                Registrar Serviço
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-center mt-3 flex-row items-center space-x-2">
-                <div></div>
-                <NotebookPen className="text-sky-800" />
+        <Card className="overflow-hidden group transition-all hover:shadow-md h-[200px]s hover:cursor-pointer">
+
+            <CardContent className="p-6">
+            <div className="flex flex-col items-center text-center gap-4">
+            <div className="rounded-full bg-blue-800/20 p-3 transition-transform group-hover:scale-110">
+                  <ClipboardEdit className="h-10 w-10 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-medium">Registrar Serviço</h3>
+                  <p className="text-sm text-muted-foreground">Adicione um novo serviço ao sistema</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -80,13 +81,15 @@ export function QuickRegister () {
             <>
               <DialogHeader>
                 <DialogTitle className="text-left">Serviço</DialogTitle>
-                <DialogDescription className="text-left">Prencha os campos para registrar um serviço</DialogDescription>
+                <DialogDescription className="text-left">
+                  Prencha os campos para registrar um serviço
+                </DialogDescription>
               </DialogHeader>
               <CardData
-              isSaved={isSaved}
-              setIsSaved={setIsSaved}
-              services={services} 
-              paymentMethods={paymentMethods}
+                isSaved={isSaved}
+                setIsSaved={setIsSaved}
+                services={services}
+                paymentMethods={paymentMethods}
               />
             </>
           )}
