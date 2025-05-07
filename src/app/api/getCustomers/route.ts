@@ -16,7 +16,7 @@ export async function GET( request: Request) {
         skip,
         take: limit,
         orderBy: {
-          id: "asc",
+          id: "desc",
         },
         include: {
           services: true

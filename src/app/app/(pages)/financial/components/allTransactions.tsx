@@ -42,6 +42,13 @@ export function AllTransactions ({pagination, transactions, isLoading, fetchTran
   
       return formattedDate
     }, [])
+
+    const formatPrice = (price: number) => {
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(price)
+    }
     return (
       <Card>
         <CardHeader>
@@ -114,8 +121,8 @@ export function AllTransactions ({pagination, transactions, isLoading, fetchTran
                           : "text-red-600 dark:text-red-400"
                       }
                     >
-                      {transaction.type === "income" ? "+" : "-"}$
-                      {transaction.value.toFixed(2)}
+                      {transaction.type === "Receita" ? "+ " : "- "}
+                      {formatPrice(transaction.value)}
                     </span>
                   </TableCell>
                 </TableRow>

@@ -242,6 +242,8 @@ export function ServicesList() {
         </div>
         <div className="flex flex-row gap-2 items-center">
           <Button
+          size="sm"
+            className="text-white"
             onClick={() => {
               setNewService({
                 id: "",

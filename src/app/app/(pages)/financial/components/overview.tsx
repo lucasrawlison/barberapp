@@ -41,6 +41,13 @@ export function Overview({
   isLoadingMonth,
   chartData,
 }: OverviewProps) {
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(price)
+  }
   
   return (
     <div className="space-y-4">
@@ -55,7 +62,7 @@ export function Overview({
               {isLoadingMonth ? (
                 <Skeleton key={1} className="w-52 h-4 mb-4" />
               ) : (
-                "R$ " + income.toFixed(2)
+               formatPrice(income)
               )}
             </div>
             {isLoadingMonth ? (
@@ -78,7 +85,7 @@ export function Overview({
             {isLoadingMonth ? (
               <Skeleton key={1} className="w-52 h-4 mb-4" />
             ) : (
-                "R$ " + expense.toFixed(2)
+                formatPrice(expense)
               )}
             </div>
 
@@ -101,7 +108,7 @@ export function Overview({
             {isLoadingMonth ? (
               <Skeleton key={1} className="w-52 h-4 mb-4" />
             ) : (
-                "R$ " + profit.toFixed(2)
+                formatPrice(profit)
               )}
             </div>
 
