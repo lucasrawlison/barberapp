@@ -37,7 +37,6 @@ import {
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -303,9 +302,8 @@ export function CardData({
                 </TableBody>
               </Table>
             </div>
-           
+
             <DialogFooter>
-              
               <div className="flex items-center justify-center space-x-2 w-full">
                 <Button
                   variant="outline"

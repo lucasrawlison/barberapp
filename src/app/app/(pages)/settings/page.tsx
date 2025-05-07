@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger,  } from "@/components/ui/tabs";
-import { Scissors, Palette, Bell, Lock, Save} from "lucide-react";
+import { Scissors, Palette, Bell, Save} from "lucide-react";
 // import { User, CreditCard} from "lucide-react";
 
 export default function SettingsPage () {
