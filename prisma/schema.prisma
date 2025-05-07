@@ -49,11 +49,13 @@ model User {
 model BankAccount {
   id             String          @id @default(auto()) @map("_id") @db.ObjectId
   bankName       String
+  initialValue   Float @default(0)
   agency         String?
   accountNumber  String?
   accountType    String?
   accountOwner   String?
-  pyamentMethods PaymentMethod[]
+  paymentMethods PaymentMethod[]
+  transactions   Transactions[]
 }
 
 model PaymentMethod {
@@ -78,6 +80,8 @@ model Transactions {
   type            String
   userId          String        @db.ObjectId
   user            User          @relation(fields: [userId], references: [id])
+  bankAccountId   String?       @db.ObjectId
+  bankAccount     BankAccount?  @relation(fields: [bankAccountId], references: [id])
 }
 
 model Customer {

@@ -1,23 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, CreditCard, DollarSign, Download, RotateCw } from "lucide-react";
+import { CreditCard, DollarSign, Landmark, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { NewTransaction } from "./components/newTransaction";
 import { AllTransactions } from "./components/allTransactions";
-import { Reports } from "./components/reports";
 import { Overview } from "./components/overview";
+import { BanksInfo } from "./components/banksInfo";
 
-// Sample data for charts and tables
 
 interface Transaction {
   description: string;
@@ -31,6 +23,27 @@ interface Dados {
   month: string,
   revenue: number,
   expenses: number
+}
+
+interface BankAccount {
+  id: string;
+  bankName: string;
+  initialValue: number;
+  agency: string;
+  accountNumber: string;
+  accountType: string;
+  accountOwner: string;
+  transactions: Transaction[];
+  paymentMethods: PaymentMethod[];
+}
+
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankId: string;
+  bankAccount: string;
+  transactions: Transaction[];
 }
 
 
@@ -63,6 +76,21 @@ const [pagination, setPagination] = useState({
   limit: 10,
   totalPages: 0,
 })
+const [banks, setBanks] = useState<BankAccount[]>([])
+const [isLoadingBanks, setIsLoadingBanks] = useState(false)
+
+  const getBanks = async () => {
+    try {
+      setIsLoadingBanks(true);
+      const response = await axios.get("/api/getBanks");
+      const { banks } = response.data;
+      setBanks(banks);
+      setIsLoadingBanks(false);
+    } catch (error) {
+      console.log(error);
+      setIsLoadingBanks(false);
+    }
+  };
 
 
 
@@ -168,6 +196,7 @@ const [pagination, setPagination] = useState({
   }
 
   useEffect(() => {
+    getBanks();
     getServicesTypes();
     getPaymentMethods();
     fetchMonthTransactions();
@@ -186,12 +215,10 @@ const [pagination, setPagination] = useState({
   
 
   return (
-    
     <div className="flex flex-col bg-background overflow-auto">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
         <div className="flex items-center">
           <div className="ml-auto flex items-center gap-2">
-            {/* <Button disabled={isFetching} onClick={fetch}>{isFetching ? (<LoaderCircle className="animate-spin"></LoaderCircle>) : "Fetch"}</Button> */}
             <NewTransaction
               servicesTypes={servicesTypes}
               fetchTransactions={fetchTransactions}
@@ -200,11 +227,6 @@ const [pagination, setPagination] = useState({
               setNewTransaction={setNewTransaction}
               pagination={pagination}
             />
-
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
           </div>
         </div>
 
@@ -212,77 +234,63 @@ const [pagination, setPagination] = useState({
           <Button
             variant={activeTab === "overview" ? "default" : "outline"}
             onClick={() => setActiveTab("overview")}
-            className="flex items-center"
+            className="flex items-center w-32"
           >
             <DollarSign className="mr-2 h-4 w-4" />
             Geral
           </Button>
+
+          <Button
+            variant={activeTab === "banks" ? "default" : "outline"}
+            onClick={() => setActiveTab("banks")}
+            className="flex items-center w-32"
+          >
+            <Landmark className="mr-2 h-4 w-4" />
+            Contas
+          </Button>
           <Button
             variant={activeTab === "transactions" ? "default" : "outline"}
             onClick={() => setActiveTab("transactions")}
-            className="flex items-center"
+            className="flex items-center w-32"
           >
             <CreditCard className="mr-2 h-4 w-4" />
             Transações
           </Button>
-          {/* <Button
-            variant={activeTab === "reports" ? "default" : "outline"}
-            onClick={() => setActiveTab("reports")}
-            className="flex items-center"
-          >
-            <BarChart className="mr-2 h-4 w-4" />
-            Relatórios
-          </Button> */}
-          {/* <Button
-            variant={activeTab === "calendar" ? "default" : "outline"}
-            onClick={() => setActiveTab("calendar")}
-            className="flex items-center"
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Calendário
-          </Button> */}
         </div>
 
         <div
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
-          onClick={()=> {
+          onClick={() => {
             fetchMonthTransactions();
             fetchTransactions(pagination.page);
             fetchChartsData();
+            getBanks();
           }}
         >
           <span className="text-xs">Atualizar</span>
           <RotateCw className="w-3" />
         </div>
+
         {activeTab === "overview" && (
-          <Overview chartData={chartData} isLoadingMonth={isLoadingMonth} income={income} expense={expense} profit={profit} />
+          <Overview
+            chartData={chartData}
+            isLoadingMonth={isLoadingMonth}
+            income={income}
+            expense={expense}
+            profit={profit}
+          />
         )}
 
         {activeTab === "transactions" && (
-          <AllTransactions isLoading={isLoading} transactions={transactions} pagination={pagination} fetchTransactions={fetchTransactions} />
+          <AllTransactions
+            isLoading={isLoading}
+            transactions={transactions}
+            pagination={pagination}
+            fetchTransactions={fetchTransactions}
+          />
         )}
 
-        {activeTab === "reports" && <Reports />}
-
-        {activeTab === "calendar" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Financial Calendar</CardTitle>
-              <CardDescription>
-                View scheduled transactions and financial events
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center p-8">
-                <Calendar className="mx-auto h-16 w-16 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-medium">Calendar View</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Calendar functionality would be implemented here
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {activeTab === "banks" && <BanksInfo isLoadingBanks={isLoadingBanks} banks={banks} />}
       </main>
     </div>
   );

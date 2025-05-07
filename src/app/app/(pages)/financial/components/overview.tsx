@@ -54,7 +54,10 @@ export function Overview({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita total</CardTitle>
+          <CardTitle className="text-sm font-medium">
+              <span>Receita total</span>
+              <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -62,63 +65,70 @@ export function Overview({
               {isLoadingMonth ? (
                 <Skeleton key={1} className="w-52 h-4 mb-4" />
               ) : (
-               formatPrice(income)
+                formatPrice(income)
               )}
             </div>
-            {isLoadingMonth ? (
+            <></>
+            {/* {isLoadingMonth ? (
               <Skeleton key={2} className="w-52 h-2 mb-4" />
             ) : (
               <p className="text-xs text-muted-foreground">
                 {" "}
                 + 12% que o último mês{" "}
               </p>
-            )}
+            )} */}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Despesa total</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              <span>Despesa Total</span>
+              <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
+            </CardTitle>
             <TrendingDown className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-            {isLoadingMonth ? (
-              <Skeleton key={1} className="w-52 h-4 mb-4" />
-            ) : (
+              {isLoadingMonth ? (
+                <Skeleton key={1} className="w-52 h-4 mb-4" />
+              ) : (
                 formatPrice(expense)
               )}
             </div>
-
-            {isLoadingMonth ? (
+            <></>
+            {/* {isLoadingMonth ? (
               <Skeleton key={2} className="w-52 h-2 mb-4" />
             ) : (
               <p className="text-xs text-muted-foreground">
                 + 12% que o último mês
               </p>
-            )}
+            )} */}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Renda Líquida</CardTitle>
+          <CardTitle className="text-sm font-medium">
+              <span>Renda Líquida</span>
+              <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-            {isLoadingMonth ? (
-              <Skeleton key={1} className="w-52 h-4 mb-4" />
-            ) : (
+              {isLoadingMonth ? (
+                <Skeleton key={1} className="w-52 h-4 mb-4" />
+              ) : (
                 formatPrice(profit)
               )}
             </div>
-
-            {isLoadingMonth ? (
+            <></>
+            {/* {isLoadingMonth ? (
             <Skeleton key={2} className="w-52 h-2 mb-4" />
             ) : (
               <p className="text-xs text-muted-foreground">
                 + 12% que o último mês
               </p>
-            )}
+            )} */}
           </CardContent>
         </Card>
       </div>

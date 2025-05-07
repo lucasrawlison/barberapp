@@ -28,15 +28,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const paymentMethod = await prisma.paymentMethod.findUnique({
+      where: { id: paymentMethodId },
+    });
+
     const transaction = await prisma.transactions.create({
       data: {
         description,
         value,
-        date: new Date(date), // Converter string para Date corretamente
+        date: new Date(date),
         category,
         type,
         userId,
         paymentMethodId,
+        bankAccountId: paymentMethod?.bankId, 
       },
     });
 
