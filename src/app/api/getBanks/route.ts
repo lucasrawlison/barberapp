@@ -14,6 +14,18 @@ export async function GET(request: Request) {
       );
     }
 
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (user?.profileType !== "admin") {
+      return NextResponse.json(
+        { message: "User is not admin" },
+        { status: 403 }
+      );
+    }
 
     const banks = await prisma.bankAccount.findMany({
       include: {

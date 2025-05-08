@@ -14,7 +14,18 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
-    
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (user?.profileType !== "admin") {
+      return NextResponse.json(
+        { message: "User is not admin" },
+        { status: 403 }
+      );
+    }
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;

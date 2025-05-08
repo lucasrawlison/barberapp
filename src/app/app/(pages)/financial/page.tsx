@@ -94,7 +94,12 @@ export default function FinancialDashboard() {
       }
       
     } catch (error) {
-      console.log(error);
+      // console.log(error);
+      if(axios.isAxiosError(error)) {
+        if (error.response?.status === 403) {
+          router.push("/app/dashboard");
+        }
+      }
       setIsLoadingBanks(false);
     }
   };
@@ -111,7 +116,11 @@ export default function FinancialDashboard() {
         setIsLoading(false);
       }
     } catch (error) {
-      console.log(error);
+      if(axios.isAxiosError(error)) {
+        if (error.response?.status === 403) {
+          router.push("/app/dashboard");
+        }
+      }
       setIsLoading(false);
     }
   };
@@ -149,13 +158,17 @@ export default function FinancialDashboard() {
 
 
       if (response.status === 200) {
-        console.log(response.data);
+        // console.log(response.data);
         setPagination(response.data.pagination);
         setTransactions(response.data.transactions);
         // setIsLoading(false)
       }
     } catch (error) {
-      console.log(error);
+      if(axios.isAxiosError(error)) {
+        if (error.response?.status === 403) {
+          router.push("/app/dashboard");
+        }
+      }
       setIsLoading(false);
     }
   };
@@ -175,7 +188,11 @@ export default function FinancialDashboard() {
         setIsLoadingMonth(false);
       }
     } catch (error) {
-      console.log(error);
+      if(axios.isAxiosError(error)) {
+        if (error.response?.status === 403) {
+          router.push("/app/dashboard");
+        }
+      }
       setIsLoadingMonth(false);
     }
   };
@@ -190,7 +207,7 @@ export default function FinancialDashboard() {
         setIsLoading(false);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setIsLoading(false);
     }
   };
@@ -199,35 +216,30 @@ export default function FinancialDashboard() {
     setIsFetching(true);
     setChartData(undefined);
     try {
-      const response = await axios.get("/api/getOverviewData");
+      const response = await axios.get("/api/getOverviewData",
+        {
+          headers: {
+            Userid: session?.user?.id || null,
+          },
+        }
+      );
       if (response.status === 200) {
         // console.log(response.data.chartData)
         setChartData(response.data.chartData);
         setIsFetching(false);
       }
     } catch (error) {
-      console.log(error);
+      if(axios.isAxiosError(error)) {
+        if (error.response?.status === 403) {
+          router.push("/app/dashboard");
+        }
+      }
       setIsFetching(false);
     }
   };
 
-  const checkUser = async () => {
-    if (!session?.user?.id) return;
-    try {
-      const response = await axios.post("/api/checkUser", {
-        id: session?.user?.id,
-      });
-      if (response.status === 200) {
-        return;
-        // console.log(response.data);
-      }
-    } catch (error) {
-      router.push("/app/dashboard");
-    }
-  };
 
   useEffect(() => {
-    checkUser();
     getBanks();
     getServicesTypes();
     getPaymentMethods();

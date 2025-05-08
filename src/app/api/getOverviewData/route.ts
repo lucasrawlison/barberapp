@@ -3,8 +3,26 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET( request: Request) {
   try {
+    const userId = request.headers.get("Userid") || null;
+    if(!userId) {
+      return NextResponse.json(
+        { message: "User ID is required" },
+        { status: 400 }
+      );
+    }
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (user?.profileType !== "admin") {
+      return NextResponse.json(
+        { message: "User is not admin" },
+        { status: 403 }
+      );
+    }
     const transactions = await prisma.transactions.findMany({
       orderBy: { id: "desc" },
     });

@@ -14,6 +14,18 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (user?.profileType !== "admin") {
+      return NextResponse.json(
+        { message: "User is not admin" },
+        { status: 403 }
+      );
+    }
 
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
