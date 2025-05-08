@@ -32,6 +32,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import AddClient from "./addClient";
+import { Value } from "@radix-ui/react-select";
+import ValueInput from "./valueInput";
 
 interface User {
   name: string;
@@ -224,6 +226,16 @@ export function CardData({
         getServices(pagination.page);
       }
     } catch (error) {
+      if(axios.isAxiosError(error)) {
+        if (error.response?.status === 400) {
+          toast({
+            title: "Erro",
+            description: error.response.data.message,
+            variant: "destructive",
+            duration: 5000,
+          });
+        }
+      }
       console.log(error);
     } finally {
       setIsLoading(false);
@@ -258,6 +270,13 @@ export function CardData({
       customer,
     });
   };
+
+  const handleSetDesconto = (value: number) => {
+    setSelectedService({
+      ...selectedService,
+      discount: value,
+    });
+  }
 
 
   if (!selectedService) return null;
@@ -434,7 +453,8 @@ export function CardData({
           </SelectContent>
         </Select>
         <Separator className="my-4" />
-        <Label>Desconto:</Label>
+        <Label>Desconto</Label>
+        <ValueInput setDesconto={handleSetDesconto} desconto={selectedService.discount}/>
         <Separator className="my-4" />
         <div className="flex flex-col gap-2 outline outline-1 p-3 outline-gray-300">
           <Label className="mt-3">Resumo:</Label>

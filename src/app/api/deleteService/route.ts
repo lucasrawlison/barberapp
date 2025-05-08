@@ -16,6 +16,29 @@ export async function POST(req: NextRequest) {
     }
 
 
+    const service = await prisma.service.findUnique({
+      where: {
+        id: selectedService.id
+      },
+      include: {
+        transactions: true,
+      }
+    });
+
+    if (!service) {
+      return NextResponse.json(
+        { message: "Service not found" },
+        { status: 404 }
+      );
+    }
+
+    if (service.transactions.length > 0) {
+      return NextResponse.json(
+        { message: "Não é possível deletar serviços com pagamentos registrados. Delete o registro de pagamento primeiro. " },
+        { status: 400 }
+      );
+    }
+
     
     const response = await prisma.service.delete({
         where: {

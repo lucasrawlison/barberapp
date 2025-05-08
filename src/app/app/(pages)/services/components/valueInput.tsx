@@ -20,20 +20,22 @@ export default function ValueInput({setDesconto, desconto} : ValueInputProps) {
        floatValue
     );
   }, [numericString]);
+
+
+  
   // Formata a string como moeda brasileira (R$)
   const formatCurrency = (value: string | number): string => {
-    if (!value) return "R$ 0,00"
+    if (!value) return "R$ 0,00";
 
     // Converte a string para número (em centavos)
-    if(typeof value === "string"){
-
-      const numericValue = Number.parseInt(value) / 100
+    if (typeof value === "string") {
+      const numericValue = Number.parseInt(value) / 100;
       return numericValue.toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL",
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      })
+      });
     }
 
     return value.toLocaleString("pt-BR", {
@@ -41,8 +43,7 @@ export default function ValueInput({setDesconto, desconto} : ValueInputProps) {
       currency: "BRL",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    })
-
+    });
   }
 
   // Converte a string para float
