@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, type KeyboardEvent, type ChangeEvent, useEffect } from "react"
+import { useState, useRef, type ChangeEvent, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 
 
@@ -22,7 +22,7 @@ export default function ValueInput({setDesconto, desconto} : ValueInputProps) {
   }, [numericString]);
 
 
-  
+
   // Formata a string como moeda brasileira (R$)
   const formatCurrency = (value: string | number): string => {
     if (!value) return "R$ 0,00";

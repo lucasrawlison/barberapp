@@ -32,7 +32,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import AddClient from "./addClient";
-import { Value } from "@radix-ui/react-select";
 import ValueInput from "./valueInput";
 
 interface User {

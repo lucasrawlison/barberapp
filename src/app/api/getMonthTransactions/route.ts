@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
     const userId = request.headers.get("Userid") || null;
 
     if (!userId) {

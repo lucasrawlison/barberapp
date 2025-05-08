@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, type KeyboardEvent, type ChangeEvent, useEffect } from "react"
+import { useState, useRef, type ChangeEvent, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 
 
