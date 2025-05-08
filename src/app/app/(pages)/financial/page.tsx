@@ -9,7 +9,7 @@ import { NewTransaction } from "./components/newTransaction";
 import { AllTransactions } from "./components/allTransactions";
 import { Overview } from "./components/overview";
 import { BanksInfo } from "./components/banksInfo";
-
+import { useRouter } from "next/navigation";
 
 interface Transaction {
   description: string;
@@ -20,9 +20,9 @@ interface Transaction {
   paymentMethodId: string;
 }
 interface Dados {
-  month: string,
-  revenue: number,
-  expenses: number
+  month: string;
+  revenue: number;
+  expenses: number;
 }
 
 interface BankAccount {
@@ -37,7 +37,6 @@ interface BankAccount {
   paymentMethods: PaymentMethod[];
 }
 
-
 interface PaymentMethod {
   id: string;
   name: string;
@@ -46,13 +45,11 @@ interface PaymentMethod {
   transactions: Transaction[];
 }
 
-
-
 export default function FinancialDashboard() {
   const { data: session } = useSession();
   const [servicesTypes, setServicesTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [,setIsFetching] = useState(false);
+  const [, setIsFetching] = useState(false);
   const [isLoadingMonth, setIsLoadingMonth] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [expense, setExpense] = useState(0);
@@ -69,39 +66,50 @@ export default function FinancialDashboard() {
     category: "",
     paymentMethodId: "",
   });
-const [chartData, setChartData]= useState<Dados[] | undefined>(undefined)
-const [pagination, setPagination] = useState({
-  total: 0,
-  page: 1,
-  limit: 10,
-  totalPages: 0,
-})
-const [banks, setBanks] = useState<BankAccount[]>([])
-const [isLoadingBanks, setIsLoadingBanks] = useState(false)
+  const [chartData, setChartData] = useState<Dados[] | undefined>(undefined);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  });
+  const [banks, setBanks] = useState<BankAccount[]>([]);
+  const [isLoadingBanks, setIsLoadingBanks] = useState(false);
+  const router = useRouter();
+  
 
   const getBanks = async () => {
     try {
       setIsLoadingBanks(true);
-      const response = await axios.get("/api/getBanks");
-      const { banks } = response.data;
-      setBanks(banks);
-      setIsLoadingBanks(false);
+      const response = await axios.get("/api/getBanks", {
+        headers: {
+          Userid: session?.user?.id || null,
+        },
+      });
+      
+      if (response.status === 200) {
+        const { banks } = response.data;
+        setBanks(banks);
+        setIsLoadingBanks(false);
+      }
+      
     } catch (error) {
       console.log(error);
       setIsLoadingBanks(false);
     }
   };
 
-
-
   const getPaymentMethods = async () => {
     try {
       setIsLoading(true);
 
       const response = await axios.post("/api/getPaymentMethods");
-      const { paymentMethods } = response.data;
-      setPaymentMethods(paymentMethods);
-      setIsLoading(false);
+      
+      if (response.status === 200) {
+        const { paymentMethods } = response.data;
+        setPaymentMethods(paymentMethods);
+        setIsLoading(false);
+      }
     } catch (error) {
       console.log(error);
       setIsLoading(false);
@@ -134,11 +142,15 @@ const [isLoadingBanks, setIsLoadingBanks] = useState(false)
           page: pageNumber || 1,
           limit: 10,
         },
+        headers: {
+          Userid: session?.user?.id || null,
+        },
       });
 
-      if (response) {
-        console.log(response.data)
-        setPagination(response.data.pagination)
+
+      if (response.status === 200) {
+        console.log(response.data);
+        setPagination(response.data.pagination);
         setTransactions(response.data.transactions);
         // setIsLoading(false)
       }
@@ -151,12 +163,16 @@ const [isLoadingBanks, setIsLoadingBanks] = useState(false)
   const fetchMonthTransactions = async () => {
     try {
       setIsLoadingMonth(true);
-      const response = await axios.get("/api/getMonthTransactions");
+      const response = await axios.get("/api/getMonthTransactions", {
+        headers: {
+          Userid: session?.user?.id || null,
+        },
+      });
+      
 
-      if (response) {
+      if (response.status === 200) {
         setMonthTransactions(response.data.transactions);
         setIsLoadingMonth(false);
-
       }
     } catch (error) {
       console.log(error);
@@ -168,9 +184,11 @@ const [isLoadingBanks, setIsLoadingBanks] = useState(false)
     try {
       setIsLoading(true);
       const response = await axios.post("/api/getServicesTypes");
-      const { servicesTypes } = response.data;
-      setServicesTypes(servicesTypes);
-      setIsLoading(false);
+      if (response.status === 200) {
+        const { servicesTypes } = response.data;
+        setServicesTypes(servicesTypes);
+        setIsLoading(false);
+      }
     } catch (error) {
       console.log(error);
       setIsLoading(false);
@@ -178,24 +196,38 @@ const [isLoadingBanks, setIsLoadingBanks] = useState(false)
   };
 
   const fetchChartsData = async () => {
-    setIsFetching(true)
-    setChartData(undefined)
+    setIsFetching(true);
+    setChartData(undefined);
     try {
-      const response = await axios.get("/api/getOverviewData")
-      if(response){
+      const response = await axios.get("/api/getOverviewData");
+      if (response.status === 200) {
         // console.log(response.data.chartData)
-        setChartData(response.data.chartData)
-        setIsFetching(false)
-
-
+        setChartData(response.data.chartData);
+        setIsFetching(false);
       }
     } catch (error) {
-      console.log(error)
-      setIsFetching(false)
+      console.log(error);
+      setIsFetching(false);
     }
-  }
+  };
+
+  const checkUser = async () => {
+    if (!session?.user?.id) return;
+    try {
+      const response = await axios.post("/api/checkUser", {
+        id: session?.user?.id,
+      });
+      if (response.status === 200) {
+        return;
+        // console.log(response.data);
+      }
+    } catch (error) {
+      router.push("/app/dashboard");
+    }
+  };
 
   useEffect(() => {
+    checkUser();
     getBanks();
     getServicesTypes();
     getPaymentMethods();
@@ -206,13 +238,9 @@ const [isLoadingBanks, setIsLoadingBanks] = useState(false)
   useEffect(() => {
     calculate();
     setIsLoading(false);
-    
+
     fetchChartsData();
   }, [transactions, monthTransactions]);
-
-
-
-  
 
   return (
     <div className="flex flex-col bg-background overflow-auto">
@@ -290,7 +318,9 @@ const [isLoadingBanks, setIsLoadingBanks] = useState(false)
           />
         )}
 
-        {activeTab === "banks" && <BanksInfo isLoadingBanks={isLoadingBanks} banks={banks} />}
+        {activeTab === "banks" && (
+          <BanksInfo isLoadingBanks={isLoadingBanks} banks={banks} />
+        )}
       </main>
     </div>
   );

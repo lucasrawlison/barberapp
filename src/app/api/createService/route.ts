@@ -18,13 +18,17 @@ export async function POST(req: NextRequest) {
       );
     }
     console.log("ESTE É O BODY--------------------------: ", body)
+
+    const paymentMethod = await prisma.paymentMethod.findUnique({
+      where: { id: paymentMethodId },
+    });
     
     const service = await prisma.service.create({
         data: {
             value, servicesValue, discount, createdAt: date ? new Date(date): new Date(), userId, servicesTypes: selectedServices, code: randomCode.toString(), paymentMethodId, customerId: customerId ?? null,
             transactions: {
               create: {
-                value, date: date ? new Date(date): new Date(), paymentMethodId, description: `Serviço de código ${randomCode}`, userId, type: "Receita", category: "Serviço"
+                value, date: date ? new Date(date): new Date(), paymentMethodId, description: `Serviço de código ${randomCode}`, userId, type: "Receita", category: "Serviço", bankAccountId: paymentMethod?.bankId,
               }
             }
         },
