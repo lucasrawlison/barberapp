@@ -61,6 +61,14 @@ interface Customer {
   phone: string;
 }
 
+interface Transaction {
+  date: string,
+  description: string,
+  type: string,
+  value: number
+
+}
+
 interface Service {
   id: string;
   code: number;
@@ -74,6 +82,7 @@ interface Service {
   paymentMethod: PaymentMethod;
   customerId: string;
   customer: Customer;
+  transactions: Transaction[];
 }
 
 interface Pagination {

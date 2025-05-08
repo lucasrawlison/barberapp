@@ -41,6 +41,13 @@ interface Customer {
   email: string;
   phone: string;
 }
+interface Transaction {
+  date: string,
+  description: string,
+  type: string,
+  value: number
+
+}
 interface Service {
   id: string;
   code: number;
@@ -54,6 +61,7 @@ interface Service {
   customerId: string;
   customer: Customer;
   paymentMethod: PaymentMethod
+  transactions: Transaction[];
 }
 
 interface Pagination {
@@ -262,6 +270,7 @@ export function ServicesList() {
                 },
                 customerId: "",
                 customer: { id: "", name: "", email: "", phone: "" },
+                transactions: [],
               });
             }}
           >
@@ -296,6 +305,7 @@ export function ServicesList() {
               <TableHead className=" text-center">Preço</TableHead>
               <TableHead className=" text-center">Data</TableHead>
               <TableHead className=" text-center">Usuário</TableHead>
+              <TableHead className=" text-center"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -333,6 +343,17 @@ export function ServicesList() {
                   </TableCell>
                   <TableCell className="text-center">
                     {service.user.name}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {service.transactions.length > 0 ? (
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                        Pago
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                        Pendente
+                      </span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

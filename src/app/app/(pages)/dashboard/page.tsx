@@ -30,7 +30,7 @@ export default function Dashboard() {
     {
       name: "Edite Configurações do Aplicativo",
       description: "Personalize o sistema conforme suas necessidades",
-      link: "",
+      link: "/app/settings",
       icon: <Settings className="h-10 w-10 text-primary" />,
       bg: "bg-green-800/20",
     },

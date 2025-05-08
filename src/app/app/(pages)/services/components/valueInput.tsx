@@ -57,21 +57,9 @@ export default function ValueInput({setDesconto, desconto} : ValueInputProps) {
   }, [numericString])
 
   // Manipula as teclas pressionadas
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    // Permite apenas teclas numéricas e backspace
-    if (!/^\d$/.test(e.key) && e.key !== "Backspace") {
-      e.preventDefault()
-      return
-    }
-
-    if (e.key === "Backspace") {
-      // Deixa o comportamento padrão do backspace acontecer no input
-      // A string será atualizada no handleChange
-    } else {
-      // Adiciona o dígito à string
-      setNumericString((prev) => prev + e.key)
-      e.preventDefault() // Previne a entrada padrão no input
-    }
+  const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, "") // remove tudo que não for número
+    setNumericString(rawValue)
   }
 
   // Manipula mudanças no input (incluindo backspace)
@@ -99,7 +87,7 @@ export default function ValueInput({setDesconto, desconto} : ValueInputProps) {
         name="value"
         value={formatCurrency(desconto)}
         onChange={handleChange}
-        onKeyDown={handleKeyDown}
+        onInput={handleInput}
         className=""
         placeholder="R$ 0,00"
       />

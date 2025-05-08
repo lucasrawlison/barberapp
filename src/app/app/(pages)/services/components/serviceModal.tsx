@@ -35,6 +35,13 @@ interface Customer {
   email: string;
   phone: string;
 }
+interface Transaction {
+  date: string,
+  description: string,
+  type: string,
+  value: number
+
+}
 
 interface Service {
   id: string;
@@ -49,6 +56,7 @@ interface Service {
   customerId: string;
   customer: Customer;
   paymentMethod: PaymentMethod;
+  transactions: Transaction[];
 }
 
 interface Pagination {
