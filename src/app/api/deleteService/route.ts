@@ -14,10 +14,15 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+
     
     const response = await prisma.service.delete({
         where: {
             id: selectedService.id
+        },
+        include: {
+            transactions: true,
         }
     })
 
