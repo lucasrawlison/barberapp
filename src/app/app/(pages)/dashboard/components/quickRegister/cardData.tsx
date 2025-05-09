@@ -22,7 +22,7 @@ import {
   ChevronLeftIcon,
   ChevronsLeft,
 } from "lucide-react";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import {
@@ -166,12 +166,21 @@ export function CardData({
           variant: "default",
           duration: 2000,
         });
-        console.log(response);
+        // console.log(response);
         setIsLoading(false);
         setIsSaved(true);
       }
     } catch (error) {
-      console.log(error);
+      if(isAxiosError(error)){
+        if(error.response?.status === 400){
+          toast({
+            title: "Erro ao salvar serviço",
+            description: error.response.data.message,
+            variant: "destructive",
+            duration: 3000,
+          });
+        }
+      }
       setIsLoading(false);
     }
   };
@@ -197,9 +206,14 @@ export function CardData({
   };
 
   useEffect(() => {
+
     const soma = serviceToSave.reduce((acc, s) => acc + s.value, 0);
     setTotal(soma - desconto);
   }, [serviceToSave, desconto]);
+
+ 
+
+
 
   return (
     <div className="p-1 flex flex-col gap-4 max-w-full overflow-auto">
@@ -407,7 +421,7 @@ export function CardData({
       <Separator className="my-4" />
       <div className="flex gap-2 items-center">
         <Label>Total:</Label>
-        <Label className="text-md">{formatarEmReal(total - desconto)}</Label>
+        <Label className="text-md">{formatarEmReal(total)}</Label>
         <div className="w-full"></div>
         {isSaved ? (
           <Button disabled>

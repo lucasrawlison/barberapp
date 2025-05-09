@@ -205,7 +205,7 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
             Adicionar Cliente
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] min-h-[450px] flex flex-col align-top max-h-[450px]">
+        <DialogContent className="sm:max-w-[425px] min-h-[500px] flex flex-col align-top max-h-[500px]">
           <DialogHeader>
             <DialogTitle>Cliente #{selectedCustomer.code}</DialogTitle>
             <DialogDescription>
@@ -299,6 +299,7 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
             </TabsContent>
           </Tabs>
           <DialogFooter>
+            
             <Button
               onClick={handleDeleteCustomer}
               disabled={isDeleting}

@@ -12,7 +12,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -196,7 +196,16 @@ export function RegisterCardData({
         setIsSaved(true);
       }
     } catch (error) {
-      console.log(error);
+        if(isAxiosError(error)) {
+          if (error.response?.status === 400) {
+            toast({
+              title: "Erro ao salvar serviço",
+              description: error.response.data.message,
+              variant: "destructive",
+              duration: 3000,
+            });
+          }
+        }
       setIsLoading(false);
     }
   };

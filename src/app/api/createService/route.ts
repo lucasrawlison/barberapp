@@ -7,17 +7,47 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("ESTE É O BODY--------------------------: ", body)
-    const { value, userId,servicesValue, selectedServices, paymentMethodId, customerId, date, discount} = body;
+    // console.log("ESTE É O BODY--------------------------: ", body)
+    const { value, userId, servicesValue, selectedServices, paymentMethodId, customerId, date, discount} = body;
     const randomCode = await getNextSequence("service");
     
-    if (!value || !userId || !selectedServices) {
+    if (!userId ) {
       return NextResponse.json(
-        { message: "User ID or Title Invalid" },
+        { message: "Usuário invalido" },
         { status: 400 }
       );
     }
-    console.log("ESTE É O BODY--------------------------: ", body)
+
+    if(selectedServices.length === 1 && selectedServices[0].id === ""){
+      return NextResponse.json(
+        { message: "Selecione ao menos um Serviço" },
+        { status: 400 }
+      );
+    }
+
+    if(!value){
+      return NextResponse.json(
+        { message: "Selecione um Serviço" },
+        { status: 400 }
+      );
+    }
+
+    if(value < 0){
+      return NextResponse.json(
+        { message: "Valor total negativo" },
+        { status: 400 }
+      );
+    }
+
+      if(!paymentMethodId){
+        return NextResponse.json(
+          { message: "Selecione um método de pagamento" },
+          { status: 400 }
+        );
+      }
+
+
+    // console.log("ESTE É O BODY--------------------------: ", body)
 
     const paymentMethod = await prisma.paymentMethod.findUnique({
       where: { id: paymentMethodId },
