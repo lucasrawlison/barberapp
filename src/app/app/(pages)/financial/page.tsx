@@ -8,17 +8,59 @@ import { useSession } from "next-auth/react";
 import { NewTransaction } from "./components/newTransaction";
 import { AllTransactions } from "./components/allTransactions";
 import { Overview } from "./components/overview";
-import { BanksInfo } from "./components/banksInfo";
 import { useRouter } from "next/navigation";
+import { BanksInfo } from "./components/banksInfo";
+interface Type {
+  id: string
+  name: string
+  value: number
+}
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+  customerId: string;
+  paymentMethod: PaymentMethod
+  transactions: Transaction[];
+}
 
 interface Transaction {
   description: string;
+  service: Service | null
   value: number;
   date: string;
   type: string;
   category: string;
   paymentMethodId: string;
+  paymentMethod: PaymentMethod;
 }
+
+interface Transaction {
+  description: string;
+  service: Service | null
+  value: number;
+  date: string;
+  type: string;
+  category: string;
+  paymentMethodId: string;
+  paymentMethod: PaymentMethod;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankId: string;
+  bankAccount: BankAccount;
+  transactions: Transaction[];
+}
+
+
 interface Dados {
   month: string;
   revenue: number;
@@ -41,8 +83,22 @@ interface PaymentMethod {
   id: string;
   name: string;
   bankId: string;
-  bankAccount: string;
+  bankAccount: BankAccount;
   transactions: Transaction[];
+}
+interface ServiceType {
+  id: string;
+  name: string;
+  value: number;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  login: string;
+  profileType: string;
+  profileImgLink: string;
 }
 
 export default function FinancialDashboard() {
@@ -58,14 +114,34 @@ export default function FinancialDashboard() {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [monthTransactions, setMonthTransactions] = useState<Transaction[]>([]);
-  const [newTransaction, setNewTransaction] = useState<Transaction>({
-    description: "",
-    value: 0,
-    date: "",
-    type: "",
-    category: "",
-    paymentMethodId: "",
-  });
+  const [newTransaction, setNewTransaction] = useState<Transaction | undefined>(
+    {
+      description: "",
+      value: 0,
+      date: "",
+      type: "Receita",
+      category: "Serviço",
+      paymentMethodId: "",
+      paymentMethod: {
+        id: "",
+        name: "",
+        bankId: "",
+        bankAccount: {
+          id: "",
+          bankName: "",
+          initialValue: 0,
+          agency: "",
+          accountNumber: "",
+          accountType: "",
+          accountOwner: "",
+          transactions: [],
+          paymentMethods: [],
+        },
+        transactions: [],
+      },
+      service: null
+    }
+  );
   const [chartData, setChartData] = useState<Dados[] | undefined>(undefined);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -75,6 +151,7 @@ export default function FinancialDashboard() {
   });
   const [banks, setBanks] = useState<BankAccount[]>([]);
   const [isLoadingBanks, setIsLoadingBanks] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>(undefined);
   const router = useRouter();
   
 
@@ -260,6 +337,8 @@ export default function FinancialDashboard() {
         <div className="flex items-center">
           <div className="ml-auto flex items-center gap-2">
             <NewTransaction
+            setSelectedTransaction={setSelectedTransaction}
+            selectedTransaction={selectedTransaction}
               servicesTypes={servicesTypes}
               fetchTransactions={fetchTransactions}
               paymentMethods={paymentMethods}
@@ -327,6 +406,7 @@ export default function FinancialDashboard() {
             transactions={transactions}
             pagination={pagination}
             fetchTransactions={fetchTransactions}
+            setSelectedTransaction={setSelectedTransaction}
           />
         )}
 

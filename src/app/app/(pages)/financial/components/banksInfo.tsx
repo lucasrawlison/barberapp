@@ -3,27 +3,96 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface Type {
+  id: string
+  name: string
+  value: number
+}
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+  customerId: string;
+  paymentMethod: PaymentMethod
+  transactions: Transaction[];
+}
+
 interface Transaction {
-    description: string;
-    value: number;
-    date: string;
-    type: string;
-    category: string;
-    paymentMethodId: string;
+  description: string;
+  service: Service | null
+  value: number;
+  date: string;
+  type: string;
+  category: string;
+  paymentMethodId: string;
+  paymentMethod: PaymentMethod;
+}
+
+interface Transaction {
+  description: string;
+  service: Service | null
+  value: number;
+  date: string;
+  type: string;
+  category: string;
+  paymentMethodId: string;
+  paymentMethod: PaymentMethod;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankId: string;
+  bankAccount: BankAccount;
+  transactions: Transaction[];
+}
+
+
+interface Dados {
+  month: string;
+  revenue: number;
+  expenses: number;
 }
 
 interface BankAccount {
-    id: string;
-    bankName: string;
-    initialValue: number;
-    agency: string;
-    accountNumber: string;
-    accountType: string;
-    accountOwner: string;
-    transactions: Transaction[];
-    paymentMethods: PaymentMethod[];
-  }
+  id: string;
+  bankName: string;
+  initialValue: number;
+  agency: string;
+  accountNumber: string;
+  accountType: string;
+  accountOwner: string;
+  transactions: Transaction[];
+  paymentMethods: PaymentMethod[];
+}
 
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankId: string;
+  bankAccount: BankAccount;
+  transactions: Transaction[];
+}
+interface ServiceType {
+  id: string;
+  name: string;
+  value: number;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  login: string;
+  profileType: string;
+  profileImgLink: string;
+}
 
 interface BankInfoProps {
     banks: BankAccount[];
@@ -34,7 +103,7 @@ interface PaymentMethod {
   id: string;
   name: string;
   bankId: string;
-  bankAccount: string;
+  bankAccount: BankAccount;
   transactions: Transaction[];
 }
 

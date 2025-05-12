@@ -4,16 +4,68 @@ import { useState, useRef, type ChangeEvent, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 
 interface Transaction {
-  description: string,
-  value: number,
-  date: string,
-  type: string,
-  category: string
-  paymentMethodId: string
+  description: string;
+  value: number;
+  service: Service | null
+  date: string;
+  type: string;
+  category: string;
+  paymentMethodId: string;
+  paymentMethod: PaymentMethod;
 }
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankId: string;
+  bankAccount: BankAccount;
+  transactions: Transaction[];
+}
+
+interface Type {
+  id: string
+  name: string
+  value: number
+}
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+  customerId: string;
+  paymentMethod: PaymentMethod
+  transactions: Transaction[];
+
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  login: string;
+  profileType: string;
+  profileImgLink: string;
+}
+
+interface BankAccount {
+  id: string;
+  bankName: string;
+  initialValue: number;
+  agency: string;
+  accountNumber: string;
+  accountType: string;
+  accountOwner: string;
+  transactions: Transaction[];
+  paymentMethods: PaymentMethod[];
+}
+
 interface ValueInputProps {
-  setNewTransaction : (value: Transaction) => void
-  newTransaction: Transaction
+  setNewTransaction : (value: Transaction | undefined) => void
+  newTransaction: Transaction | undefined
   servicesTotalValue: number
 }
 export default function ValueInput({setNewTransaction, newTransaction, servicesTotalValue} : ValueInputProps) {
@@ -22,9 +74,10 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    if(!newTransaction) return
     if (
-      newTransaction.type === "Receita" &&
-      newTransaction.category === "Serviço"
+      newTransaction?.type === "Receita" &&
+      newTransaction?.category === "Serviço"
     ) return; // não atualiza value manualmente nesse caso
   
     const floatValue = getFloatValue(numericString);
@@ -99,12 +152,12 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
         ref={inputRef}
         type="text"
         name="value"
-        value={newTransaction.type === "Receita" && newTransaction.category==="Serviço" ? formatCurrency(servicesTotalValue): displayValue}
+        value={newTransaction?.type === "Receita" && newTransaction?.category==="Serviço" ? formatCurrency(servicesTotalValue): displayValue}
         onChange={handleChange}
         onInput={handleInput}
         className=""
         placeholder="R$ 0,00"
-        disabled={newTransaction.type === "Receita" && newTransaction.category==="Serviço"}
+        disabled={newTransaction?.type === "Receita" && newTransaction?.category==="Serviço"}
       />
   )
 }

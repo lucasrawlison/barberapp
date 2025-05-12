@@ -37,6 +37,16 @@ export async function GET(request: Request) {
         orderBy: {
           id: "desc",
         },
+        include: {
+         paymentMethod:{
+          include: {
+            bankAccount: true,
+          },
+         },
+         bankAccount: true,
+         service: true,
+         user: true
+        },
       }),
       prisma.transactions.count(),
     ]);

@@ -31,24 +31,55 @@ import {
 } from "@/components/ui/card";
 import Image from "next/image";
 
+interface Type {
+  id: string
+  name: string
+  value: number
+}
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+  customerId: string;
+  paymentMethod: PaymentMethod
+  transactions: Transaction[];
+}
+
 interface Transaction {
   description: string;
+  service: Service | null
   value: number;
   date: string;
   type: string;
   category: string;
   paymentMethodId: string;
+  paymentMethod: PaymentMethod;
 }
 
 interface BankAccount {
   id: string;
   bankName: string;
+  initialValue: number;
+  agency: string;
+  accountNumber: string;
+  accountType: string;
+  accountOwner: string;
+  transactions: Transaction[];
+  paymentMethods: PaymentMethod[];
 }
 
 interface PaymentMethod {
   id: string;
   name: string;
+  bankId: string;
   bankAccount: BankAccount;
+  transactions: Transaction[];
 }
 
 interface ServiceType {
@@ -67,8 +98,8 @@ interface User {
 }
 
 interface NewTransactionProps {
-  newTransaction: Transaction;
-  setNewTransaction: (value: Transaction) => void;
+  newTransaction: Transaction | undefined;
+  setNewTransaction: (value: Transaction | undefined) => void;
   paymentMethods: PaymentMethod[];
   fetchTransactions: (value: number) => void;
   servicesTypes: ServiceType[];
@@ -78,6 +109,8 @@ interface NewTransactionProps {
     limit: number;
     totalPages: number;
   };
+  selectedTransaction: Transaction | undefined;
+  setSelectedTransaction: (value: Transaction | undefined) => void;
 }
 
 export function NewTransaction({
@@ -87,6 +120,8 @@ export function NewTransaction({
   fetchTransactions,
   servicesTypes,
   pagination,
+  selectedTransaction,
+  setSelectedTransaction
 }: NewTransactionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { data: session } = useSession();
@@ -105,25 +140,51 @@ export function NewTransaction({
   const [servicesTotalValue, setServicesTotalValue] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  
 
   const eraseData = () => {
-    setIsModalOpen(!isModalOpen);
-    setNewTransaction({
-      description: "",
-      value: 0,
-      date: "",
-      type: "",
-      category: "",
-      paymentMethodId: "",
-    });
-    setSelects([
-      {
-        id: "",
-        name: "Selecione",
-        value: 0,
-      },
-    ]);
-    setIsSaved(false)
+    if(isModalOpen){
+
+      setIsModalOpen(!isModalOpen);
+      setSelectedTransaction(undefined);
+      setNewTransaction(
+        {
+          description: "",
+          value: 0,
+          date: "",
+          type: "",
+          category: "",
+          paymentMethodId: "",
+          paymentMethod: {
+            id: "",
+            name: "",
+            bankAccount: {
+              id: "",
+              bankName: "",
+              initialValue: 0,
+              agency: "",
+              accountNumber: "",
+              accountType: "",
+              accountOwner: "",
+              transactions: [],
+              paymentMethods: [],
+            },
+            bankId: "",
+            transactions: [],
+            
+          },
+service: null
+        }
+      );
+      setSelects([
+        {
+          id: "",
+          name: "Selecione",
+          value: 0,
+        },
+      ]);
+      setIsSaved(false)
+    }
   };
 
   const handleServiceValues = () => {
@@ -166,14 +227,28 @@ export function NewTransaction({
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewTransaction({
-      ...newTransaction,
-      [name]:
-        name === "value"
-          ? parseFloat(value.replace(/[^\d,]/g, "").replace(",", ".")) || 0
-          : value,
-    });
+    if(selectedTransaction){
+
+      const { name, value } = e.target;
+      setSelectedTransaction({
+        ...selectedTransaction,
+        [name]:
+          name === "value"
+            ? parseFloat(value.replace(/[^\d,]/g, "").replace(",", ".")) || 0
+            : value,
+      });
+    }
+    if(newTransaction){
+
+      const { name, value } = e.target;
+      setNewTransaction({
+        ...newTransaction,
+        [name]:
+          name === "value"
+            ? parseFloat(value.replace(/[^\d,]/g, "").replace(",", ".")) || 0
+            : value,
+      });
+    }
   };
 
   useEffect(() => {
@@ -181,6 +256,7 @@ export function NewTransaction({
   }, [newTransaction]);
 
   const handleSaveTransaction = async () => {
+    if (!newTransaction) return;
     setIsSaving(true);
     if (
       newTransaction.type === "Receita" &&
@@ -268,262 +344,550 @@ export function NewTransaction({
     console.log(selects);
   }, [selects]);
 
-  return (
-    <Dialog onOpenChange={() => eraseData()} open={isModalOpen}>
-      <DialogTrigger onClick={() => setIsModalOpen(true)} asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova transação
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-h-[600px] sm:max-h-screen overflow-auto portr ">
-        <DialogHeader>
-          <DialogTitle>Adicionar nova transação</DialogTitle>
-          <DialogDescription>
-            Insira os detalhes da nova transação abaixo.
-          </DialogDescription>
-        </DialogHeader>
-        <Label>Tipo de Transação</Label>
-        <Select
-          value={newTransaction.type}
-          name="type"
-          onValueChange={(value) =>
-            setNewTransaction({ ...newTransaction, type: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem className=" hover: cursor-pointer" value="Receita">
-              Receita
-            </SelectItem>
-            <SelectItem className=" hover: cursor-pointer" value="Despesa">
-              Despesa
-            </SelectItem>
-          </SelectContent>
-        </Select>
+  useEffect(()=> {
+    if(selectedTransaction){
+      setIsModalOpen(true)
+    }
+  }, [selectedTransaction])
 
-        <Label>Descrição</Label>
-        <Input
-          disabled={
-            newTransaction.category === "Serviço" &&
-            newTransaction.type === "Receita"
-          }
-          placeholder={
-            newTransaction.category === "Serviço" &&
-            newTransaction.type === "Receita"
-              ? "Descrição gerada pelo serviço"
-              : "Deixe uma descrição para a transação"
-          }
-          type="text"
-          name="description"
-          value={
-            newTransaction.category === "Serviço" &&
-            newTransaction.type === "Receita"
-              ? "Descrição gerada pelo serviço"
-              : newTransaction.description
-          }
-          onChange={handleChange}
-        ></Input>
-        <Label>Valor</Label>
-        <ValueInput
-          servicesTotalValue={servicesTotalValue}
-          setNewTransaction={setNewTransaction}
-          newTransaction={newTransaction}
-        />
 
-        <Label htmlFor="date">Date</Label>
-        <Input onChange={handleChange} name="date" id="date" type="datetime-local" />
-        <Label>Categoria</Label>
-        <Select
-          value={newTransaction.category}
-          name="category"
-          onValueChange={(value) =>
-            setNewTransaction({ ...newTransaction, category: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem className=" hover: cursor-pointer" value="Produto">
-              Produto
-            </SelectItem>
-            <SelectItem className=" hover: cursor-pointer" value="Serviço">
-              Serviço
-            </SelectItem>
-            <SelectItem className=" hover: cursor-pointer" value="Suprimentos">
-              Suprimentos
-            </SelectItem>
-            <SelectItem className=" hover: cursor-pointer" value="Aluguel">
-              Aluguel
-            </SelectItem>
-            <SelectItem className=" hover: cursor-pointer" value="Material">
-              Material
-            </SelectItem>
 
-            <SelectItem className=" hover: cursor-pointer" value="Outros">
-              Outros
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
-        {newTransaction.category === "Serviço" &&
-          newTransaction.type === "Receita" && (
-            <>
-              <Label>Serviço</Label>
-              {selects.map((select, i) => (
-                <div
-                  key={i}
-                  className="w-full flex flex-row items-center gap-3"
-                >
-                  <Select
-                    onValueChange={(value) => handleChangeSelect(i, value)}
+  if(selectedTransaction){
+    return (
+      <Dialog onOpenChange={() => eraseData()} open={isModalOpen}>
+        <DialogTrigger onClick={() => setIsModalOpen(true)} asChild>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova transação
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-h-[600px] sm:max-h-screen overflow-auto portr ">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedTransaction.description}
+            </DialogTitle>
+            <DialogDescription>
+              Insira os detalhes da nova transação abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          <Label>Tipo de Transação</Label>
+          <Select
+            value={selectedTransaction.type}
+            name="type"
+            onValueChange={(value) =>
+              setSelectedTransaction({ ...selectedTransaction, type: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem className=" hover: cursor-pointer" value="Receita">
+                Receita
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Despesa">
+                Despesa
+              </SelectItem>
+            </SelectContent>
+          </Select>
+  
+          <Label>Descrição</Label>
+          <Input
+            disabled={
+              selectedTransaction.category === "Serviço" &&
+              selectedTransaction.type === "Receita"
+            }
+            placeholder={
+              selectedTransaction.category === "Serviço" &&
+              selectedTransaction.type === "Receita"
+                ? "Descrição gerada pelo serviço"
+                : "Deixe uma descrição para a transação"
+            }
+            type="text"
+            name="description"
+            value={
+              selectedTransaction.category === "Serviço" &&
+              selectedTransaction.type === "Receita"
+                ? "Descrição gerada pelo serviço"
+                : selectedTransaction.description
+            }
+            onChange={handleChange}
+          ></Input>
+          <Label>Valor</Label>
+          <ValueInput
+            servicesTotalValue={servicesTotalValue}
+            setNewTransaction={setNewTransaction}
+            newTransaction={newTransaction}
+          />
+  
+          <Label htmlFor="date">Date</Label>
+          <Input onChange={handleChange} name="date" id="date" type="datetime-local" />
+          <Label>Categoria</Label>
+          <Select
+            value={selectedTransaction.category}
+            name="category"
+            onValueChange={(value) =>
+              setSelectedTransaction({ ...selectedTransaction, type: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem className=" hover: cursor-pointer" value="Produto">
+                Produto
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Serviço">
+                Serviço
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Suprimentos">
+                Suprimentos
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Aluguel">
+                Aluguel
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Material">
+                Material
+              </SelectItem>
+  
+              <SelectItem className=" hover: cursor-pointer" value="Outros">
+                Outros
+              </SelectItem>
+            </SelectContent>
+          </Select>
+  
+          {selectedTransaction.category === "Serviço" &&
+            selectedTransaction.type === "Receita" && (
+              <>
+                <Label>Serviço</Label>
+                {selectedTransaction.service?.servicesTypes.map((select, i) => (
+                  <div
+                    key={i}
+                    className="w-full flex flex-row items-center gap-3"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder={select.name} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {servicesTypes.map((serviceType) => (
-                        <SelectItem
-                          className="hover:cursor-pointer"
-                          key={serviceType.id}
-                          value={serviceType.id}
-                        >
-                          {serviceType.name +
-                            " - " +
-                            formatPrice(serviceType.value)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      onValueChange={(value) => handleChangeSelect(i, value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={select.name} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {servicesTypes.map((serviceType) => (
+                          <SelectItem
+                            className="hover:cursor-pointer"
+                            key={serviceType.id}
+                            value={serviceType.id}
+                          >
+                            {serviceType.name +
+                              " - " +
+                              formatPrice(serviceType.value)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      className="rounded-full size-7 bg-red-700"
+                      onClick={() => handelRemoveSelect(i)}
+                    >
+                      <Minus></Minus>
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex w-full justify-center mb-8">
                   <Button
-                    className="rounded-full size-7 bg-red-700"
-                    onClick={() => handelRemoveSelect(i)}
+                    className="rounded-full size-8"
+                    onClick={handleAddSelect}
                   >
-                    <Minus></Minus>
+                    <Plus />
                   </Button>
                 </div>
-              ))}
-              <div className="flex w-full justify-center mb-8">
-                <Button
-                  className="rounded-full size-8"
-                  onClick={handleAddSelect}
+                <Label>Responsável:</Label>
+                <div className="w-full gap-3   flex flex-row justify-center items-center">
+                  <Input
+                    value={selectedUser?.name || ""}
+                    name="user"
+                    id="user"
+                    type="text"
+                    disabled
+                    placeholder="Selecione um usuário"
+                    className="hover:cursor-default text-xs"
+                  />
+                  <Dialog onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
+                    <DialogTrigger onClick={handleGetUsers} asChild>
+                      <Button>
+                        <UserSearch></UserSearch>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Buscar</DialogTitle>
+                        <DialogDescription>
+                          Selecione um usuário para o serviço
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Input placeholder="Buscar"></Input>
+  
+                      <div className="rounded-md border">
+                        {isLoadingUsers && (
+                          <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                            <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid gap-3 grid-cols-3 overflow-auto min-h-[400px] items-center justify-center">
+                        {users?.map((user) => (
+                          <Card
+                            key={user.id}
+                            className=" hover:cursor-pointer hover:shadow-md  transition-all"
+                            onClick={(e) => handleChangeUser(e, user)}
+                          >
+                            <CardHeader>
+                              <CardTitle className="text-xs text-center">
+                                {user.name}
+                              </CardTitle>
+                              <CardDescription className="text-center">
+                                {user.profileType}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="w-full flex items-center justify-center">
+                                {user.profileImgLink ? (
+                                  <Image
+                                    className=" rounded-full"
+                                    src={user.profileImgLink}
+                                    alt={user.name}
+                                    width={60}
+                                    height={60}
+                                  ></Image>
+                                ) : (
+                                  <User size={60}></User>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </>
+            )}
+  
+          <Label>Método de pagamento</Label>
+          <Select
+            onValueChange={(value) =>
+              setSelectedTransaction({ ...selectedTransaction, paymentMethodId: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={selectedTransaction.paymentMethod.bankAccount.bankName +
+                    " - " +
+                    selectedTransaction.paymentMethod.name}></SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {paymentMethods.map((paymentMethod) => (
+                <SelectItem
+                  key={paymentMethod.id}
+                  className="hover: cursor-pointer"
+                  value={paymentMethod.id}
                 >
-                  <Plus />
-                </Button>
-              </div>
-              <Label>Responsável:</Label>
-              <div className="w-full gap-3   flex flex-row justify-center items-center">
-                <Input
-                  value={selectedUser?.name || ""}
-                  name="user"
-                  id="user"
-                  type="text"
-                  disabled
-                  placeholder="Selecione um usuário"
-                  className="hover:cursor-default text-xs"
-                />
-                <Dialog onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
-                  <DialogTrigger onClick={handleGetUsers} asChild>
-                    <Button>
-                      <UserSearch></UserSearch>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Buscar</DialogTitle>
-                      <DialogDescription>
-                        Selecione um usuário para o serviço
-                      </DialogDescription>
-                    </DialogHeader>
-                    <Input placeholder="Buscar"></Input>
-
-                    <div className="rounded-md border">
-                      {isLoadingUsers && (
-                        <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
-                          <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="grid gap-3 grid-cols-3 overflow-auto min-h-[400px] items-center justify-center">
-                      {users?.map((user) => (
-                        <Card
-                          key={user.id}
-                          className=" hover:cursor-pointer hover:shadow-md  transition-all"
-                          onClick={(e) => handleChangeUser(e, user)}
-                        >
-                          <CardHeader>
-                            <CardTitle className="text-xs text-center">
-                              {user.name}
-                            </CardTitle>
-                            <CardDescription className="text-center">
-                              {user.profileType}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="w-full flex items-center justify-center">
-                              {user.profileImgLink ? (
-                                <Image
-                                  className=" rounded-full"
-                                  src={user.profileImgLink}
-                                  alt={user.name}
-                                  width={60}
-                                  height={60}
-                                ></Image>
-                              ) : (
-                                <User size={60}></User>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                  {paymentMethod.bankAccount.bankName +
+                    " - " +
+                    paymentMethod.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+  
+          <DialogFooter>
+            
+              {isSaved ? (
+            <Button disabled>
+              Salvo <Check />
+            </Button>
+          ) : (
+            <>
+            <Button variant={"destructive"} disabled={isSaving} onClick={handleSaveTransaction}>
+              {isSaving ? <LoaderCircle className="animate-spin" /> : "Deletar Transação"}
+            </Button>
+            <Button disabled={isSaving} onClick={handleSaveTransaction}>
+              {isSaving ? <LoaderCircle className="animate-spin" /> : "Atualizar Transação"}
+            </Button>
             </>
           )}
+            
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
 
-        <Label>Método de pagamento</Label>
-        <Select
-          onValueChange={(value) =>
-            setNewTransaction({ ...newTransaction, paymentMethodId: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione"></SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {paymentMethods.map((paymentMethod) => (
-              <SelectItem
-                key={paymentMethod.id}
-                className="hover: cursor-pointer"
-                value={paymentMethod.id}
-              >
-                {paymentMethod.bankAccount.bankName +
-                  " - " +
-                  paymentMethod.name}
+  }else{
+    return (
+      <Dialog onOpenChange={() => eraseData()} open={isModalOpen}>
+        <DialogTrigger onClick={() => setIsModalOpen(true)} asChild>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova transação
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-h-[600px] sm:max-h-screen overflow-auto portr ">
+          <DialogHeader>
+            <DialogTitle>Adicionar nova transação</DialogTitle>
+            <DialogDescription>
+              Insira os detalhes da nova transação abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          <Label>Tipo de Transação</Label>
+          <Select
+            value={newTransaction?.type}
+            name="type"
+            onValueChange={(value) =>{
+if(!newTransaction)return
+              setNewTransaction({ ...newTransaction, type: value })
+            }
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem className=" hover: cursor-pointer" value="Receita">
+                Receita
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              <SelectItem className=" hover: cursor-pointer" value="Despesa">
+                Despesa
+              </SelectItem>
+            </SelectContent>
+          </Select>
+  
+          <Label>Descrição</Label>
+          <Input
+            disabled={
+              newTransaction?.category === "Serviço" &&
+              newTransaction?.type === "Receita"
+            }
+            placeholder={
+              newTransaction?.category === "Serviço" &&
+              newTransaction?.type === "Receita"
+                ? "Descrição gerada pelo serviço"
+                : "Deixe uma descrição para a transação"
+            }
+            type="text"
+            name="description"
+            value={
+              newTransaction?.category === "Serviço" &&
+              newTransaction?.type === "Receita"
+                ? "Descrição gerada pelo serviço"
+                : newTransaction?.description
+            }
+            onChange={handleChange}
+          ></Input>
+          <Label>Valor</Label>
+          <ValueInput
+            servicesTotalValue={servicesTotalValue}
+            setNewTransaction={setNewTransaction}
+            newTransaction={newTransaction}
+          />
+  
+          <Label htmlFor="date">Date</Label>
+          <Input onChange={handleChange} name="date" id="date" type="datetime-local" />
+          <Label>Categoria</Label>
+          <Select
+            value={newTransaction?.category}
+            name="category"
+            onValueChange={(value) =>{
+              if(!newTransaction)return
+              setNewTransaction({ ...newTransaction, category: value })
+            }
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem className=" hover: cursor-pointer" value="Produto">
+                Produto
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Serviço">
+                Serviço
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Suprimentos">
+                Suprimentos
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Aluguel">
+                Aluguel
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Material">
+                Material
+              </SelectItem>
+  
+              <SelectItem className=" hover: cursor-pointer" value="Outros">
+                Outros
+              </SelectItem>
+            </SelectContent>
+          </Select>
+  
+          {newTransaction?.category === "Serviço" &&
+            newTransaction?.type === "Receita" && (
+              <>
+                <Label>Serviço</Label>
+                {selects.map((select, i) => (
+                  <div
+                    key={i}
+                    className="w-full flex flex-row items-center gap-3"
+                  >
+                    <Select
+                      onValueChange={(value) => handleChangeSelect(i, value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={select.name} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {servicesTypes.map((serviceType) => (
+                          <SelectItem
+                            className="hover:cursor-pointer"
+                            key={serviceType.id}
+                            value={serviceType.id}
+                          >
+                            {serviceType.name +
+                              " - " +
+                              formatPrice(serviceType.value)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      className="rounded-full size-7 bg-red-700"
+                      onClick={() => handelRemoveSelect(i)}
+                    >
+                      <Minus></Minus>
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex w-full justify-center mb-8">
+                  <Button
+                    className="rounded-full size-8"
+                    onClick={handleAddSelect}
+                  >
+                    <Plus />
+                  </Button>
+                </div>
+                <Label>Responsável:</Label>
+                <div className="w-full gap-3   flex flex-row justify-center items-center">
+                  <Input
+                    value={selectedUser?.name || ""}
+                    name="user"
+                    id="user"
+                    type="text"
+                    disabled
+                    placeholder="Selecione um usuário"
+                    className="hover:cursor-default text-xs"
+                  />
+                  <Dialog onOpenChange={() => setIsOpen(!isOpen)} open={isOpen}>
+                    <DialogTrigger onClick={handleGetUsers} asChild>
+                      <Button>
+                        <UserSearch></UserSearch>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Buscar</DialogTitle>
+                        <DialogDescription>
+                          Selecione um usuário para o serviço
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Input placeholder="Buscar"></Input>
+  
+                      <div className="rounded-md border">
+                        {isLoadingUsers && (
+                          <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                            <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid gap-3 grid-cols-3 overflow-auto min-h-[400px] items-center justify-center">
+                        {users?.map((user) => (
+                          <Card
+                            key={user.id}
+                            className=" hover:cursor-pointer hover:shadow-md  transition-all"
+                            onClick={(e) => handleChangeUser(e, user)}
+                          >
+                            <CardHeader>
+                              <CardTitle className="text-xs text-center">
+                                {user.name}
+                              </CardTitle>
+                              <CardDescription className="text-center">
+                                {user.profileType}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="w-full flex items-center justify-center">
+                                {user.profileImgLink ? (
+                                  <Image
+                                    className=" rounded-full"
+                                    src={user.profileImgLink}
+                                    alt={user.name}
+                                    width={60}
+                                    height={60}
+                                  ></Image>
+                                ) : (
+                                  <User size={60}></User>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </>
+            )}
+  
+          <Label>Método de pagamento</Label>
+          <Select
+            onValueChange={(value) =>
+            {
+              if(!newTransaction)return
+              setNewTransaction({ ...newTransaction, paymentMethodId: value })
+            }
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione"></SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {paymentMethods.map((paymentMethod) => (
+                <SelectItem
+                  key={paymentMethod.id}
+                  className="hover: cursor-pointer"
+                  value={paymentMethod.id}
+                >
+                  {paymentMethod.bankAccount.bankName +
+                    " - " +
+                    paymentMethod.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+  
+          <DialogFooter>
+            
+              {isSaved ? (
+            <Button disabled>
+              Salvo <Check />
+            </Button>
+          ) : (
+            <Button disabled={isSaving} onClick={handleSaveTransaction}>
+              {isSaving ? <LoaderCircle className="animate-spin" /> : "Salvar Transação"}
+            </Button>
+          )}
+            
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
 
-        <DialogFooter>
-          
-            {isSaved ? (
-          <Button disabled>
-            Salvo <Check />
-          </Button>
-        ) : (
-          <Button disabled={isSaving} onClick={handleSaveTransaction}>
-            {isSaving ? <LoaderCircle className="animate-spin" /> : "Salvar Transação"}
-          </Button>
-        )}
-          
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+  }
+
 }

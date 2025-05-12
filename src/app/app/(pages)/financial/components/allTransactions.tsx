@@ -6,12 +6,95 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { useCallback } from "react"
 
-interface Transaction {
-    date: string,
-    description: string,
-    type: string,
-    value: number
+interface Type {
+  id: string
+  name: string
+  value: number
+}
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string
+  customerId: string;
+  paymentMethod: PaymentMethod
+  transactions: Transaction[];
+}
 
+interface Transaction {
+  description: string;
+  service: Service | null
+  value: number;
+  date: string;
+  type: string;
+  category: string;
+  paymentMethodId: string;
+  paymentMethod: PaymentMethod;
+}
+
+interface Transaction {
+  description: string;
+  service: Service | null
+  value: number;
+  date: string;
+  type: string;
+  category: string;
+  paymentMethodId: string;
+  paymentMethod: PaymentMethod;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankId: string;
+  bankAccount: BankAccount;
+  transactions: Transaction[];
+}
+
+
+interface Dados {
+  month: string;
+  revenue: number;
+  expenses: number;
+}
+
+interface BankAccount {
+  id: string;
+  bankName: string;
+  initialValue: number;
+  agency: string;
+  accountNumber: string;
+  accountType: string;
+  accountOwner: string;
+  transactions: Transaction[];
+  paymentMethods: PaymentMethod[];
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  bankId: string;
+  bankAccount: BankAccount;
+  transactions: Transaction[];
+}
+interface ServiceType {
+  id: string;
+  name: string;
+  value: number;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  login: string;
+  profileType: string;
+  profileImgLink: string;
 }
 
 interface allTransactionsProps {
@@ -22,11 +105,12 @@ interface allTransactionsProps {
         page: number
         limit: number
         totalPages: number
-    }
-    fetchTransactions: (page: number) => void
+    };
+    fetchTransactions: (page: number) => void;
+    setSelectedTransaction: (transaction: Transaction | undefined) => void;
 }
 
-export function AllTransactions ({pagination, transactions, isLoading, fetchTransactions} : allTransactionsProps) {
+export function AllTransactions ({pagination, setSelectedTransaction, transactions, isLoading, fetchTransactions} : allTransactionsProps) {
 
   const handleConvertDate = useCallback((date: string) => {
       const newDate = new Date(date)
@@ -98,7 +182,7 @@ export function AllTransactions ({pagination, transactions, isLoading, fetchTran
             </TableHeader>
             <TableBody>
               {transactions.map((transaction, index = 0) => (
-                <TableRow key={index + 1}>
+                <TableRow className="hover:cursor-pointer hover:bg-primary/5" onClick={()=>setSelectedTransaction(transaction)} key={index + 1}>
                   <TableCell>{handleConvertDate(transaction.date)}</TableCell>
                   <TableCell>{transaction.description}</TableCell>
                   <TableCell>
