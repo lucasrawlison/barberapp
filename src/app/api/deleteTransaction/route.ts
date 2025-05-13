@@ -14,23 +14,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const customer = await prisma.customer.findUnique({
-      where: {
-        id
-      },
-      include:{
-        services: true
-      }
-    })
-
-    if(customer?.services){
-      return NextResponse.json(
-        { message: "Não é possível apagar clientes com serviços realizados." },
-        { status: 400 }
-      );
-    }
-    
-    const response = await prisma.customer.delete({
+    const response = await prisma.transactions.delete({
         where: {
             id
         }
@@ -39,13 +23,13 @@ export async function POST(req: NextRequest) {
 
     if (response) {
       return NextResponse.json(
-        { message: "Customer deleted", response },
+        { message: "Transaction deleted", response },
         { status: 200 }
       );
     }
 
   } catch (error) {
-    console.error("Error while deleting customer", error);
+    console.error("Error while deleting transaction", error);
     return NextResponse.json(
       { message: "Internal server error" }, 
       { status: 500 }

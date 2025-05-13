@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Check, LoaderCircle, Minus, Plus, User, UserSearch } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ValueInput from "./valueInput";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -30,6 +30,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
+import { toast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import DiscountInput from "./discountInput";
+import { set } from "date-fns";
 
 interface Type {
   id: string
@@ -52,6 +56,7 @@ interface Service {
 }
 
 interface Transaction {
+  id: string;
   description: string;
   service: Service | null
   value: number;
@@ -149,6 +154,7 @@ export function NewTransaction({
       setSelectedTransaction(undefined);
       setNewTransaction(
         {
+          id: "",
           description: "",
           value: 0,
           date: "",
@@ -193,7 +199,26 @@ service: null
   };
 
   const handleAddSelect = () => {
-    setSelects((prev) => [...prev, { id: "", name: "Selecione", value: 0 }]);
+    if (selectedTransaction?.service) {
+      const currentServiceTypes = selectedTransaction?.service?.servicesTypes;
+      currentServiceTypes?.push({
+        id: "",
+        name: "Selecione",
+        value: 0,
+      });
+      setSelectedTransaction({
+        ...selectedTransaction,
+        service: {
+          ...selectedTransaction?.service,
+          servicesTypes: currentServiceTypes,
+        },
+      });
+    }
+
+    if(newTransaction){
+
+      setSelects((prev) => [...prev, { id: "", name: "Selecione", value: 0 }]);
+    }
   };
 
   const handelRemoveSelect = (i: number) => {
@@ -323,18 +348,56 @@ service: null
   };
 
   const handleChangeSelect = (index: number, serviceId: string) => {
-    console.log(index, serviceId);
+    // console.log(index, serviceId);
     // Encontrar o objeto completo do serviço selecionado
     const selectedService = servicesTypes.find((s) => s.id === serviceId);
 
     if (selectedService) {
+      if(selectedTransaction && selectedTransaction.service){
+        const updatedServices = selectedTransaction.service?.servicesTypes;
+        updatedServices[index] = selectedService;
+        setSelectedTransaction({
+          ...selectedTransaction,
+          service: {
+            ...selectedTransaction.service,
+            servicesTypes: updatedServices,
+          },
+        });
+      }
       setSelects((prev) => {
         const updatedServices = [...prev];
         updatedServices[index] = selectedService;
         return updatedServices;
       });
+
+
     }
   };
+
+  const handleDeleteTransaction = async () => {
+    if (!selectedTransaction) return;
+    setIsSaving(true);
+    try {
+      const response = await axios.post("/api/deleteTransaction", {
+        id: selectedTransaction.id,
+      });
+      if (response.status === 200) {
+        toast({
+          title: "Transação deletada com sucesso",
+          description: "A transação foi deletada com sucesso",
+          variant: "default",
+          duration: 3000,
+        });
+        setIsModalOpen(false);
+        setSelectedTransaction(undefined);
+        fetchTransactions(pagination.page);
+        setIsSaving(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setIsSaving(false);
+    }
+  }
 
   useEffect(() => {
     handleServiceValues();
@@ -347,8 +410,44 @@ service: null
   useEffect(()=> {
     if(selectedTransaction){
       setIsModalOpen(true)
+
+      if(selectedTransaction.service){
+        const total =
+          selectedTransaction.service?.servicesTypes.reduce((acc, service) => {
+            return acc + service.value;
+          }, 0);
+        setServicesTotalValue(total)
+      }
     }
   }, [selectedTransaction])
+
+  const handleSetDesconto =(value: number) => {
+    if(selectedTransaction?.service){
+
+      setSelectedTransaction({
+        ...selectedTransaction,
+        service:{
+          ...selectedTransaction.service,
+          discount: value
+        }
+        
+      })
+    }
+  }
+
+  const handleConvertDate = useCallback((date: string) => {
+  const newDate = new Date(date);
+
+  const year = newDate.getFullYear();
+  const month = String(newDate.getMonth() + 1).padStart(2, '0'); // mês começa em 0
+  const day = String(newDate.getDate()).padStart(2, '0'); // dia do mês
+
+  const hours = String(newDate.getHours()).padStart(2, '0');
+  const minutes = String(newDate.getMinutes()).padStart(2, '0');
+
+  const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
+  return formatted;
+}, []);
 
 
 
@@ -363,9 +462,7 @@ service: null
         </DialogTrigger>
         <DialogContent className="max-h-[600px] sm:max-h-screen overflow-auto portr ">
           <DialogHeader>
-            <DialogTitle>
-              {selectedTransaction.description}
-            </DialogTitle>
+            <DialogTitle>{selectedTransaction.description}</DialogTitle>
             <DialogDescription>
               Insira os detalhes da nova transação abaixo.
             </DialogDescription>
@@ -390,7 +487,7 @@ service: null
               </SelectItem>
             </SelectContent>
           </Select>
-  
+
           <Label>Descrição</Label>
           <Input
             disabled={
@@ -415,13 +512,29 @@ service: null
           ></Input>
           <Label>Valor</Label>
           <ValueInput
-            servicesTotalValue={servicesTotalValue}
+            servicesTotalValue={selectedTransaction.service?.servicesTypes.reduce((acc, service) => {
+            return acc + service.value;
+          }, 0)}
             setNewTransaction={setNewTransaction}
             newTransaction={newTransaction}
+            selectedTransaction={selectedTransaction}
           />
-  
-          <Label htmlFor="date">Date</Label>
-          <Input onChange={handleChange} name="date" id="date" type="datetime-local" />
+
+          {selectedTransaction.service && (
+            <>
+            <Label>Desconto</Label>
+            <DiscountInput desconto={selectedTransaction.service.discount} setDesconto={handleSetDesconto}/>
+            </>
+          )}
+
+          <Label htmlFor="date">Data</Label>
+          <Input
+          defaultValue={handleConvertDate(selectedTransaction.date)}
+            onChange={handleChange}
+            name="date"
+            id="date"
+            type="datetime-local"
+          />
           <Label>Categoria</Label>
           <Select
             value={selectedTransaction.category}
@@ -440,7 +553,10 @@ service: null
               <SelectItem className=" hover: cursor-pointer" value="Serviço">
                 Serviço
               </SelectItem>
-              <SelectItem className=" hover: cursor-pointer" value="Suprimentos">
+              <SelectItem
+                className=" hover: cursor-pointer"
+                value="Suprimentos"
+              >
                 Suprimentos
               </SelectItem>
               <SelectItem className=" hover: cursor-pointer" value="Aluguel">
@@ -449,13 +565,13 @@ service: null
               <SelectItem className=" hover: cursor-pointer" value="Material">
                 Material
               </SelectItem>
-  
+
               <SelectItem className=" hover: cursor-pointer" value="Outros">
                 Outros
               </SelectItem>
             </SelectContent>
           </Select>
-  
+
           {selectedTransaction.category === "Serviço" &&
             selectedTransaction.type === "Receita" && (
               <>
@@ -466,10 +582,11 @@ service: null
                     className="w-full flex flex-row items-center gap-3"
                   >
                     <Select
+                    value={select.id}
                       onValueChange={(value) => handleChangeSelect(i, value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={select.name} />
+                        <SelectValue  placeholder={select.name + " - " + formatPrice(select.value)} />
                       </SelectTrigger>
                       <SelectContent>
                         {servicesTypes.map((serviceType) => (
@@ -526,7 +643,7 @@ service: null
                         </DialogDescription>
                       </DialogHeader>
                       <Input placeholder="Buscar"></Input>
-  
+
                       <div className="rounded-md border">
                         {isLoadingUsers && (
                           <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
@@ -572,17 +689,24 @@ service: null
                 </div>
               </>
             )}
-  
+
           <Label>Método de pagamento</Label>
           <Select
             onValueChange={(value) =>
-              setSelectedTransaction({ ...selectedTransaction, paymentMethodId: value })
+              setSelectedTransaction({
+                ...selectedTransaction,
+                paymentMethodId: value,
+              })
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder={selectedTransaction.paymentMethod.bankAccount.bankName +
-                    " - " +
-                    selectedTransaction.paymentMethod.name}></SelectValue>
+              <SelectValue
+                placeholder={
+                  selectedTransaction.paymentMethod.bankAccount.bankName +
+                  " - " +
+                  selectedTransaction.paymentMethod.name
+                }
+              ></SelectValue>
             </SelectTrigger>
             <SelectContent>
               {paymentMethods.map((paymentMethod) => (
@@ -598,24 +722,53 @@ service: null
               ))}
             </SelectContent>
           </Select>
-  
+
           <DialogFooter>
-            
-              {isSaved ? (
-            <Button disabled>
-              Salvo <Check />
-            </Button>
-          ) : (
-            <>
-            <Button variant={"destructive"} disabled={isSaving} onClick={handleSaveTransaction}>
-              {isSaving ? <LoaderCircle className="animate-spin" /> : "Deletar Transação"}
-            </Button>
-            <Button disabled={isSaving} onClick={handleSaveTransaction}>
-              {isSaving ? <LoaderCircle className="animate-spin" /> : "Atualizar Transação"}
-            </Button>
-            </>
-          )}
-            
+            {isSaved ? (
+              <Button disabled>
+                Salvo <Check />
+              </Button>
+            ) : (
+              <>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant={"destructive"}
+                      disabled={isSaving}
+                      
+                    >
+                      {isSaving ? (
+                        <LoaderCircle className="animate-spin" />
+                      ) : (
+                        "Deletar Transação"
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Você realmente tem certeza?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. O registro de transação será deletado permanentemente.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteTransaction}>Continuar</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <Button disabled={isSaving}>
+                  {isSaving ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : (
+                    "Atualizar Transação"
+                  )}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -687,9 +840,10 @@ if(!newTransaction)return
             servicesTotalValue={servicesTotalValue}
             setNewTransaction={setNewTransaction}
             newTransaction={newTransaction}
+            selectedTransaction={undefined}
           />
   
-          <Label htmlFor="date">Date</Label>
+          <Label htmlFor="date">Data</Label>
           <Input onChange={handleChange} name="date" id="date" type="datetime-local" />
           <Label>Categoria</Label>
           <Select

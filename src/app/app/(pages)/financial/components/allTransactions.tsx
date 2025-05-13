@@ -38,6 +38,7 @@ interface Transaction {
 }
 
 interface Transaction {
+  id: string;
   description: string;
   service: Service | null
   value: number;

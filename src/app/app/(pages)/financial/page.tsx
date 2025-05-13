@@ -31,6 +31,7 @@ interface Service {
 }
 
 interface Transaction {
+  id: string;
   description: string;
   service: Service | null
   value: number;
@@ -116,6 +117,7 @@ export default function FinancialDashboard() {
   const [monthTransactions, setMonthTransactions] = useState<Transaction[]>([]);
   const [newTransaction, setNewTransaction] = useState<Transaction | undefined>(
     {
+      id: "",
       description: "",
       value: 0,
       date: "",

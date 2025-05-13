@@ -2,8 +2,10 @@
 
 import { useState, useRef, type ChangeEvent, useEffect } from "react"
 import { Input } from "@/components/ui/input"
+import { format } from "path";
 
 interface Transaction {
+  id: string;
   description: string;
   value: number;
   service: Service | null
@@ -66,22 +68,29 @@ interface BankAccount {
 interface ValueInputProps {
   setNewTransaction : (value: Transaction | undefined) => void
   newTransaction: Transaction | undefined
-  servicesTotalValue: number
+  servicesTotalValue: number | undefined
+  selectedTransaction: Transaction | undefined
 }
-export default function ValueInput({setNewTransaction, newTransaction, servicesTotalValue} : ValueInputProps) {
+export default function ValueInput({setNewTransaction, newTransaction, servicesTotalValue, selectedTransaction} : ValueInputProps) {
   const [numericString, setNumericString] = useState<string>("")
   const [displayValue, setDisplayValue] = useState<string>("R$ 0,00")
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if(!newTransaction) return
+    if (!newTransaction) return;
     if (
       newTransaction?.type === "Receita" &&
       newTransaction?.category === "Serviço"
-    ) return; // não atualiza value manualmente nesse caso
-  
+    )
+      return; // não atualiza value manualmente nesse caso
+    if (
+      selectedTransaction?.type === "Receita" &&
+      selectedTransaction?.category === "Serviço"
+    )
+      return; // não atualiza value manualmente nesse caso
+
     const floatValue = getFloatValue(numericString);
-  
+
     setNewTransaction({
       ...newTransaction,
       value: floatValue,
@@ -111,6 +120,8 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
     })
 
   }
+
+  
 
   // Converte a string para float
   const getFloatValue = (value: string): number => {
@@ -147,12 +158,59 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
     inputRef.current?.focus()
   }, [])
 
+  useEffect(()=> {
+    console.log(selectedTransaction)
+  },[selectedTransaction])
+
+
+  useEffect(()=>{
+    console.log("displayValue: ", displayValue)
+  },[displayValue])
+
+  useEffect(()=>{
+    if(selectedTransaction){
+
+      setDisplayValue(formatCurrency(selectedTransaction?.value))
+    }
+  },[selectedTransaction])
+
+
+
+if(selectedTransaction){
+
+  return (
+    <Input
+      ref={inputRef}
+      type="text"
+      name="value"
+      value={
+        selectedTransaction?.type === "Receita" &&
+        selectedTransaction?.category === "Serviço" &&
+        servicesTotalValue &&
+        selectedTransaction.service
+          ? formatCurrency(
+              servicesTotalValue - selectedTransaction.service?.discount
+            )
+          : displayValue
+      }
+      onChange={handleChange}
+      onInput={handleInput}
+      className=""
+      placeholder="R$ 0,00"
+      disabled={
+        selectedTransaction?.type === "Receita" &&
+        selectedTransaction?.category === "Serviço"
+      }
+    />
+  );
+}else{
+
   return (
       <Input
         ref={inputRef}
         type="text"
         name="value"
-        value={newTransaction?.type === "Receita" && newTransaction?.category==="Serviço" ? formatCurrency(servicesTotalValue): displayValue}
+        value={newTransaction?.type === "Receita" && newTransaction?.category==="Serviço" && servicesTotalValue ? formatCurrency(servicesTotalValue): displayValue}
         onChange={handleChange}
         onInput={handleInput}
         className=""
@@ -160,5 +218,8 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
         disabled={newTransaction?.type === "Receita" && newTransaction?.category==="Serviço"}
       />
   )
+}
+
+
 }
 
