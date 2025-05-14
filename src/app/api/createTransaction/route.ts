@@ -20,6 +20,8 @@ export async function POST(req: NextRequest) {
     const { description, value, date, category, type, paymentMethodId } =
       newTransaction;
 
+
+
     if (!userId) {
       console.log("sem userID");
       return NextResponse.json(
@@ -27,6 +29,47 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    if(!type){
+      return NextResponse.json(
+        {message: "É necessário informar um tipo para a transação"},
+        {status: 400}
+      )
+    }
+
+    if((category !== "Serviço" && type === "Receita") ||(type === "Despesa") && !value){
+      return NextResponse.json(
+        {message: "Insira o valor da transação"},
+        {status: 400}
+      )
+    }
+    if(!description){
+      return NextResponse.json(
+        {message: "É necessário informar uma descrição para a transação"},
+        {status: 400}
+      )
+    }
+    if(!category){
+      return NextResponse.json(
+        {message: "É necessário informar uma categoria para a transação"},
+        {status: 400}
+      )
+    }
+    if(!paymentMethodId){
+      return NextResponse.json(
+        {message: "Selecione um método de pagamento"},
+        {status: 400}
+      )
+    }
+
+    if(!date){
+      return NextResponse.json({
+        message: "Insira a data em que a transação foi realizada"
+      },
+    {status: 400})
+    }
+
+    
 
     const paymentMethod = await prisma.paymentMethod.findUnique({
       where: { id: paymentMethodId },

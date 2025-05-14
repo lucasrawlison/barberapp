@@ -22,12 +22,15 @@ export async function POST(req: NextRequest) {
         services: true
       }
     })
-
+    
     if(customer?.services){
-      return NextResponse.json(
-        { message: "Não é possível apagar clientes com serviços realizados." },
-        { status: 400 }
-      );
+
+      if(customer?.services?.length > 0 ){
+        return NextResponse.json(
+          { message: "Não é possível apagar clientes com serviços realizados." },
+          { status: 400 }
+        );
+      }
     }
     
     const response = await prisma.customer.delete({

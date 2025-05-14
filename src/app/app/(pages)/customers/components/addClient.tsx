@@ -14,11 +14,12 @@ import { Input } from "@/components/ui/input";
 import { LoaderCircle, UserPlus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import PhoneInput from "./phoneInput";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
+import { toast } from "@/hooks/use-toast";
 
 interface BankAccount{
   id: string;
@@ -157,6 +158,15 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
         setDialogOpen(false);
       }
     } catch (error) {
+      if(isAxiosError(error)){
+        if(error.status === 400){
+          toast({
+            title: "Erro",
+            description: error.message,
+            duration: 3000
+          })
+        }
+      }
       console.log(error);
       setIsDeleting(false);
     }

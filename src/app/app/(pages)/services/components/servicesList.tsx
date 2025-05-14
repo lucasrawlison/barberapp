@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, Search, RotateCw, CalendarIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, Search, RotateCw, CalendarIcon, User } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -345,6 +345,14 @@ export function ServicesList() {
                     {service.user.name}
                   </TableCell>
                   <TableCell className="text-center">
+                    <div className="flex flex-row gap-2 justify-end mr-2 ">
+                    
+                    {service.customer ? (
+                      <span className="p-1.5 rounded-full bg-blue-100">
+                        
+                        <User size={"14px"}/>
+                        </span>
+                      ): ""}
                     {service.transactions.length > 0 ? (
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                         Pago
@@ -354,6 +362,7 @@ export function ServicesList() {
                         Pendente
                       </span>
                     )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

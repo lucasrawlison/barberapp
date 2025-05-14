@@ -17,10 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, LoaderCircle, Minus, Plus, User, UserSearch } from "lucide-react";
+import { Check, ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Minus, Plus, User, UserSearch, UsersIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ValueInput from "./valueInput";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { useSession } from "next-auth/react";
 import {
   Card,
@@ -30,10 +30,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import { toast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import DiscountInput from "./discountInput";
-import { set } from "date-fns";
+import AddClient from "./addClient";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Type {
   id: string
@@ -44,14 +45,16 @@ interface Service {
   id: string;
   code: number;
   value: number;
+  customer: Customer | null;
   servicesValue: number;
   discount: number;
   createdAt: Date;
   servicesTypes: Type[];
-  user: User;
+  userId: string;
+  user: User | undefined;
   paymentMethodId: string
   customerId: string;
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod | null
   transactions: Transaction[];
 }
 
@@ -102,6 +105,23 @@ interface User {
   profileImgLink: string;
 }
 
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  code: string;
+
+}
+interface Pagination {
+
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+  
+
 interface NewTransactionProps {
   newTransaction: Transaction | undefined;
   setNewTransaction: (value: Transaction | undefined) => void;
@@ -142,14 +162,29 @@ export function NewTransaction({
   const [users, setUsers] = useState<User[]>();
   const [isLoadingUsers, setIsloadingUsers] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isCustomerOpen, setIsCustomerOpen] = useState(false);
   const [servicesTotalValue, setServicesTotalValue] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false)
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [customerPagination, setCustomerPagination] = useState<Pagination>({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  });
+
   
 
   const eraseData = () => {
     if(isModalOpen){
-
+      setCustomerPagination({
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+      });
       setIsModalOpen(!isModalOpen);
       setSelectedTransaction(undefined);
       setNewTransaction(
@@ -190,6 +225,8 @@ service: null
         },
       ]);
       setIsSaved(false)
+      setSelectedUser(null)
+      
     }
   };
 
@@ -222,6 +259,30 @@ service: null
   };
 
   const handelRemoveSelect = (i: number) => {
+    if(selects.length === 1 || selectedTransaction?.service?.servicesTypes.length === 1){
+      toast({
+        title: "Atenção!",
+        description: "É necessário selecionar ao menos um serviço",
+        variant:"destructive",
+        duration: 3000
+
+      })
+      return
+    }
+
+
+    if(selectedTransaction?.service){
+      const selects = selectedTransaction.service?.servicesTypes
+      const updatedSelects = selects?.filter((_,index) => index !== i)
+      setSelectedTransaction(
+        {...selectedTransaction,
+          service: {
+            ...selectedTransaction.service,
+            servicesTypes: updatedSelects
+          }
+        }
+      )
+    }
     setSelects((prev) => prev.filter((_, index) => index !== i));
   };
 
@@ -290,22 +351,31 @@ service: null
       console.log("é serviço")
       try {
         const response = await axios.post("/api/createService", {
-          value: servicesTotalValue,
+          customerId: newTransaction.service?.customerId,
+          discount: newTransaction.service?.discount,
+          value: servicesTotalValue - (newTransaction.service?.discount || 0),
           userId: selectedUser?.id,
           selectedServices: selects,
           paymentMethodId: newTransaction.paymentMethodId,
           date: newTransaction.date
         });
 
-        if (response) {
-          console.log(response);
+        if (response.status === 200) {
+          // console.log(response);
           fetchTransactions(pagination.page);
           setIsSaving(false);
           setIsSaved(true)
 
         }
       } catch (error) {
-        console.log(error);
+        if(isAxiosError(error)){
+          toast({
+            title: "Error",
+            description: error.response?.data.message,
+            variant: "destructive",
+            duration: 5000,
+          });
+        }
         setIsSaving(false);
       }
     } else {
@@ -324,14 +394,24 @@ service: null
             },
           }
         );
-        if (response) {
-          console.log(response);
+        if (response.status === 200) {
+          // console.log(response);
           fetchTransactions(1);
           setIsSaving(false);
           setIsSaved(true)
         
         }
       } catch (error) {
+        console.log(error)
+        if(isAxiosError(error)){
+
+          toast({
+            title: "Erro",
+            description: error.response?.data.message,
+            variant: "destructive",
+            duration: 5000,
+          });
+        }
         console.log(error);
         setIsSaving(false);
       }
@@ -433,6 +513,16 @@ service: null
         
       })
     }
+
+    if(newTransaction?.service){
+      setNewTransaction({
+        ...newTransaction,
+        service:{
+          ...newTransaction.service,
+          discount: value
+        }
+      })
+    }
   }
 
   const handleConvertDate = useCallback((date: string) => {
@@ -449,6 +539,54 @@ service: null
   return formatted;
 }, []);
 
+const handleSetChosedCustomer = (customer : Customer | undefined) => {
+  if(selectedTransaction?.service ){
+
+    setSelectedTransaction({...selectedTransaction,
+      service: {
+        ...selectedTransaction?.service,
+        customerId: customer?.id || "",
+        customer: customer || null
+      }
+    })
+  }
+
+  if(newTransaction?.service ){
+
+    setNewTransaction({...newTransaction,
+      service: {
+        ...newTransaction?.service,
+        customerId: customer?.id || "",
+        customer: customer || null
+      }
+    })
+  }
+
+
+}
+
+  const handleGetCustomer = async ( pageNumber: number) => {
+    setIsLoadingCustomers(true);
+    try {
+      const response = await axios.get("/api/getCustomers", {
+        params: {
+          page: pageNumber,
+          limit: 10,
+        },
+      });
+      if (response.status === 200) {
+        console.log(response.data.customers)
+        setCustomerPagination(response.data.pagination);
+        setCustomers(response.data.customers);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoadingCustomers(false);
+    }
+  };
+
+  useEffect(()=>{console.log(newTransaction)}, [newTransaction])
 
 
   if(selectedTransaction){
@@ -471,8 +609,19 @@ service: null
           <Select
             value={selectedTransaction.type}
             name="type"
-            onValueChange={(value) =>
+            onValueChange={(value) =>{
+              if(selectedTransaction.type === "Receita" && selectedTransaction.category === "Serviço"){
+                toast({
+                  title: "Atenção",
+                  description: "Não é possível alterar o tipo de uma transação de serviço",
+                  variant: "destructive",
+                  duration: 5000
+
+                })
+                return
+              }
               setSelectedTransaction({ ...selectedTransaction, type: value })
+            }
             }
           >
             <SelectTrigger>
@@ -539,8 +688,18 @@ service: null
           <Select
             value={selectedTransaction.category}
             name="category"
-            onValueChange={(value) =>
-              setSelectedTransaction({ ...selectedTransaction, type: value })
+            onValueChange={(value) =>{
+              if(selectedTransaction.category === "Serviço"){
+                toast({
+                  title: "Atenção!",
+                  description: "Não é possível alterar a categoria de uma transação de Serviço",
+                  variant: "destructive",
+                  duration: 5000,
+                });
+                return;
+              }
+              setSelectedTransaction({ ...selectedTransaction, category: value })
+            }
             }
           >
             <SelectTrigger>
@@ -617,6 +776,127 @@ service: null
                   >
                     <Plus />
                   </Button>
+                </div>
+                
+                <Label>Cliente:</Label>
+                <div className="w-full gap-3   flex flex-row justify-center items-center">
+                  <Input
+                    value={selectedTransaction.service?.customer?.name || ""}
+                    name="user"
+                    id="user"
+                    type="text"
+                    disabled
+                    placeholder={selectedTransaction.service?.customer?.name || "Selecione um cliente"}
+                    className="hover:cursor-default text-xs"
+                  />
+                  <Dialog open={isCustomerOpen} onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}>
+          <DialogTrigger
+            onClick={() => handleGetCustomer(customerPagination.page)}
+            asChild
+          >
+            <Button className="hover: cursor-pointer">
+              <UsersIcon />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="h-[550px] flex flex-col gap-4">
+            <DialogHeader>
+              <DialogTitle>Selecione um cliente</DialogTitle>
+              <DialogDescription>
+                Escolha um cliente para registrar o serviço
+              </DialogDescription>
+            </DialogHeader>
+
+            <Input placeholder="Buscar" className="w-full"></Input>
+            <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
+              {isLoadingCustomers && (
+                <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                  <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                </div>
+              )}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-black">Nome</TableHead>
+                    <TableHead className="text-center text-black">
+                      Contato
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {customers &&
+                    customers.map((customer) => (
+                      <TableRow
+                        className="hover:cursor-pointer"
+                        key={customer.id}
+                        onClick={() => {
+                          handleSetChosedCustomer(customer);
+                          setIsCustomerOpen(false);
+                        }}
+                      >
+                        <TableCell className="text-sm text-gray-600">
+                          {customer.name}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600 text-center">
+                          {customer.phone}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <DialogFooter>
+              <div className="flex items-center justify-center space-x-2 w-full">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleGetCustomer(1)}
+                  disabled={customerPagination.page === 1}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleGetCustomer(customerPagination.page - 1)}
+                  disabled={customerPagination.page === 1}
+                >
+                  <ChevronLeftIcon className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium">
+                  Página {customerPagination.page} de {customerPagination.totalPages || 1}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleGetCustomer(customerPagination.page + 1)}
+                  disabled={
+                    customerPagination.page === customerPagination.totalPages ||
+                    customerPagination.totalPages === 0
+                  }
+                >
+                  <ChevronRightIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleGetCustomer(customerPagination.totalPages)}
+                  disabled={
+                    customerPagination.page === customerPagination.totalPages ||
+                    customerPagination.totalPages === 0
+                  }
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+                  <AddClient
+                  // handleGetCustomers={}
+                  // pagination={}
+                  setChosedCustomer={handleSetChosedCustomer}
+                  />
                 </div>
                 <Label>Responsável:</Label>
                 <div className="w-full gap-3   flex flex-row justify-center items-center">
@@ -795,8 +1075,40 @@ service: null
             value={newTransaction?.type}
             name="type"
             onValueChange={(value) =>{
-if(!newTransaction)return
-              setNewTransaction({ ...newTransaction, type: value })
+              if(!newTransaction)return
+              if(newTransaction.category ==="Serviço" && newTransaction.type === "Receita" && value !== "Receita"){
+                setNewTransaction({...newTransaction,
+                  service: null,
+                  type: value
+                });
+                return;
+              }
+              if(value === "Receita" && newTransaction.category === "Serviço"){
+                setNewTransaction({...newTransaction,
+                  service: {
+                    code: 0,
+                    createdAt: new Date(),
+                    customer: null,
+                    customerId: "",
+                    discount: 0,
+                    id: "",
+                    paymentMethod: null,
+                    paymentMethodId: "",
+                    servicesTypes: [],
+                    servicesValue: 0,
+                    transactions: [],
+                    user: undefined,
+                    userId: "",
+                    value: 0
+                  },
+                  type: value
+
+                },)
+              }else{
+                setNewTransaction({...newTransaction,
+                  type: value
+                })
+              }
             }
             }
           >
@@ -842,6 +1154,12 @@ if(!newTransaction)return
             newTransaction={newTransaction}
             selectedTransaction={undefined}
           />
+          {newTransaction?.service && (
+            <>
+            <Label>Desconto</Label>
+            <DiscountInput desconto={newTransaction.service.discount} setDesconto={handleSetDesconto}/>
+            </>
+          )}
   
           <Label htmlFor="date">Data</Label>
           <Input onChange={handleChange} name="date" id="date" type="datetime-local" />
@@ -851,7 +1169,39 @@ if(!newTransaction)return
             name="category"
             onValueChange={(value) =>{
               if(!newTransaction)return
-              setNewTransaction({ ...newTransaction, category: value })
+              if(newTransaction.category ==="Serviço" && newTransaction.type === "Receita" && value !== "Serviço"){
+                setNewTransaction({...newTransaction,
+                  service: null,
+                  category: value
+                });
+                return;
+              }
+              if(value === "Serviço" && newTransaction.type === "Receita"){
+                setNewTransaction({...newTransaction,
+                  service: {
+                    code: 0,
+                    createdAt: new Date(),
+                    customer: null,
+                    customerId: "",
+                    discount: 0,
+                    id: "",
+                    paymentMethod: null,
+                    paymentMethodId: "",
+                    servicesTypes: [],
+                    servicesValue: 0,
+                    transactions: [],
+                    user: undefined,
+                    userId: "",
+                    value: 0
+                  },
+                  category: value
+
+                },)
+              }else{
+                setNewTransaction({...newTransaction,
+                  category: value
+                })
+              }
             }
             }
           >
@@ -925,6 +1275,126 @@ if(!newTransaction)return
                   >
                     <Plus />
                   </Button>
+                </div>
+                <Label>Cliente:</Label>
+                <div className="w-full gap-3   flex flex-row justify-center items-center">
+                  <Input
+                    value={newTransaction.service?.customer?.name || ""}
+                    name="user"
+                    id="user"
+                    type="text"
+                    disabled
+                    placeholder={newTransaction.service?.customer?.name || "Selecione um cliente"}
+                    className="hover:cursor-default text-xs"
+                  />
+                  <Dialog open={isCustomerOpen} onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}>
+          <DialogTrigger
+            onClick={() => handleGetCustomer(customerPagination.page)}
+            asChild
+          >
+            <Button className="hover: cursor-pointer">
+              <UsersIcon />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="h-[550px] flex flex-col gap-4">
+            <DialogHeader>
+              <DialogTitle>Selecione um cliente</DialogTitle>
+              <DialogDescription>
+                Escolha um cliente para registrar o serviço
+              </DialogDescription>
+            </DialogHeader>
+
+            <Input placeholder="Buscar" className="w-full"></Input>
+            <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
+              {isLoadingCustomers && (
+                <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                  <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                </div>
+              )}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-black">Nome</TableHead>
+                    <TableHead className="text-center text-black">
+                      Contato
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {customers &&
+                    customers.map((customer) => (
+                      <TableRow
+                        className="hover:cursor-pointer"
+                        key={customer.id}
+                        onClick={() => {
+                          handleSetChosedCustomer(customer);
+                          setIsCustomerOpen(false);
+                        }}
+                      >
+                        <TableCell className="text-sm text-gray-600">
+                          {customer.name}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600 text-center">
+                          {customer.phone}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <DialogFooter>
+              <div className="flex items-center justify-center space-x-2 w-full">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleGetCustomer(1)}
+                  disabled={customerPagination.page === 1}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleGetCustomer(customerPagination.page - 1)}
+                  disabled={customerPagination.page === 1}
+                >
+                  <ChevronLeftIcon className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium">
+                  Página {customerPagination.page} de {customerPagination.totalPages || 1}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleGetCustomer(customerPagination.page + 1)}
+                  disabled={
+                    customerPagination.page === customerPagination.totalPages ||
+                    customerPagination.totalPages === 0
+                  }
+                >
+                  <ChevronRightIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleGetCustomer(customerPagination.totalPages)}
+                  disabled={
+                    customerPagination.page === customerPagination.totalPages ||
+                    customerPagination.totalPages === 0
+                  }
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+                  <AddClient
+                  // handleGetCustomers={}
+                  // pagination={}
+                  setChosedCustomer={handleSetChosedCustomer}
+                  />
                 </div>
                 <Label>Responsável:</Label>
                 <div className="w-full gap-3   flex flex-row justify-center items-center">
@@ -1000,6 +1470,7 @@ if(!newTransaction)return
   
           <Label>Método de pagamento</Label>
           <Select
+          value={newTransaction?.paymentMethodId}
             onValueChange={(value) =>
             {
               if(!newTransaction)return

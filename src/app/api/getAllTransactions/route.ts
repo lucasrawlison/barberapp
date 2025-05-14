@@ -44,7 +44,11 @@ export async function GET(request: Request) {
           },
          },
          bankAccount: true,
-         service: true,
+         service:{
+          include: {
+            customer: true
+          }
+         },
          user: true
         },
       }),

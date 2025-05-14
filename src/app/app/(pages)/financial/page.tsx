@@ -19,15 +19,26 @@ interface Service {
   id: string;
   code: number;
   value: number;
+  customer: Customer | null;
   servicesValue: number;
   discount: number;
   createdAt: Date;
   servicesTypes: Type[];
-  user: User;
+  userId: string;
+  user: User | undefined;
   paymentMethodId: string
   customerId: string;
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod | null
   transactions: Transaction[];
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  code: string;
+
 }
 
 interface Transaction {

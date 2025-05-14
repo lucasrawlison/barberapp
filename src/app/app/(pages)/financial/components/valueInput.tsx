@@ -2,7 +2,6 @@
 
 import { useState, useRef, type ChangeEvent, useEffect } from "react"
 import { Input } from "@/components/ui/input"
-import { format } from "path";
 
 interface Transaction {
   id: string;
@@ -32,15 +31,24 @@ interface Service {
   id: string;
   code: number;
   value: number;
+  customer: Customer | null;
   servicesValue: number;
   discount: number;
   createdAt: Date;
   servicesTypes: Type[];
-  user: User;
+  userId: string;
+  user: User | undefined;
   paymentMethodId: string
   customerId: string;
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod | null
   transactions: Transaction[];
+}
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  code: string;
 
 }
 
@@ -210,7 +218,7 @@ if(selectedTransaction){
         ref={inputRef}
         type="text"
         name="value"
-        value={newTransaction?.type === "Receita" && newTransaction?.category==="Serviço" && servicesTotalValue ? formatCurrency(servicesTotalValue): displayValue}
+        value={newTransaction?.type === "Receita" && newTransaction?.category==="Serviço" && servicesTotalValue ? formatCurrency(servicesTotalValue - (newTransaction.service?.discount || 0)): displayValue}
         onChange={handleChange}
         onInput={handleInput}
         className=""
