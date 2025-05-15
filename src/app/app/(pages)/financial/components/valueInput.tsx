@@ -6,13 +6,15 @@ import { Input } from "@/components/ui/input"
 interface Transaction {
   id: string;
   description: string;
-  value: number;
   service: Service | null
+  value: number;
   date: string;
   type: string;
   category: string;
   paymentMethodId: string;
   paymentMethod: PaymentMethod;
+  user: User | null;
+  userId: string;
 }
 interface PaymentMethod {
   id: string;

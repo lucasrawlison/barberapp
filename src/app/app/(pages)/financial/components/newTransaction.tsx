@@ -68,6 +68,8 @@ interface Transaction {
   category: string;
   paymentMethodId: string;
   paymentMethod: PaymentMethod;
+  user: User | null;
+  userId: string;
 }
 
 interface BankAccount {
@@ -136,6 +138,8 @@ interface NewTransactionProps {
   };
   selectedTransaction: Transaction | undefined;
   setSelectedTransaction: (value: Transaction | undefined) => void;
+  fetchMonthTransactions: ()=> void,
+  fetchChartsData: () => void,
 }
 
 export function NewTransaction({
@@ -146,7 +150,9 @@ export function NewTransaction({
   servicesTypes,
   pagination,
   selectedTransaction,
-  setSelectedTransaction
+  setSelectedTransaction,
+  fetchMonthTransactions,
+  fetchChartsData,
 }: NewTransactionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { data: session } = useSession();
@@ -214,6 +220,8 @@ export function NewTransaction({
             transactions: [],
             
           },
+          userId: "",
+          user: null,
 service: null
         }
       );
@@ -337,9 +345,9 @@ service: null
     }
   };
 
-  useEffect(() => {
-    console.log(newTransaction);
-  }, [newTransaction]);
+  // useEffect(() => {
+  //   console.log(newTransaction);
+  // }, [newTransaction]);
 
   const handleSaveTransaction = async () => {
     if (!newTransaction) return;
@@ -348,7 +356,6 @@ service: null
       newTransaction.type === "Receita" &&
       newTransaction.category === "Serviço"
     ) {
-      console.log("é serviço")
       try {
         const response = await axios.post("/api/createService", {
           customerId: newTransaction.service?.customerId,
@@ -361,8 +368,15 @@ service: null
         });
 
         if (response.status === 200) {
+          toast({
+            title: "Sucesso!",
+            description: "Transação criada.",
+            duration: 3000,
+          });
           // console.log(response);
-          fetchTransactions(pagination.page);
+         fetchChartsData();
+        fetchMonthTransactions();
+        fetchTransactions(pagination.page);
           setIsSaving(false);
           setIsSaved(true)
 
@@ -397,6 +411,8 @@ service: null
         if (response.status === 200) {
           // console.log(response);
           fetchTransactions(1);
+          fetchChartsData();
+        fetchTransactions(pagination.page)
           setIsSaving(false);
           setIsSaved(true)
         
@@ -417,12 +433,53 @@ service: null
       }
     }
   };
+  const handleUpdateTransaction = async () => {
+    if (!selectedTransaction) return;
+    setIsSaving(true);
+
+    try {
+      const response = await axios.post("/api/updateTransaction", {
+        transaction: selectedTransaction,
+      });
+
+      if (response.status === 200) {
+        console.log(response)
+        toast(
+          {
+            title: "Sucesso!",
+            description: "Transação atualizada.",
+            duration: 3000
+          }
+        )
+        fetchChartsData();
+        fetchMonthTransactions();
+        fetchTransactions(pagination.page)
+
+        setSelectedTransaction(response.data.updateTransaction)
+        setIsSaving(false)
+      }
+    } catch (error) {
+      if (isAxiosError(error)) {
+        toast({
+          title: "Error",
+          description: error.response?.data.message,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+      setIsSaving(false);
+    }
+  };
+
+
+
+
 
   const handleChangeUser = (
     e: React.MouseEvent<HTMLDivElement>,
     user: User
   ) => {
-    console.log(user);
+    // console.log(user);
     setSelectedUser(user);
     setIsOpen(false);
   };
@@ -463,14 +520,16 @@ service: null
       });
       if (response.status === 200) {
         toast({
-          title: "Transação deletada com sucesso",
-          description: "A transação foi deletada com sucesso",
+          title: "Sucesso!",
+          description: "A transação foi deletada",
           variant: "default",
           duration: 3000,
         });
         setIsModalOpen(false);
         setSelectedTransaction(undefined);
-        fetchTransactions(pagination.page);
+        fetchChartsData();
+        fetchMonthTransactions();
+        fetchTransactions(pagination.page)
         setIsSaving(false);
       }
     } catch (error) {
@@ -483,9 +542,9 @@ service: null
     handleServiceValues();
   }, [selects, handleServiceValues]);
 
-  useEffect(() => {
-    console.log(selects);
-  }, [selects]);
+  // useEffect(() => {
+  //   console.log(selects);
+  // }, [selects]);
 
   useEffect(()=> {
     if(selectedTransaction){
@@ -565,6 +624,43 @@ const handleSetChosedCustomer = (customer : Customer | undefined) => {
 
 }
 
+useEffect(()=>{
+
+},[selectedTransaction?.service?.discount, selectedTransaction?.service?.servicesValue])
+
+useEffect(()=> {
+  if(selectedTransaction?.service){
+
+    setSelectedTransaction({
+      ...selectedTransaction,
+      service: {
+        ...selectedTransaction?.service,
+        servicesValue: selectedTransaction.service.servicesTypes.reduce((acc, service)=> acc + service.value, 0)
+      }
+      
+    })
+  }
+}, [selectedTransaction?.service?.servicesTypes])
+
+useEffect(()=> {
+  if(newTransaction?.service){
+
+    setNewTransaction({
+      ...newTransaction,
+      service: {
+        ...newTransaction?.service,
+        servicesValue: newTransaction.service.servicesTypes.reduce((acc, service)=> acc + service.value, 0)
+      }
+      
+    })
+  }
+}, [newTransaction?.service?.servicesTypes])
+
+
+
+
+
+
   const handleGetCustomer = async ( pageNumber: number) => {
     setIsLoadingCustomers(true);
     try {
@@ -586,7 +682,25 @@ const handleSetChosedCustomer = (customer : Customer | undefined) => {
     }
   };
 
-  useEffect(()=>{console.log(newTransaction)}, [newTransaction])
+  useEffect(() => {
+    console.log(newTransaction);
+  }, [newTransaction]);
+
+  useEffect(()=> {
+
+    if(selectedTransaction?.service){
+      setSelectedTransaction({
+        ...selectedTransaction,
+        value: (selectedTransaction.service?.servicesValue - selectedTransaction.service?.discount),
+        service: {
+          ...selectedTransaction.service,
+          value: (selectedTransaction.service?.servicesValue - selectedTransaction.service?.discount)
+        }
+      })
+    }
+}, [selectedTransaction?.service?.discount, newTransaction?.service?.discount])
+
+
 
 
   if(selectedTransaction){
@@ -901,7 +1015,7 @@ const handleSetChosedCustomer = (customer : Customer | undefined) => {
                 <Label>Responsável:</Label>
                 <div className="w-full gap-3   flex flex-row justify-center items-center">
                   <Input
-                    value={selectedUser?.name || ""}
+                    value={selectedTransaction.user?.name || ""}
                     name="user"
                     id="user"
                     type="text"
@@ -1040,7 +1154,7 @@ const handleSetChosedCustomer = (customer : Customer | undefined) => {
                   </AlertDialogContent>
                 </AlertDialog>
 
-                <Button disabled={isSaving}>
+                <Button disabled={isSaving} onClick={handleUpdateTransaction}>
                   {isSaving ? (
                     <LoaderCircle className="animate-spin" />
                   ) : (

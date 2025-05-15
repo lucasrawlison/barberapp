@@ -46,7 +46,8 @@ export async function GET(request: Request) {
          bankAccount: true,
          service:{
           include: {
-            customer: true
+            customer: true,
+            user:true,
           }
          },
          user: true

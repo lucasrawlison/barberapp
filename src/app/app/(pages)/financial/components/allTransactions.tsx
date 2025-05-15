@@ -57,6 +57,8 @@ interface Transaction {
   category: string;
   paymentMethodId: string;
   paymentMethod: PaymentMethod;
+  user: User | null;
+  userId: string;
 }
 
 interface PaymentMethod {

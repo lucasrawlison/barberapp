@@ -63,7 +63,7 @@ interface Customer {
 }
 
 interface Transaction {
-  date: string,
+  date: Date,
   description: string,
   type: string,
   value: number

@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { CreditCard, DollarSign, Landmark, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { useSession } from "next-auth/react";
 import { NewTransaction } from "./components/newTransaction";
 import { AllTransactions } from "./components/allTransactions";
 import { Overview } from "./components/overview";
 import { useRouter } from "next/navigation";
 import { BanksInfo } from "./components/banksInfo";
+import { title } from "process";
+import { Description } from "@radix-ui/react-toast";
+import { toast } from "@/hooks/use-toast";
 interface Type {
   id: string
   name: string
@@ -51,6 +54,8 @@ interface Transaction {
   category: string;
   paymentMethodId: string;
   paymentMethod: PaymentMethod;
+  user: User | null;
+  userId: string;
 }
 
 interface Transaction {
@@ -152,6 +157,8 @@ export default function FinancialDashboard() {
         },
         transactions: [],
       },
+      user: null,
+      userId: "",
       service: null
     }
   );
@@ -297,8 +304,18 @@ export default function FinancialDashboard() {
         setIsLoading(false);
       }
     } catch (error) {
-      console.log(error);
-      setIsLoading(false);
+      if(isAxiosError(error)){
+
+        toast({
+          title: "Erro",
+          description: error.response?.data.message,
+          duration: 5000
+        })
+        console.log(error);
+        setIsLoading(false);
+      }
+
+      
     }
   };
 
@@ -350,6 +367,8 @@ export default function FinancialDashboard() {
         <div className="flex items-center">
           <div className="ml-auto flex items-center gap-2">
             <NewTransaction
+            fetchMonthTransactions={fetchMonthTransactions}
+            fetchChartsData={fetchChartsData}
             setSelectedTransaction={setSelectedTransaction}
             selectedTransaction={selectedTransaction}
               servicesTypes={servicesTypes}

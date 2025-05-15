@@ -7,8 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CardData } from "./cardData";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RegisterCardData } from "./registerCardData";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import formatarEmReal from "@/app/app/utils/formatarEmReal";
+
 interface User {
   name: string;
 }
@@ -36,7 +40,7 @@ interface Customer {
   phone: string;
 }
 interface Transaction {
-  date: string,
+  date: Date,
   description: string,
   type: string,
   value: number
@@ -112,24 +116,88 @@ export default function ServiceModal({
     console.log(newService);
   }, [newService]);
 
+  const handleConvertDate = useCallback((date: string) => {
+          const newDate = new Date(date)
+      
+          const formattedDate = newDate.toLocaleString("pt-BR", {
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+            day: "2-digit",
+            month: "2-digit",
+            year : "numeric"
+          })
+      
+          return formattedDate
+        }, [])
+
   if (selectedService) {
     return (
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className=" max-h-screen sm:max-h-screen overflow-auto portr">
-          <DialogHeader>
+        <DialogContent className=" flex flex-col items-start min-h-screen max-h-screen overflow-auto portr">
+          <DialogHeader className="max-h-[150px]">
             <DialogTitle>Serviço #{selectedService.code}</DialogTitle>
-            <DialogDescription></DialogDescription>
+            <DialogDescription>Edite e atualize informações do serviço</DialogDescription>
           </DialogHeader>
-          <CardData
-            pagination={pagination}
-            setPagination={setPagination}
-            setOpenDialog={setOpenDialog}
-            getServices={getServices}
-            setSelectedService={setSelectedService}
-            servicesTypes={servicesTypes}
-            selectedService={selectedService}
-            paymentMethods={paymentMethods}
-          />
+          
+          <Tabs defaultValue="overview" className=" w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="overview">Geral</TabsTrigger>
+              <TabsTrigger value="transactions">
+                Pagamentos {`(${selectedService.transactions.length || 0})`}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value={"overview"}>
+              <CardData
+                pagination={pagination}
+                setPagination={setPagination}
+                setOpenDialog={setOpenDialog}
+                getServices={getServices}
+                setSelectedService={setSelectedService}
+                servicesTypes={servicesTypes}
+                selectedService={selectedService}
+                paymentMethods={paymentMethods}
+              />
+            </TabsContent>
+            <TabsContent value={"transactions"}>
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left">Descrição</TableHead>
+                    <TableHead className="text-left">Data</TableHead>
+                    <TableHead className="text-left">Valor</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedService.transactions ? (
+                    selectedService?.transactions.map((transaction, i) => (
+                      <TableRow
+                        className="hover:bg-slate-50 hover:cursor-pointer"
+                        key={i}
+                      >
+                        <TableCell className="text-xs text-left">
+                          {transaction.description}
+                        </TableCell>
+                       
+                        <TableCell className="text-xs text-left">
+                          {handleConvertDate(transaction.date.toString())}
+                        </TableCell>
+                        <TableCell className="text-xs text-left">
+                          {formatarEmReal(transaction.value)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center">
+                        Nenhum serviço encontrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     );
