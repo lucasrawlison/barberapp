@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
   	extend: {
+		screens: {
+        'h-sm': { raw: '(max-height: 668px)' }, // para iPhone 7 e parecidos
+		},
 		keyframes: {
 			slideIn: {
 				'0%': { transform: 'translateX(-100%)' },

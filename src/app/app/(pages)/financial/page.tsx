@@ -10,9 +10,8 @@ import { AllTransactions } from "./components/allTransactions";
 import { Overview } from "./components/overview";
 import { useRouter } from "next/navigation";
 import { BanksInfo } from "./components/banksInfo";
-import { title } from "process";
-import { Description } from "@radix-ui/react-toast";
 import { toast } from "@/hooks/use-toast";
+
 interface Type {
   id: string
   name: string
@@ -103,11 +102,7 @@ interface PaymentMethod {
   bankAccount: BankAccount;
   transactions: Transaction[];
 }
-interface ServiceType {
-  id: string;
-  name: string;
-  value: number;
-}
+
 
 interface User {
   id: string;

@@ -42,7 +42,7 @@ interface Customer {
   phone: string;
 }
 interface Transaction {
-  date: string,
+  date: Date,
   description: string,
   type: string,
   value: number

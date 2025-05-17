@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
 
     if(transaction.service){
         const {id, code, user, paymentMethod, customer, ...resto} = transaction.service
+        console.log(id, code, user, paymentMethod, customer)
         try {
             
             const updatedService = await prisma.service.update(
@@ -31,6 +32,8 @@ export async function POST(req: NextRequest) {
                
             }}
             ) 
+
+            console.log(updatedService)
         } catch (error) {
           console.error("Error updating service", error);
           return NextResponse.json(

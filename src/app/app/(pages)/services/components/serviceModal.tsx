@@ -56,10 +56,10 @@ interface Service {
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
-  paymentMethodId: string;
+  paymentMethodId: string
   customerId: string;
   customer: Customer;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod
   transactions: Transaction[];
 }
 
@@ -206,7 +206,7 @@ export default function ServiceModal({
   if (newService) {
     return (
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className=" max-h-[600px] sm:max-h-screen overflow-auto portr">
+        <DialogContent className="max-h-[600px] sm:max-h-screen overflow-auto portr">
           <DialogHeader>
             <DialogTitle className="text-left">Serviço</DialogTitle>
             <DialogDescription className="text-left">

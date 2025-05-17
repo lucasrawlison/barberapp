@@ -76,7 +76,7 @@ export function QuickRegister() {
           </CardContent>
         </Card>
       </DialogTrigger>
-      <DialogContent className=" max-h-[650px] overflow-auto">
+      <DialogContent className=" h-sm:max-h-[430px] max-h-[600px] md:max-h-[600px] lg:max-h-[600px] overflow-auto">
         {isLoading ? (
           <div className="w-full h-full flex items-center justify-center">
             <DialogHeader>
@@ -90,7 +90,7 @@ export function QuickRegister() {
             <DialogHeader>
               <DialogTitle className="text-left">Serviço</DialogTitle>
               <DialogDescription className="text-left">
-                Prencha os campos para registrar um serviço
+                Preencha os campos para registrar um serviço
               </DialogDescription>
             </DialogHeader>
             <CardData

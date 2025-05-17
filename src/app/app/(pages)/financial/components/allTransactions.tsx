@@ -70,11 +70,7 @@ interface PaymentMethod {
 }
 
 
-interface Dados {
-  month: string;
-  revenue: number;
-  expenses: number;
-}
+
 
 interface BankAccount {
   id: string;
@@ -95,11 +91,7 @@ interface PaymentMethod {
   bankAccount: BankAccount;
   transactions: Transaction[];
 }
-interface ServiceType {
-  id: string;
-  name: string;
-  value: number;
-}
+
 
 interface User {
   id: string;
