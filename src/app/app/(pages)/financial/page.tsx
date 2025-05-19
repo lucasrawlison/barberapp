@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, DollarSign, Landmark, RotateCw } from "lucide-react";
+import { CreditCard, DollarSign, Landmark, LoaderCircle, Radio, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios, { isAxiosError } from "axios";
 import { useSession } from "next-auth/react";
@@ -11,6 +11,9 @@ import { Overview } from "./components/overview";
 import { useRouter } from "next/navigation";
 import { BanksInfo } from "./components/banksInfo";
 import { toast } from "@/hooks/use-toast";
+import { formatDuration } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 interface Type {
   id: string
@@ -316,7 +319,7 @@ export default function FinancialDashboard() {
 
   const fetchChartsData = async () => {
     setIsFetching(true);
-    setChartData(undefined);
+    // setChartData(undefined);
     try {
       const response = await axios.get("/api/getOverviewData",
         {
@@ -403,14 +406,61 @@ export default function FinancialDashboard() {
             Transações
           </Button>
         </div>
+        <Card className=" max-w-max">
+          <CardContent className="p-0 flex items-center justify-center">
+            <div className="p-4 flex flex-row items-center justify-center gap-3">
+            <div className="flex items-center justify-center flex-col">
+              <div className="flex flex-col animate-pulse justify-center items-center">
+                
+              <Radio className="size-5 animate-pulse text-green-600"/>
+              <span className="rounded-sm text-[8px] text-green-600 ">OPERANDO</span>
+              </div>
 
+            </div>
+            <div className="flex items-center justify-center flex-col">
+              <Label className="text-primary text-xs">Servidor de tempo real</Label>
+              <span className="text-primary/60 text-xs">http://api.figo.com.br</span>
+            </div>
+            </div>
+
+            
+          </CardContent>
+        </Card>
         <div
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
-          onClick={() => {
-            fetchMonthTransactions();
-            fetchTransactions(pagination.page);
-            fetchChartsData();
-            getBanks();
+          onClick={async () => {
+            try {
+              toast({
+                title: " ",
+              description: <div className="flex flex-row items-center">
+                
+                <LoaderCircle className="size-4 mr-2 animate-spin" />
+                <span>Atualizando...</span>
+                </div>,
+                duration: 10000
+              });
+              
+              await Promise.all([
+
+                fetchMonthTransactions(),
+                fetchTransactions(pagination.page),
+                fetchChartsData(),
+                getBanks()
+              ])
+              toast({
+                title:" ",
+                description: "Painel Atualizado!",
+                duration: 1000
+              })
+            } catch (error) {
+              toast({
+                title:"Erro!",
+                description: "falha durante alguma atualização do painel!",
+                duration: 3000,
+                variant: "destructive"
+              })
+              
+            }
           }}
         >
           <span className="text-xs">Atualizar</span>
@@ -419,6 +469,7 @@ export default function FinancialDashboard() {
 
         {activeTab === "overview" && (
           <Overview
+          fetchMonthTransactions={fetchMonthTransactions}
             chartData={chartData}
             isLoadingMonth={isLoadingMonth}
             income={income}

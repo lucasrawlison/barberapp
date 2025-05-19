@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import ServiceModal from "./serviceModal"
+import { Card, CardContent } from "@/components/ui/card"
 
 
 interface User {

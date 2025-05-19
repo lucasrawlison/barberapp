@@ -16,10 +16,15 @@ export default {
 			slideIn: {
 				'0%': { transform: 'translateX(-100%)' },
 				'100%': { transform: 'translateX(200%)' }
+			},
+			blink: {
+				'0%': {opacity: '0%'},
+				'100%': {opacity: '100%'}
 			}
 		},
 		animation: {
-			slideIn: 'slideIn 2s linear infinite'
+			slideIn: 'slideIn 2s linear infinite',
+			blink: 'blink 1.2s linear infinite'
 		},
   		colors: {
   			background: 'hsl(var(--background))',

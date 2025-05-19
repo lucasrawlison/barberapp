@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, TrendingDown, TrendingUp } from "lucide-react";
+import { DollarSign, Radio, RadioTower, Signal, TrendingDown, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -19,6 +19,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { useEffect } from "react";
+import { Tooltip } from "@radix-ui/react-tooltip";
+import { TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Dados {
   month: string;
@@ -32,6 +35,7 @@ interface OverviewProps {
   profit: number;
   isLoadingMonth: boolean;
   chartData: Dados[] | undefined;
+  fetchMonthTransactions: ()=> void
 }
 
 export function Overview({
@@ -40,6 +44,7 @@ export function Overview({
   profit,
   isLoadingMonth,
   chartData,
+  fetchMonthTransactions
 }: OverviewProps) {
 
   const formatPrice = (price: number) => {
@@ -48,28 +53,40 @@ export function Overview({
       currency: "BRL",
     }).format(price)
   }
+
+  useEffect(()=> {
+    const interval = setInterval(()=> {
+      console.log("fetching data:")
+      fetchMonthTransactions();
+    }, 10000)
+
+    return ()=> clearInterval(interval)
+  }, [])
   
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-              <span>Receita total</span>
-              <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoadingMonth ? (
-                <Skeleton key={1} className="w-52 h-4 mb-4" />
-              ) : (
-                formatPrice(income)
-              )}
-            </div>
-            <></>
-            {/* {isLoadingMonth ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium flex flex-row items-center">
+                    <span>Receita total</span>
+                    <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
+                  </CardTitle>
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {isLoadingMonth && !income ? (
+                      <Skeleton key={1} className="w-52 h-4 mb-4" />
+                    ) : (
+                      formatPrice(income)
+                    )}
+                  </div>
+                  <></>
+                  {/* {isLoadingMonth ? (
               <Skeleton key={2} className="w-52 h-2 mb-4" />
             ) : (
               <p className="text-xs text-muted-foreground">
@@ -77,60 +94,80 @@ export function Overview({
                 + 12% que o último mês{" "}
               </p>
             )} */}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              <span>Despesa Total</span>
-              <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
-            </CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoadingMonth ? (
-                <Skeleton key={1} className="w-52 h-4 mb-4" />
-              ) : (
-                formatPrice(expense)
-              )}
-            </div>
-            <></>
-            {/* {isLoadingMonth ? (
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Atualizando em tempo real</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    <span>Despesa Total</span>
+                    <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
+                  </CardTitle>
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {isLoadingMonth && !expense ? (
+                      <Skeleton key={1} className="w-52 h-4 mb-4" />
+                    ) : (
+                      formatPrice(expense)
+                    )}
+                  </div>
+                  <></>
+                  {/* {isLoadingMonth ? (
               <Skeleton key={2} className="w-52 h-2 mb-4" />
             ) : (
               <p className="text-xs text-muted-foreground">
                 + 12% que o último mês
               </p>
             )} */}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-              <span>Renda Líquida</span>
-              <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoadingMonth ? (
-                <Skeleton key={1} className="w-52 h-4 mb-4" />
-              ) : (
-                formatPrice(profit)
-              )}
-            </div>
-            <></>
-            {/* {isLoadingMonth ? (
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Atualizando em tempo real.</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    <span>Renda Líquida</span>
+                    <span className="ml-2 text-primary/50">{"(Este mês)"}</span>
+                  </CardTitle>
+                  <DollarSign className="h-4 w-4 text-blue-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {isLoadingMonth && !profit ? (
+                      <Skeleton key={1} className="w-52 h-4 mb-4" />
+                    ) : (
+                      formatPrice(profit)
+                    )}
+                  </div>
+                  <></>
+                  {/* {isLoadingMonth ? (
             <Skeleton key={2} className="w-52 h-2 mb-4" />
             ) : (
               <p className="text-xs text-muted-foreground">
                 + 12% que o último mês
               </p>
             )} */}
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Atualizando em tempo real.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
