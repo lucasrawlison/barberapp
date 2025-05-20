@@ -134,7 +134,7 @@ export default function ServiceModal({
   if (selectedService) {
     return (
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className=" flex flex-col items-start min-h-screen max-h-screen overflow-auto portr">
+        <DialogContent className="h-sm:max-h-[430px] max-h-[600px] md:max-h-[600px] lg:max-h-[600px] overflow-auto">
           <DialogHeader className="max-h-[150px]">
             <DialogTitle>Serviço #{selectedService.code}</DialogTitle>
             <DialogDescription>Edite e atualize informações do serviço</DialogDescription>
@@ -206,7 +206,7 @@ export default function ServiceModal({
   if (newService) {
     return (
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="max-h-[600px] sm:max-h-screen overflow-auto portr">
+        <DialogContent className="h-sm:max-h-[430px] max-h-[600px] md:max-h-[600px] lg:max-h-[600px] overflow-auto">
           <DialogHeader>
             <DialogTitle className="text-left">Serviço</DialogTitle>
             <DialogDescription className="text-left">

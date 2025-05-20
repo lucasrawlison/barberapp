@@ -46,6 +46,28 @@ import AddClient from "./addClient";
 import { useToast } from "@/hooks/use-toast";
 import ValueInput from "./valueInput";
 
+interface User {
+  name: string;
+}
+
+interface Type {
+  id: string;
+  name: string;
+  value: number;
+}
+interface RegisteredService {
+  id: string;
+  code: number;
+  value: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+
+  paymentMethodId: string;
+  paymentMethod: PaymentMethod;
+}
+
 interface Service {
   id: string;
   name: string;
@@ -166,6 +188,43 @@ export function CardData({
           variant: "default",
           duration: 2000,
         });
+        const service:RegisteredService = response.data.service
+        const serviceList = service.servicesTypes.map((service)=> `• ${service.name}`).join('\n')
+        try {
+          const wppResponse = await axios.post(
+  'https://anna-elizabeth-suffering-units.trycloudflare.com/send-message',
+  {
+    number: '558387872668',
+    message: `📝 Novo serviço registrado!\n\n
+📌 Usuário: ${service.user.name}
+🔧 Serviços:\n${serviceList}
+${service.discount && (`💸 Desconto: ${service.discount}`)}
+💲 Valor: ${service.value}
+
+
+-----------------------------------`,
+  }
+);
+          const wppResponse2 = await axios.post(
+  'https://anna-elizabeth-suffering-units.trycloudflare.com/send-message',
+  {
+    number: '558393905267',
+    message: `📝 Novo serviço registrado!\n\n
+📌 Usuário: ${service.user.name}
+🔧 Serviços:\n${serviceList}
+${service.discount && (`💸 Desconto: ${service.discount}`)}
+💲 Valor: ${service.value}
+
+
+-----------------------------------`,
+  }
+);
+
+          console.log(wppResponse.data)
+          console.log(wppResponse2.data)
+        } catch (error) {
+         console.log(error) 
+        }
         // console.log(response);
         setIsLoading(false);
         setIsSaved(true);

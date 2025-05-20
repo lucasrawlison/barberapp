@@ -77,9 +77,9 @@ export default function ValueInput({setDesconto, desconto} : ValueInputProps) {
   }
 
   // Foca no input quando o componente montar
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+  // useEffect(() => {
+  //   inputRef.current?.focus()
+  // }, [])
 
   return (
       <Input
