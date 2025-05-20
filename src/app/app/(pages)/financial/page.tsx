@@ -11,8 +11,7 @@ import { Overview } from "./components/overview";
 import { useRouter } from "next/navigation";
 import { BanksInfo } from "./components/banksInfo";
 import { toast } from "@/hooks/use-toast";
-import { formatDuration } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
 interface Type {
@@ -189,7 +188,7 @@ export default function FinancialDashboard() {
       }
       
     } catch (error) {
-      // console.log(error);
+      console.log(error);
       if(axios.isAxiosError(error)) {
         if (error.response?.status === 403) {
           router.push("/app/dashboard");
@@ -453,6 +452,7 @@ export default function FinancialDashboard() {
                 duration: 1000
               })
             } catch (error) {
+              console.log(error)
               toast({
                 title:"Erro!",
                 description: "falha durante alguma atualização do painel!",

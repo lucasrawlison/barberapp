@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, Radio, RadioTower, Signal, TrendingDown, TrendingUp } from "lucide-react";
+import { DollarSign, TrendingDown, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart as RechartsBarChart,

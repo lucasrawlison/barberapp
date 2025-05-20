@@ -62,6 +62,11 @@ export async function POST(req: NextRequest) {
               }
             }
         },
+        include: {
+          paymentMethod: true,
+          customer: true,
+          user: true
+        }
     });
 
     // console.log(service)
