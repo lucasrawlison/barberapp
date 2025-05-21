@@ -29,7 +29,7 @@ const formatPrice = (price: number) => {
 
 
 export async function POST(req: NextRequest) {
-    const url = process.env.WPPSERVER_URL;
+    const url = process.env.NEXT_PUBLIC_WPPSERVER_URL;
 
   try {
     const body = await req.json();
