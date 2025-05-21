@@ -46,28 +46,6 @@ import AddClient from "./addClient";
 import { useToast } from "@/hooks/use-toast";
 import ValueInput from "./valueInput";
 
-interface User {
-  name: string;
-}
-
-interface Type {
-  id: string;
-  name: string;
-  value: number;
-}
-interface RegisteredService {
-  id: string;
-  code: number;
-  value: number;
-  discount: number;
-  createdAt: Date;
-  servicesTypes: Type[];
-  user: User;
-
-  paymentMethodId: string;
-  paymentMethod: PaymentMethod;
-}
-
 interface Service {
   id: string;
   name: string;

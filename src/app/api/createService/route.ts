@@ -145,7 +145,7 @@ Serviços:\n${serviceList && (serviceList.map((service)=> `* ${service.name}`).j
 
                 console.log(wppResponse.data);
               } catch (error) {
-                console.error("Erro ao enviar mensagem via wppconnect");
+                console.error("Erro ao enviar mensagem via wppconnect", error);
               }
             });
           }
@@ -166,12 +166,12 @@ Serviços:\n${serviceList && (serviceList.map((service)=> `* ${service.name}`).j
               console.log(wppResponse.data);
             } catch (error) {
               console.error(
-                "Erro ao enviar mensagem via wppconnect para o usuário que registrou o serviço"
+                "Erro ao enviar mensagem via wppconnect para o usuário que registrou o serviço", error
               );
             }
           }
         } catch (error) {
-          console.error("erro ao buscar admins ou erro ao enviar mensagens");
+          console.error("erro ao buscar admins ou erro ao enviar mensagens", error);
         }
       }else{
         console.error("url api wppconnect offline")
