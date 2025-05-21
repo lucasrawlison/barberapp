@@ -195,7 +195,7 @@ export function AllTransactions ({pagination, setSelectedTransaction, transactio
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         transaction.type === "Receita"
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                          : transaction.type === "Depósito" ? "bg-amber-100 text-amber-700": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
                       }`}
                     >
                       {transaction.type.charAt(0).toUpperCase() +
@@ -205,12 +205,12 @@ export function AllTransactions ({pagination, setSelectedTransaction, transactio
                   <TableCell className="text-right">
                     <span
                       className={
-                        transaction.type === "Receita"
+                        transaction.type === "Receita" || transaction.type === "Depósito"
                           ? "text-green-600 dark:text-green-400"
                           : "text-red-600 dark:text-red-400"
                       }
                     >
-                      {transaction.type === "Receita" ? "+ " : "- "}
+                      {transaction.type === "Receita" || transaction.type === "Depósito" ? "+ " : "- "}
                       {formatPrice(transaction.value)}
                     </span>
                   </TableCell>

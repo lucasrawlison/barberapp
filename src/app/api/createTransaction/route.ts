@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if((category !== "Serviço" && type === "Receita") ||(type === "Despesa") && !value){
+    if((category !== "Serviço" && type === "Receita"  && !value) ||(type === "Despesa") && !value){
       return NextResponse.json(
         {message: "Insira o valor da transação"},
         {status: 400}

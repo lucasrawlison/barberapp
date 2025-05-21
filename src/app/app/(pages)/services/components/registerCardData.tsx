@@ -190,47 +190,11 @@ export function RegisterCardData({
           variant: "default",
           duration: 2000,
         });
-        const service:Service = response.data.service
         console.log(response);
         getServices(pagination.page);
         setIsLoading(false);
         setIsSaved(true);
-        const serviceList = service.servicesTypes.map((service)=> `• ${service.name}`).join('\n')
-        try {
-          const wppResponse = await axios.post(
-  'https://anna-elizabeth-suffering-units.trycloudflare.com/send-message',
-  {
-    number: '558387872668',
-    message: `📝 Novo serviço registrado!\n\n
-📌 Usuário: ${service.user.name}
-🔧 Serviços:\n${serviceList}
-${service.discount && (`💸 Desconto: ${service.discount}`)}
-💲 Valor: ${service.value}
-
-
------------------------------------`,
-  }
-);
-          const wppResponse2 = await axios.post(
-  'https://anna-elizabeth-suffering-units.trycloudflare.com/send-message',
-  {
-    number: '558393905267',
-    message: `📝 Novo serviço registrado!\n\n
-📌 Usuário: ${service.user.name}
-🔧 Serviços:\n${serviceList}
-${service.discount && (`💸 Desconto: ${service.discount}`)}
-💲 Valor: ${service.value}
-
-
------------------------------------`,
-  }
-);
-
-          console.log(wppResponse.data)
-          console.log(wppResponse2.data)
-        } catch (error) {
-         console.log(error) 
-        }
+        
       }
     } catch (error) {
         if(isAxiosError(error)) {

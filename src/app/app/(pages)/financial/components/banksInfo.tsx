@@ -138,7 +138,7 @@ export function BanksInfo ({ banks, isLoadingBanks }:BankInfoProps) {
 
                             formatPrice(
                               bank.transactions.reduce((acc, transaction) => {
-                                return transaction.type === "Receita"
+                                return transaction.type === "Receita" || transaction.type === "Depósito"
                                   ? acc + transaction.value
                                   : acc;
                               }, bank.initialValue) -
