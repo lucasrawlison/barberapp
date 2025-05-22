@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { LoaderCircle, UserPlus } from "lucide-react";
+import { LoaderCircle, Send, UserPlus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import axios, { isAxiosError } from "axios";
@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
 import { toast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 interface BankAccount{
   id: string;
@@ -215,9 +216,21 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
             Adicionar Cliente
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] min-h-[500px] flex flex-col align-top max-h-[500px]">
+        <DialogContent className="sm:max-w-[425px] min-h-[500px] w-screen flex flex-col align-top max-h-[500px]">
           <DialogHeader>
-            <DialogTitle>Cliente #{selectedCustomer.code}</DialogTitle>
+            <DialogTitle className="flex flex-row gap-6 items-center">
+              <span>Cliente #{selectedCustomer.code}</span>
+              {selectedCustomer.phone && (
+                <Link
+                  target="_blank"
+                  className=" group flex flex-row w-max gap-2 px-2 py-1.5 rounded-md items-center justify-center bg-green-700 text-green-200 text-center text-[10px]"
+                  href={"http://wa.me/55" + selectedCustomer.phone}
+                >
+                  Whatsapp
+                  <Send className="group-hover:animate-bounce" size={10} />
+                </Link>
+              )}
+            </DialogTitle>
             <DialogDescription>
               Preencha os dados do cliente para alterá-lo no sistema.
             </DialogDescription>
@@ -225,7 +238,9 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="overview">Geral</TabsTrigger>
-              <TabsTrigger value="services">Serviços {`(${selectedCustomer.services?.length || 0})`}</TabsTrigger>
+              <TabsTrigger value="services">
+                Serviços {`(${selectedCustomer.services?.length || 0})`}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -263,53 +278,51 @@ export default function AddClient({selectedCustomer, setSelectedCustomer, handle
             </TabsContent>
             <TabsContent value="services">
               <div className="h-full overflow-auto max-h-[250px] flex">
-
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-left">Código</TableHead>
-                    <TableHead className="text-left">Serviços</TableHead>
-                    <TableHead className="text-left">Data</TableHead>
-                    <TableHead className="text-left">Valor</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedCustomer.services ? (
-                    selectedCustomer?.services.map((service) => (
-                      <TableRow
-                        className="hover:bg-slate-50 hover:cursor-pointer"
-                        key={service.id}
-                      >
-                        <TableCell className="text-xs text-left">
-                          {service.code}
-                        </TableCell>
-                        <TableCell className="text-xs text-left">
-                          {service.servicesTypes
-                            .map((type) => type.name)
-                            .join(", ")}
-                        </TableCell>
-                        <TableCell className="text-xs text-left">
-                          {handleConvertDate(service.createdAt.toString())}
-                        </TableCell>
-                        <TableCell className="text-xs text-left">
-                          {formatarEmReal(service.value)}
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-left">Código</TableHead>
+                      <TableHead className="text-left">Serviços</TableHead>
+                      <TableHead className="text-left">Data</TableHead>
+                      <TableHead className="text-left">Valor</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedCustomer.services ? (
+                      selectedCustomer?.services.map((service) => (
+                        <TableRow
+                          className="hover:bg-slate-50 hover:cursor-pointer"
+                          key={service.id}
+                        >
+                          <TableCell className="text-xs text-left">
+                            {service.code}
+                          </TableCell>
+                          <TableCell className="text-xs text-left">
+                            {service.servicesTypes
+                              .map((type) => type.name)
+                              .join(", ")}
+                          </TableCell>
+                          <TableCell className="text-xs text-left">
+                            {handleConvertDate(service.createdAt.toString())}
+                          </TableCell>
+                          <TableCell className="text-xs text-left">
+                            {formatarEmReal(service.value)}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={3} className="h-24 text-center">
+                          Nenhum serviço encontrado.
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={3} className="h-24 text-center">
-                        Nenhum serviço encontrado.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </TabsContent>
           </Tabs>
-          <DialogFooter>
-            
+          <DialogFooter className=" h-screen items-end flex flex-row justify-end gap-1">
             <Button
               onClick={handleDeleteCustomer}
               disabled={isDeleting}

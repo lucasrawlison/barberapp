@@ -405,26 +405,6 @@ export default function FinancialDashboard() {
             Transações
           </Button>
         </div>
-        <Card className=" max-w-max">
-          <CardContent className="p-0 flex items-center justify-center">
-            <div className="p-4 flex flex-row items-center justify-center gap-3">
-            <div className="flex items-center justify-center flex-col">
-              <div className="flex flex-col animate-pulse justify-center items-center">
-                
-              <Radio className="size-5 animate-pulse text-green-600"/>
-              <span className="rounded-sm text-[8px] text-green-600 ">OPERANDO</span>
-              </div>
-
-            </div>
-            <div className="flex items-center justify-center flex-col">
-              <Label className="text-primary text-xs">Servidor de tempo real</Label>
-              <span className="text-primary/60 text-xs">http://api.figo.com.br</span>
-            </div>
-            </div>
-
-            
-          </CardContent>
-        </Card>
         <div
           className="flex flex-row gap-2 items-center hover:cursor-pointer w-min"
           onClick={async () => {

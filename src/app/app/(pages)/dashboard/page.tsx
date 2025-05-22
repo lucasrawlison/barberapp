@@ -39,7 +39,7 @@ export default function Dashboard() {
     },
   ];
 
-  const [wppStatus, setWppStatus] = useState<string | undefined>(undefined);
+  const [wppStatus, setWppStatus] = useState<string | undefined>("Verificando");
   const url = process.env.NEXT_PUBLIC_WPPSERVER_URL
 
    useEffect(() => {
@@ -95,9 +95,9 @@ export default function Dashboard() {
                     <div className="flex items-center justify-center flex-col">
                       <div className="flex flex-col animate-pulse justify-center items-center">
                         <Radio
-                          className={`size-5 animate-pulse ${wppStatus === "Online" ?"text-green-600": "text-red-600" } `}
+                          className={`size-5 animate-pulse ${wppStatus === "Verificando" ?  "text-blue-600" :wppStatus === "Online" ?"text-green-600": "text-red-600" } `}
                         />
-                        <span className={`rounded-sm text-[8px] ${wppStatus === "Online" ?"text-green-600": "text-red-600"}`}>
+                        <span className={`rounded-sm text-[8px] ${wppStatus === "Verificando" ?  "text-blue-600" : wppStatus === "Online" ?"text-green-600": "text-red-600"}`}>
                           {wppStatus?.toUpperCase()}
                         </span>
                       </div>
