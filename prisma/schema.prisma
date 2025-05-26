@@ -13,12 +13,27 @@ model ServicesTypes {
   value Float
 }
 
+model Barbershop {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  openAt       DateTime?
+  closeAt      DateTime?
+  name         String?
+  address      String?
+  phone        String?
+  email        String?
+  description  String?
+  services     Service[]
+  users        User[]
+  bankAccounts BankAccount[]
+  scheduling   Scheduling[]
+}
+
 model Service {
   id              String         @id @default(auto()) @map("_id") @db.ObjectId
   code            String         @unique
   value           Float
   servicesValue   Float?
-  discount           Float @default(0)
+  discount        Float          @default(0)
   servicesTypes   Json
   createdAt       DateTime       @default(now())
   userId          String         @db.ObjectId
@@ -28,13 +43,16 @@ model Service {
   transactions    Transactions[]
   customerId      String?        @db.ObjectId
   customer        Customer?      @relation(fields: [customerId], references: [id])
+  scheduling      Scheduling[]
+  barbershopId    String?        @db.ObjectId
+  barbershop      Barbershop?    @relation(fields: [barbershopId], references: [id])
 }
 
 model User {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  code String  @unique
-  phone String?
-  notifications Boolean @default(false)
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  code           String         @unique
+  phone          String?
+  notifications  Boolean        @default(false)
   isRoot         Boolean        @default(false)
   active         Boolean        @default(true)
   email          String         @unique
@@ -46,18 +64,23 @@ model User {
   services       Service[]
   profileType    String         @default("admin")
   transactions   Transactions[]
+  scheduling     Scheduling[]
+  barbershopId   String?        @db.ObjectId
+  barbershop     Barbershop?    @relation(fields: [barbershopId], references: [id])
 }
 
 model BankAccount {
   id             String          @id @default(auto()) @map("_id") @db.ObjectId
   bankName       String
-  initialValue   Float @default(0)
+  initialValue   Float           @default(0)
   agency         String?
   accountNumber  String?
   accountType    String?
   accountOwner   String?
   paymentMethods PaymentMethod[]
   transactions   Transactions[]
+  barbershopId   String?         @db.ObjectId
+  barbershop     Barbershop?     @relation(fields: [barbershopId], references: [id])
 }
 
 model PaymentMethod {
@@ -67,6 +90,30 @@ model PaymentMethod {
   bankAccount  BankAccount    @relation(fields: [bankId], references: [id])
   services     Service[]
   transactions Transactions[]
+}
+
+enum SchedulingStatus {
+  scheduled
+  attended
+  cancelled
+}
+
+model Scheduling {
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
+  date          DateTime         @default(now())
+  time          String
+  description   String?
+  userId        String           @db.ObjectId
+  user          User             @relation(fields: [userId], references: [id])
+  servicesTypes Json?
+  serviceId     String?          @db.ObjectId
+  service       Service?         @relation(fields: [serviceId], references: [id])
+  customerId    String?          @db.ObjectId
+  customer      Customer?        @relation(fields: [customerId], references: [id])
+  barbershopId  String?          @db.ObjectId
+  barbershop    Barbershop?      @relation(fields: [barbershopId], references: [id])
+  status        SchedulingStatus @default(scheduled)
+  wasAttended   Boolean          @default(false)
 }
 
 model Transactions {
@@ -87,12 +134,13 @@ model Transactions {
 }
 
 model Customer {
-  id      String    @id @default(auto()) @map("_id") @db.ObjectId
-  code    String    @unique
-  name    String
-  email   String?
-  phone   String
-  services Service[] 
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  code       String       @unique
+  name       String
+  email      String?
+  phone      String
+  services   Service[]
+  scheduling Scheduling[]
 }
 
 model Counters {

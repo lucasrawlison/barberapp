@@ -1,4 +1,4 @@
-import { Home, CheckSquare, Settings, Users, DollarSign, CircleUserRound } from "lucide-react"
+import { Home, CheckSquare, Settings, Users, DollarSign, CircleUserRound, CalendarCheck2 } from "lucide-react"
 import Link from "next/link"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 
@@ -22,38 +22,50 @@ export function Sidebar({ open, onClose, isMobile, user, setPageTitle }: Sidebar
     <nav className="flex flex-col py-4">
       <Link
         href="/app/dashboard"
-        className="flex items-center px-6 pt-6 py-3 text-gray-600 hover:bg-gray-100"
+        className="group flex items-center px-6 pt-6 py-3 text-gray-600 hover:bg-gray-100"
         onClick={()=>{
           if(isMobile)onClose()
           setPageTitle("Dashboard")
           }
         } 
       >
-        <Home className="h-5 w-5 mr-3" />
+        <Home className="group-hover:scale-105 h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Dashboard</span>
       </Link>
       <Link
-        href="/app/services"
-        className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
+        href="/app/scheduling"
+        className="group flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
         onClick={()=>{
           if(isMobile)onClose()
           setPageTitle("Serviços")
           }
         } 
       >
-        <CheckSquare className="h-5 w-5 mr-3" />
+        <CalendarCheck2 className="group-hover:scale-105 h-5 w-5 mr-3" />
+        <span className="text-sm font-medium">Agendamento</span>
+      </Link>
+      <Link
+        href="/app/services"
+        className="flex group items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
+        onClick={()=>{
+          if(isMobile)onClose()
+          setPageTitle("Serviços")
+          }
+        } 
+      >
+        <CheckSquare className="group-hover:scale-105 h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Serviços</span>
       </Link>
       {user?.profileType === "admin" && (
       <Link
         href="/app/financial"
-        className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
+        className="group flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
         onClick={()=>{
           if(isMobile)onClose()
           setPageTitle("Financeiro")
           }
         }       >
-        <DollarSign className="h-5 w-5 mr-3" />
+        <DollarSign className="group-hover:scale-105 h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Financeiro</span>
       </Link>
 
@@ -61,38 +73,38 @@ export function Sidebar({ open, onClose, isMobile, user, setPageTitle }: Sidebar
 
       <Link
         href="/app/customers"
-        className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
+        className="group flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
         onClick={()=>{
           if(isMobile)onClose()
           setPageTitle("Clientes")
           }
         }      >
-        <Users className="h-5 w-5 mr-3" />
+        <Users className="group-hover:scale-105 h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Clientes</span>
       </Link>
       {user?.profileType === "admin" && (
 
       <Link
         href="/app/users"
-        className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
+        className="group flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
         onClick={()=>{
           if(isMobile)onClose()
           setPageTitle("Usuários")
           }
         }       >
-        <CircleUserRound className="h-5 w-5 mr-3" />
+        <CircleUserRound className="group-hover:scale-105 h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Usuários</span>
       </Link>
       )}
       <Link
         href="/app/settings"
-        className="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
+        className="group flex items-center px-6 py-3 text-gray-600 hover:bg-gray-100"
         onClick={()=>{
           if(isMobile)onClose()
           setPageTitle("Configurações")
           }
         }      >
-        <Settings className="h-5 w-5 mr-3" />
+        <Settings className="group-hover:scale-105 h-5 w-5 mr-3" />
         <span className="text-sm font-medium">Configurações</span>
       </Link>
     </nav>
