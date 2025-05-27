@@ -1,94 +1,45 @@
-"use client"
+"use client";
 
-import { use, useEffect, useState } from "react"
-import { Calendar, Search, Plus, Clock, User, Scissors, FileText, History } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AppointmentCard } from "./components/appointment-card"
-import { NewAppointmentModal } from "./components/new-appointment-modal"
-import { CalendarNavigation } from "./components/calendar-navigation"
-import { HistorySection } from "./components/history-section"
-import axios, { isAxiosError } from "axios"
-import { useSession } from "next-auth/react"
-import { toast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react";
+import {
+  Calendar,
+  Search,
+  Plus,
+  Clock,
+  User,
+  Scissors,
+  FileText,
+  History,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AppointmentCard } from "./components/appointment-card";
+import { NewAppointmentModal } from "./components/new-appointment-modal";
+import { CalendarNavigation } from "./components/calendar-navigation";
+import { HistorySection } from "./components/history-section";
+import axios, { isAxiosError } from "axios";
+import { useSession } from "next-auth/react";
+import { toast } from "@/hooks/use-toast";
 
 // Mock data
-const mockAppointments = [
-  {
-    id: "1",
-    time: "09:00",
-    clientName: "John Smith",
-    phone: "+1 (555) 123-4567",
-    service: "Haircut & Beard Trim",
-    barber: "Mike Johnson",
-    date: "2024-01-15",
-    observation: "Prefers shorter on sides",
-    status: "pending" as const,
-  },
-  {
-    id: "2",
-    time: "10:30",
-    clientName: "David Wilson",
-    phone: "+1 (555) 234-5678",
-    service: "Haircut",
-    barber: "Mike Johnson",
-    date: "2024-01-15",
-    observation: "",
-    status: "attended" as const,
-  },
-  {
-    id: "3",
-    time: "11:45",
-    clientName: "Robert Brown",
-    phone: "+1 (555) 345-6789",
-    service: "Beard Trim",
-    barber: "Mike Johnson",
-    date: "2024-01-15",
-    observation: "First time client",
-    status: "pending" as const,
-  },
-  {
-    id: "4",
-    time: "14:00",
-    clientName: "Michael Davis",
-    phone: "+1 (555) 456-7890",
-    service: "Haircut & Shave",
-    barber: "Mike Johnson",
-    date: "2024-01-15",
-    observation: "Regular customer",
-    status: "cancelled" as const,
-  },
-  {
-    id: "5",
-    time: "15:30",
-    clientName: "James Miller",
-    phone: "+1 (555) 567-8901",
-    service: "Haircut",
-    barber: "Mike Johnson",
-    date: "2024-01-15",
-    observation: "",
-    status: "pending" as const,
-  },
-]
 
 interface Pagination {
-  total: number
-  page: number
-  limit: number
-  totalPages: number
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 interface User {
-  name: string
+  name: string;
 }
 
 interface Type {
-  id: string
-  name: string
-  value: number
+  id: string;
+  name: string;
+  value: number;
 }
 
 interface Service {
@@ -100,7 +51,7 @@ interface Service {
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
-  paymentMethodId: string
+  paymentMethodId: string;
   customerId: string;
   customer: Customer;
   // paymentMethod: PaymentMethod
@@ -119,119 +70,84 @@ interface Barbershop {
   name: string;
 }
 
-interface Appointment {
+interface Scheduling {
   id: string;
   date: string;
   time: string;
   description?: string;
   userId: string;
   user: User;
-  serviceTypes?: Type[];
+  servicesTypes: Type[];
   service?: Service;
   ServiceId?: string;
   customer?: Customer;
   customerId?: string;
   barbershopId?: string;
   barbershop?: Barbershop;
-  status: "pending" | "attended" | "cancelled";
+  status: "pendente" | "atendido" | "cancelado" | "agendado";
   wasAttended?: boolean;
 }
 
-
 export default function SchedulingApp() {
-  const [selectedDate, setSelectedDate] = useState(new Date())
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false)
-  const [appointments, setAppointments] = useState(mockAppointments)
-  const [activeTab, setActiveTab] = useState("today")
-  const {data: session} = useSession();
-  const[isLoadingSchedulings, setIsLoadingSchedulings] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false);
+  const [schedulings, setSchedulings] = useState<Scheduling[] | undefined>(
+    undefined
+  );
+  const [activeTab, setActiveTab] = useState("today");
+  const { data: session } = useSession();
+  const [isLoadingSchedulings, setIsLoadingSchedulings] = useState(false);
   const [pagination, setPagination] = useState<Pagination>({
-      total: 0,
-      page: 1,
-      limit: 10,
-      totalPages: 0,
-    })
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  });
 
-  const currentBarber = "Mike Johnson"
-
-  // Filter appointments based on search query
-  // const filteredAppointments = appointments.filter((appointment) => {
-  //   const query = searchQuery.toLowerCase()
-  //   return (
-  //     appointment.clientName.toLowerCase().includes(query) ||
-  //     appointment.service.toLowerCase().includes(query) ||
-  //     appointment.time.includes(query)
-  //   )
-  // })
-
-  // Get today's appointments
-  const todaysAppointments = appointments
-    .filter((appointment) => appointment.date === selectedDate.toISOString().split("T")[0])
-    .sort((a, b) => a.time.localeCompare(b.time))
-
-  const handleStatusUpdate = (appointmentId: string, newStatus: "pending" | "attended" | "cancelled") => {
-    setAppointments((prev) => prev.map((apt) => (apt.id === appointmentId ? { ...apt, status: newStatus } : apt)))
-  }
-
-  const handleAddAppointment = (newAppointment: any) => {
-    const appointment = {
-      ...newAppointment,
-      id: Date.now().toString(),
-      status: "pending" as const,
-    }
-    setAppointments((prev) => [...prev, appointment])
-  }
-
-  const getStatusStats = () => {
-    const today = selectedDate.toISOString().split("T")[0]
-    const todayApts = appointments.filter((apt) => apt.date === today)
-
-    return {
-      total: todayApts.length,
-      pending: todayApts.filter((apt) => apt.status === "pending").length,
-      attended: todayApts.filter((apt) => apt.status === "attended").length,
-      cancelled: todayApts.filter((apt) => apt.status === "cancelled").length,
-    }
-  }
-
-  const stats = getStatusStats()
-
-  const handleGetAllSchedulings = async (pageNumber: number) => {
-    setIsLoadingSchedulings(true)
+  const handleGetAllSchedulings = async (
+    pageNumber: number
+  ) => {
+    setIsLoadingSchedulings(true);
     try {
-       const response = await axios.post("/api/getUserSchedulings", {
+      const response = await axios.post("/api/getUserSchedulings", {
         userId: session?.user?.id,
-        selectedDate,
         page: pageNumber || 1,
         limit: 10,
       });
 
-      if(response.status === 200){
+      if (response.status === 200) {
         const { schedulings, pagination } = response.data;
-        setAppointments(schedulings);
+        setSchedulings(schedulings);
         setPagination(pagination);
-
-      }      
-      
+        setIsLoadingSchedulings(false);
+        console.log(schedulings)
+      }
     } catch (error) {
-      if(isAxiosError(error)){
-        toast(
-          {
-            title: "Erro ao buscar agendamentos",
-            description: error.response?.data?.message || "Ocorreu um erro ao buscar os agendamentos.",
-            variant: "destructive",
-          }
-        )
+      setIsLoadingSchedulings(false);
+
+      if (isAxiosError(error)) {
+        toast({
+          title: "Erro ao buscar agendamentos",
+          description:
+            error.response?.data?.message ||
+            "Ocorreu um erro ao buscar os agendamentos.",
+          variant: "destructive",
+        });
       }
     }
-  }
+  };
 
-  useEffect(()=> {
-    if(session?.user?.id) {
+  useEffect(() => {
+    if (session?.user?.id) {
       handleGetAllSchedulings(1);
     }
-  },[session?.user?.id])
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    console.log("Selected Date Changed:", selectedDate);
+    console.log(new Date());
+  }, [selectedDate]);
 
   return (
     <div className="overflow-auto bg-gray-50">
@@ -244,13 +160,21 @@ export default function SchedulingApp() {
                 <Scissors className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Agendamento Barbearia</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Agendamento Barbearia
+                </h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <div className="flex flex-row items-center space-x-2 text-sm text-gray-600">
                 <Clock className="w-4 h-4" />
                 <span>{new Date().toLocaleDateString()}</span>
+                {isLoadingSchedulings && (
+                  <div className="flex flex-row">
+                    <div className=" animate-spin h-4 w-4 rounded-full border-blue-600 border-b-2 mr-2"></div>
+                    <span className="text-blue-600">Carregando</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -258,13 +182,20 @@ export default function SchedulingApp() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-2 lg:w-400">
             <TabsTrigger value="today" className="flex items-center space-x-2">
               <Calendar className="w-4 h-4" />
               <span>Agenda de Hoje</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="history"
+              className="flex items-center space-x-2"
+            >
               <History className="w-4 h-4" />
               <span>Histórico</span>
             </TabsTrigger>
@@ -272,7 +203,10 @@ export default function SchedulingApp() {
 
           <TabsContent value="today" className="space-y-6">
             {/* Calendar Navigation */}
-            <CalendarNavigation selectedDate={selectedDate} onDateChange={setSelectedDate} />
+            <CalendarNavigation
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+            />
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -281,7 +215,7 @@ export default function SchedulingApp() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                      {/* <p className="text-2xl font-bold text-gray-900">{stats.total}</p> */}
                     </div>
                     <Calendar className="w-8 h-8 text-gray-400" />
                   </div>
@@ -291,8 +225,10 @@ export default function SchedulingApp() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Pendentes</p>
-                      <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Pendentes
+                      </p>
+                      {/* <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p> */}
                     </div>
                     <Clock className="w-8 h-8 text-yellow-400" />
                   </div>
@@ -302,8 +238,10 @@ export default function SchedulingApp() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Atendidos</p>
-                      <p className="text-2xl font-bold text-green-600">{stats.attended}</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Atendidos
+                      </p>
+                      {/* <p className="text-2xl font-bold text-green-600">{stats.attended}</p> */}
                     </div>
                     <User className="w-8 h-8 text-green-400" />
                   </div>
@@ -313,8 +251,10 @@ export default function SchedulingApp() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Cancelados</p>
-                      <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Cancelados
+                      </p>
+                      {/* <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p> */}
                     </div>
                     <FileText className="w-8 h-8 text-red-400" />
                   </div>
@@ -333,7 +273,10 @@ export default function SchedulingApp() {
                   className="pl-10"
                 />
               </div>
-              <Button onClick={() => setIsNewAppointmentOpen(true)} className="flex items-center space-x-2">
+              <Button
+                onClick={() => setIsNewAppointmentOpen(true)}
+                className="flex items-center space-x-2"
+              >
                 <Plus className="w-4 h-4" />
                 <span>Novo Agendamento</span>
               </Button>
@@ -345,54 +288,28 @@ export default function SchedulingApp() {
                 <h2 className="text-lg font-semibold text-gray-900">
                   Agendamentos para {selectedDate.toLocaleDateString()}
                 </h2>
-                <Badge variant="outline" className="text-sm">
-                  {todaysAppointments.length} agendamentos
-                </Badge>
               </div>
-
-              {todaysAppointments.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum agendamento marcado</h3>
-                    <p className="text-gray-500 mb-4">
-                      {searchQuery
-                        ? "Nenhum agendamento encontrado para sua busca."
-                        : "Nenhum agendamento para esta data."}
-                    </p>
-                    <Button onClick={() => setIsNewAppointmentOpen(true)}>Agendar Novo Horário</Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-3">
-                  {todaysAppointments.map((appointment) => (
-                    <AppointmentCard
-                      key={appointment.id}
-                      appointment={appointment}
-                      onStatusUpdate={handleStatusUpdate}
-                    />
-                  ))}
-                </div>
-              )}
-              
             </div>
           </TabsContent>
 
           <TabsContent value="history">
-            <HistorySection appointments={appointments} />
+            <HistorySection schedulings={schedulings}
+            pagination={pagination}
+            handleGetAllSchedulings={handleGetAllSchedulings}
+            isLoadingSchedulings={isLoadingSchedulings}
+            />
           </TabsContent>
         </Tabs>
-        
       </div>
 
       {/* New Appointment Modal */}
-      <NewAppointmentModal
+      {/* <NewAppointmentModal
         isOpen={isNewAppointmentOpen}
         onClose={() => setIsNewAppointmentOpen(false)}
         onSubmit={handleAddAppointment}
         currentBarber={currentBarber}
         selectedDate={selectedDate}
-      />
+      /> */}
     </div>
-  )
+  );
 }

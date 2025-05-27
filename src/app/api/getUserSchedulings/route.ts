@@ -44,13 +44,13 @@ export async function POST(req: NextRequest) {
 
         // console.log(startDate, finalDate);
 
-        const [services, total] =  await Promise.all(
+        const [schedulings, total] =  await Promise.all(
           [
-            prisma.service.findMany({
+            prisma.scheduling.findMany({
               skip,
               take: limit,
               where: {
-                createdAt: {
+                date: {
                   gte: startDate,
                   lte: finalDate,
                 },
@@ -61,26 +61,22 @@ export async function POST(req: NextRequest) {
               },
               include: {
                 user: true,
-                paymentMethod: {
-                  include:{bankAccount:true}
-                },
                 customer: true,
-                transactions: true,
                 
               },
             }),
-            prisma.service.count({
+            prisma.scheduling.count({
               where: {
-                createdAt: {
+                date: {
                   gte: startDate,
                   lte: finalDate,
                 },
               },
             }),
           ]) 
-          if (services) {
+          if (schedulings) {
             return NextResponse.json(
-              { message: "Services", services,
+              { message: "schedulings", schedulings,
                 pagination: {
                   total,
                   page,
@@ -92,16 +88,16 @@ export async function POST(req: NextRequest) {
             );
         }else{
           return NextResponse.json(
-            { message: "No services found" },
+            { message: "No schedulings found" },
             { status: 200 }
           );
         }
       }else{
         // CASO NÃO TENHA DATA
 
-        const [services, total] = await Promise.all([
+        const [schedulings, total] = await Promise.all([
 
-          prisma.service.findMany({
+          prisma.scheduling.findMany({
             skip,
               take: limit,
            orderBy: {
@@ -109,20 +105,14 @@ export async function POST(req: NextRequest) {
            },
            include: {
              user: true,
-             paymentMethod: {
-               include:{bankAccount:true}
-             },
              customer: true,
-             transactions: true,
- 
-             
            },
          }),
-          prisma.service.count(),
+          prisma.scheduling.count(),
         ])
-        if (services) {
+        if (schedulings) {
           return NextResponse.json(
-            { message: "Services", services,
+            { message: "schedulings", schedulings,
               pagination: {
                 total,
                 page,
@@ -134,7 +124,7 @@ export async function POST(req: NextRequest) {
           );
         }else{
           return NextResponse.json(
-            { message: "No services found" },
+            { message: "No schedulings found" },
             { status: 200 }
           );
         }
@@ -153,15 +143,15 @@ export async function POST(req: NextRequest) {
         finalDate.setUTCHours(23, 59, 59, 999);
 
         // console.log(startDate, finalDate);
-        const [services, total] = await Promise.all([
+        const [schedulings, total] = await Promise.all([
 
-          prisma.service.findMany({
+          prisma.scheduling.findMany({
             skip,
               take: limit,
             where: {
               AND: [
                 {
-                  createdAt: {
+                  date: {
                     gte: startDate,
                     lte: finalDate,
                   },
@@ -174,20 +164,14 @@ export async function POST(req: NextRequest) {
             },
             include: {
               user: true,
-              paymentMethod: {
-                include:{bankAccount:true}
-              },
               customer: true,
-              transactions: true,
-  
-              
             },
           }),
-          prisma.service.count({
+          prisma.scheduling.count({
             where: {
               AND: [
                 {
-                  createdAt: {
+                  date: {
                     gte: startDate,
                     lte: finalDate,
                   },
@@ -198,9 +182,9 @@ export async function POST(req: NextRequest) {
           }),
         ]) 
 
-        if (services) {
+        if (schedulings) {
           return NextResponse.json(
-            { message: "Services", services,
+            { message: "schedulings", schedulings,
               pagination: {
                 total,
                 page,
@@ -212,15 +196,15 @@ export async function POST(req: NextRequest) {
           );
         }else{
           return NextResponse.json(
-            { message: "No services found" },
+            { message: "No schedulings found" },
             { status: 200 }
           );
         }
       }else{
 
-        const [services, total] = await Promise.all([
+        const [schedulings, total] = await Promise.all([
 
-          prisma.service.findMany({
+          prisma.scheduling.findMany({
             skip,
               take: limit,
            where: {
@@ -231,25 +215,19 @@ export async function POST(req: NextRequest) {
            },
            include: {
              user: true,
-             paymentMethod: {
-               include:{bankAccount:true}
-             },
              customer: true,
-             transactions: true,
- 
-             
            },
          }),
-          prisma.service.count({
+          prisma.scheduling.count({
             where: {
               userId: userId,
             },
           }),
         ])
 
-        if (services) {
+        if (schedulings) {
           return NextResponse.json(
-            { message: "Services", services,
+            { message: "schedulings", schedulings,
               pagination: {
                 total,
                 page,
@@ -261,7 +239,7 @@ export async function POST(req: NextRequest) {
           );
         }else{
           return NextResponse.json(
-            { message: "No services found" },
+            { message: "No schedulings found" },
             { status: 200 }
           );
         }
@@ -271,7 +249,7 @@ export async function POST(req: NextRequest) {
       
     }
   } catch (error) {
-    console.error("Error fetching services", error);
+    console.error("Error fetching schedulings", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

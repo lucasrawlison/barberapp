@@ -93,9 +93,10 @@ model PaymentMethod {
 }
 
 enum SchedulingStatus {
-  scheduled
-  attended
-  cancelled
+  pendente
+  atendido
+  cancelado
+  agendado
 }
 
 model Scheduling {
@@ -112,7 +113,7 @@ model Scheduling {
   customer      Customer?        @relation(fields: [customerId], references: [id])
   barbershopId  String?          @db.ObjectId
   barbershop    Barbershop?      @relation(fields: [barbershopId], references: [id])
-  status        SchedulingStatus @default(scheduled)
+  status        SchedulingStatus @default(agendado)
   wasAttended   Boolean          @default(false)
 }
 

@@ -1,60 +1,127 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Clock, User, Scissors, FileText, MoreHorizontal, Check, X, Edit } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState } from "react";
+import {
+  Clock,
+  User,
+  Scissors,
+  FileText,
+  MoreHorizontal,
+  Check,
+  X,
+  Edit,
+  Send,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import formatarTelefone from "@/app/app/utils/formatarTelefone";
+import Link from "next/link";
+interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
-interface Appointment {
-  id: string
-  time: string
-  clientName: string
-  phone?: string
-  service: string
-  barber: string
-  date: string
-  observation?: string
-  status: "pending" | "attended" | "cancelled"
+interface User {
+  name: string;
+}
+
+interface Type {
+  id: string;
+  name: string;
+  value: number;
+}
+
+interface Service {
+  id: string;
+  code: number;
+  value: number;
+  servicesValue: number;
+  discount: number;
+  createdAt: Date;
+  servicesTypes: Type[];
+  user: User;
+  paymentMethodId: string;
+  customerId: string;
+  customer: Customer;
+  // paymentMethod: PaymentMethod
+  // transactions: Transaction[];
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+interface Barbershop {
+  id: string;
+  name: string;
+}
+
+interface Scheduling {
+  id: string;
+  date: string;
+  time: string;
+  description?: string;
+  userId: string;
+  user: User;
+  servicesTypes: Type[];
+  service?: Service;
+  ServiceId?: string;
+  customer?: Customer;
+  customerId?: string;
+  barbershopId?: string;
+  barbershop?: Barbershop;
+  status: "pendente" | "atendido" | "cancelado" | "agendado";
+  wasAttended?: boolean;
 }
 
 interface AppointmentCardProps {
-  appointment: Appointment
-  onStatusUpdate: (id: string, status: "pending" | "attended" | "cancelled") => void
+  scheduling: Scheduling;
 }
 
-export function AppointmentCard({ appointment, onStatusUpdate }: AppointmentCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+export function AppointmentCard({ scheduling }: AppointmentCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "attended":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200"
+      case "pendente":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "atendido":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "cancelado":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "attended":
-        return <Check className="w-3 h-3" />
-      case "cancelled":
-        return <X className="w-3 h-3" />
+      case "atendido":
+        return <Check className="w-3 h-3" />;
+      case "cancelado":
+        return <X className="w-3 h-3" />;
       default:
-        return <Clock className="w-3 h-3" />
+        return <Clock className="w-3 h-3" />;
     }
-  }
+  };
 
   return (
     <Card
+      key={scheduling.id}
       className={`transition-all duration-200 hover:shadow-md ${
-        appointment.status === "cancelled" ? "opacity-75" : ""
+        scheduling.status === "cancelado" ? "opacity-75" : ""
       }`}
     >
       <CardContent className="p-4">
@@ -66,11 +133,12 @@ export function AppointmentCard({ appointment, onStatusUpdate }: AppointmentCard
                 <Clock className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="font-semibold text-gray-900">{appointment.time}</p>
+                <p className="font-semibold text-gray-900">{scheduling.time}</p>
                 <p className="text-xs text-gray-500">
-                  {new Date(`${appointment.date}T${appointment.time}`).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
+                  {new Date(`${scheduling.date}`).toLocaleString("pt-br", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
                   })}
                 </p>
               </div>
@@ -80,41 +148,44 @@ export function AppointmentCard({ appointment, onStatusUpdate }: AppointmentCard
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
                 <User className="w-4 h-4 text-gray-400" />
-                <p className="font-medium text-gray-900 truncate">{appointment.clientName}</p>
+                <p className="font-medium text-gray-900 truncate">
+                  {scheduling.customer?.name}
+                </p>
               </div>
               <div className="flex items-center space-x-2 mb-1">
-                <Scissors className="w-4 h-4 text-gray-400" />
-                <p className="text-sm text-gray-600 truncate">{appointment.service}</p>
+                {scheduling.servicesTypes?.map((type) => (
+                  <div key={type.id} className="flex gap-1">
+                    <Scissors className="w-4 h-4 text-gray-400" />
+                    <p className="text-sm text-gray-600 truncate">
+                      {type.name}
+                    </p>
+                  </div>
+                ))}
               </div>
-              {appointment.observation && (
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-gray-400" />
-                  <p className="text-sm text-gray-500 truncate">{appointment.observation}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Status */}
-            <div className="flex items-center space-x-3">
-              <Badge className={`${getStatusColor(appointment.status)} flex items-center space-x-1`}>
-                {getStatusIcon(appointment.status)}
-                <span className="capitalize">{appointment.status}</span>
-              </Badge>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-2 ml-4">
-            {appointment.status === "pending" && (
-              <Button
-                size="sm"
-                onClick={() => onStatusUpdate(appointment.id, "attended")}
-                className="bg-green-600 hover:bg-green-700"
+          <div className="grid items-center justify-items-center grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-2">
+              <Badge
+                className={`${getStatusColor(
+                  scheduling.status
+                )} hover:cursor-default hover:bg-black/15 flex items-center space-x-1 h-6 justify-center`}
               >
-                <Check className="w-4 h-4 mr-1" />
-                Marcar Atendido
-              </Button>
-            )}
+                {getStatusIcon(scheduling.status)}
+                <span className="capitalize">{scheduling.status}</span>
+              </Badge>
+
+            {scheduling.status === "pendente" ||
+              (scheduling.status === "agendado" && (
+                <Button
+                  size="sm"
+                  onClick={() => console.log("Mudar status")}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Check className="w-4 h-4 mr-1" />
+                  Marcar Atendido
+                </Button>
+              ))}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -127,23 +198,23 @@ export function AppointmentCard({ appointment, onStatusUpdate }: AppointmentCard
                   <Edit className="w-4 h-4 mr-2" />
                   Editar Agendamento
                 </DropdownMenuItem>
-                {appointment.status !== "attended" && (
-                  <DropdownMenuItem onClick={() => onStatusUpdate(appointment.id, "attended")}>
+                {scheduling.status !== "atendido" && (
+                  <DropdownMenuItem onClick={() => console.log("Mudar status")}>
                     <Check className="w-4 h-4 mr-2" />
                     Marcar como Atendido
                   </DropdownMenuItem>
                 )}
-                {appointment.status !== "cancelled" && (
+                {scheduling.status !== "atendido" && (
                   <DropdownMenuItem
-                    onClick={() => onStatusUpdate(appointment.id, "cancelled")}
+                    onClick={() => console.log("Mudar status")}
                     className="text-red-600"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Cancelar Agendamento
                   </DropdownMenuItem>
                 )}
-                {appointment.status !== "pending" && (
-                  <DropdownMenuItem onClick={() => onStatusUpdate(appointment.id, "pending")}>
+                {scheduling.status !== "pendente" && (
+                  <DropdownMenuItem onClick={() => console.log("Mudar status")}>
                     <Clock className="w-4 h-4 mr-2" />
                     Marcar como Pendente
                   </DropdownMenuItem>
@@ -154,14 +225,23 @@ export function AppointmentCard({ appointment, onStatusUpdate }: AppointmentCard
         </div>
 
         {/* Phone number (if expanded or always visible) */}
-        {appointment.phone && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
+        {scheduling.customer?.phone && (
+          <div className=" flex  gap-4  items-center mt-3 pt-3 border-t border-gray-100">
             <p className="text-sm text-gray-600">
-              <span className="font-medium">Telefone:</span> {appointment.phone}
+              <span className="font-medium">Telefone:</span>{" "}
+              {formatarTelefone(scheduling.customer?.phone)}
             </p>
+            <Link
+              target="_blank"
+              className=" group flex flex-row w-max gap-2 px-2 py-1.5 rounded-md items-center justify-center bg-green-700 text-green-200 text-center text-[10px]"
+              href={"http://wa.me/55" + scheduling.customer.phone}
+            >
+              Whatsapp
+              <Send className="group-hover:animate-bounce" size={10} />
+            </Link>
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

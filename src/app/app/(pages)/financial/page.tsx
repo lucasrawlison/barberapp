@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, DollarSign, Landmark, LoaderCircle, Radio, RotateCw } from "lucide-react";
+import { CreditCard, DollarSign, Landmark, LoaderCircle, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios, { isAxiosError } from "axios";
 import { useSession } from "next-auth/react";
@@ -11,8 +11,6 @@ import { Overview } from "./components/overview";
 import { useRouter } from "next/navigation";
 import { BanksInfo } from "./components/banksInfo";
 import { toast } from "@/hooks/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 
 interface Type {
   id: string
