@@ -95,19 +95,35 @@ export default function SchedulingApp() {
   const [schedulings, setSchedulings] = useState<Scheduling[] | undefined>(
     undefined
   );
+  const [daySchedulings, setDaySchedulings] = useState<Scheduling[]>([]);
   const [activeTab, setActiveTab] = useState("today");
   const { data: session } = useSession();
   const [isLoadingSchedulings, setIsLoadingSchedulings] = useState(false);
+  const [isLoadingDaySchedulings, setIsLoadingDaySchedulings] = useState(false);
   const [pagination, setPagination] = useState<Pagination>({
     total: 0,
     page: 1,
     limit: 10,
     totalPages: 0,
   });
+  const [newScheduling, setNewScheduling] = useState<Scheduling>({
+    id: "",
+    date: "",
+    time: "",
+    description: "",
+    userId: "",
+    user: {
+      name: "",
+    },
+    servicesTypes: [],
+    status: "agendado",
+    wasAttended: false,
+  });
+  const [selectedScheduling, setSelectedScheduling] = useState<
+    Scheduling | undefined
+  >(undefined);
 
-  const handleGetAllSchedulings = async (
-    pageNumber: number
-  ) => {
+  const handleGetAllSchedulings = async (pageNumber: number) => {
     setIsLoadingSchedulings(true);
     try {
       const response = await axios.post("/api/getUserSchedulings", {
@@ -121,7 +137,36 @@ export default function SchedulingApp() {
         setSchedulings(schedulings);
         setPagination(pagination);
         setIsLoadingSchedulings(false);
-        console.log(schedulings)
+        console.log(schedulings);
+      }
+    } catch (error) {
+      setIsLoadingSchedulings(false);
+
+      if (isAxiosError(error)) {
+        toast({
+          title: "Erro ao buscar agendamentos",
+          description:
+            error.response?.data?.message ||
+            "Ocorreu um erro ao buscar os agendamentos.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleGetSchedulingsByDay = async (date: Date) => {
+    setIsLoadingDaySchedulings(true);
+    try {
+      const response = await axios.post("/api/getUserSchedulings", {
+        userId: session?.user?.id,
+        date,
+      });
+
+      if (response.status === 200) {
+        const { schedulings, pagination } = response.data;
+        setDaySchedulings(schedulings);
+        setIsLoadingDaySchedulings(false);
+        console.log(schedulings);
       }
     } catch (error) {
       setIsLoadingSchedulings(false);
@@ -147,7 +192,12 @@ export default function SchedulingApp() {
   useEffect(() => {
     console.log("Selected Date Changed:", selectedDate);
     console.log(new Date());
+    handleGetSchedulingsByDay(selectedDate);
   }, [selectedDate]);
+
+  useEffect(()=>{
+    console.log(newScheduling)
+  },[newScheduling])
 
   return (
     <div className="overflow-auto bg-gray-50">
@@ -209,13 +259,15 @@ export default function SchedulingApp() {
             />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total</p>
-                      {/* <p className="text-2xl font-bold text-gray-900">{stats.total}</p> */}
+                      <p className="text-2xl font-bold text-gray-900">
+                        {daySchedulings.length}
+                      </p>
                     </div>
                     <Calendar className="w-8 h-8 text-gray-400" />
                   </div>
@@ -226,9 +278,17 @@ export default function SchedulingApp() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">
-                        Pendentes
+                        Agendados/Pendentes
                       </p>
-                      {/* <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p> */}
+                      <p className="text-2xl font-bold text-yellow-600">
+                        {
+                          daySchedulings.filter(
+                            (scheduling) =>
+                              scheduling.status === "pendente" ||
+                              scheduling.status === "agendado"
+                          ).length
+                        }
+                      </p>
                     </div>
                     <Clock className="w-8 h-8 text-yellow-400" />
                   </div>
@@ -241,7 +301,13 @@ export default function SchedulingApp() {
                       <p className="text-sm font-medium text-gray-600">
                         Atendidos
                       </p>
-                      {/* <p className="text-2xl font-bold text-green-600">{stats.attended}</p> */}
+                      <p className="text-2xl font-bold text-green-600">
+                        {
+                          daySchedulings.filter(
+                            (scheduling) => scheduling.status === "atendido"
+                          ).length
+                        }
+                      </p>
                     </div>
                     <User className="w-8 h-8 text-green-400" />
                   </div>
@@ -254,7 +320,13 @@ export default function SchedulingApp() {
                       <p className="text-sm font-medium text-gray-600">
                         Cancelados
                       </p>
-                      {/* <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p> */}
+                      <p className="text-2xl font-bold text-red-600">
+                        {
+                          daySchedulings.filter(
+                            (scheduling) => scheduling.status === "cancelado"
+                          ).length
+                        }
+                      </p>
                     </div>
                     <FileText className="w-8 h-8 text-red-400" />
                   </div>
@@ -263,8 +335,8 @@ export default function SchedulingApp() {
             </div>
 
             {/* Search Bar */}
-            <div className="flex items-center space-x-4">
-              <div className="relative flex-1 max-w-md">
+            <div className="flex flex-wrap-reverse flex-col-reverse sm:justify-between w-full sm:flex-row gap-2 sm:gap-2 items-center">
+              <div className="w-full relative sm:max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   placeholder="Buscar por cliente, serviço ou horário..."
@@ -275,7 +347,7 @@ export default function SchedulingApp() {
               </div>
               <Button
                 onClick={() => setIsNewAppointmentOpen(true)}
-                className="flex items-center space-x-2"
+                className="w-full sm:w-[180px] flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
                 <span>Novo Agendamento</span>
@@ -290,26 +362,67 @@ export default function SchedulingApp() {
                 </h2>
               </div>
             </div>
+            {isLoadingDaySchedulings ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Carregando agendamentos...
+                  </h3>
+                  <p className="text-gray-500">
+                    Aguarde enquanto buscamos os dados.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : daySchedulings.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Nenhum agendamento encontrado
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    {searchQuery
+                      ? "Nenhum agendamento encontrado para sua busca."
+                      : "Nenhum agendamento para esta data."}
+                  </p>
+                  <Button onClick={() => setIsNewAppointmentOpen(true)}>
+                    Agendar Novo Horário
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {daySchedulings.map((scheduling) => (
+                  <AppointmentCard
+                    key={scheduling.id}
+                    scheduling={scheduling}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="history">
-            <HistorySection schedulings={schedulings}
-            pagination={pagination}
-            handleGetAllSchedulings={handleGetAllSchedulings}
-            isLoadingSchedulings={isLoadingSchedulings}
+            <HistorySection
+              schedulings={schedulings}
+              pagination={pagination}
+              handleGetAllSchedulings={handleGetAllSchedulings}
+              isLoadingSchedulings={isLoadingSchedulings}
             />
           </TabsContent>
         </Tabs>
       </div>
 
       {/* New Appointment Modal */}
-      {/* <NewAppointmentModal
+      <NewAppointmentModal
+        setNewScheduling={setNewScheduling}
+        selectedScheduling={selectedScheduling}
+        newScheduling={newScheduling}
         isOpen={isNewAppointmentOpen}
         onClose={() => setIsNewAppointmentOpen(false)}
-        onSubmit={handleAddAppointment}
-        currentBarber={currentBarber}
         selectedDate={selectedDate}
-      /> */}
+      />
     </div>
   );
 }

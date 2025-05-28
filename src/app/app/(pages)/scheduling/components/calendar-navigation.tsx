@@ -51,11 +51,11 @@ export function CalendarNavigation({ selectedDate, onDateChange }: CalendarNavig
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="gap-2 sm:gap-0 flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
               <Calendar className="w-5 h-5" />
-              <span>
+              <span className="text-xs sm:text-lg">
                 {selectedDate.toLocaleDateString("pt-BR", {
                   weekday: "long",
                   year: "numeric",
@@ -65,7 +65,7 @@ export function CalendarNavigation({ selectedDate, onDateChange }: CalendarNavig
               </span>
             </h3>
             {!isToday && (
-              <Button variant="outline" size="sm" onClick={goToToday}>
+              <Button className="" variant="outline" size="sm" onClick={goToToday}>
                 Ir para Hoje
               </Button>
             )}
@@ -99,9 +99,9 @@ export function CalendarNavigation({ selectedDate, onDateChange }: CalendarNavig
                       : "hover:bg-gray-100 text-gray-700"
                 }`}
               >
-                <div className="text-xs font-medium">{date.toLocaleDateString("pt-BR", { weekday: "short" })}</div>
+                <div className="text-[9px] sm:text-xs">{date.toLocaleDateString("pt-BR", { weekday: "short" })}</div>
                 <div
-                  className={`text-lg font-semibold ${
+                  className={`text-xs sm:text-lg font-semibold ${
                     isSelected ? "text-white" : isCurrentDay ? "text-blue-600" : "text-gray-900"
                   }`}
                 >

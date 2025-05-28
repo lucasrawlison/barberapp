@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model AuditInfo {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  services     Service[]
+  users        User[]
+  bankAccounts BankAccount[]
+  schedulings  Scheduling[]
+  transactions Transactions[]
+}
+
 model ServicesTypes {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
   name  String
@@ -46,6 +60,8 @@ model Service {
   scheduling      Scheduling[]
   barbershopId    String?        @db.ObjectId
   barbershop      Barbershop?    @relation(fields: [barbershopId], references: [id])
+  auditInfoId     String?        @db.ObjectId
+  auditInfo       AuditInfo?     @relation(fields: [auditInfoId], references: [id])
 }
 
 model User {
@@ -59,7 +75,6 @@ model User {
   login          String         @unique
   name           String
   password       String
-  /// Could not determine type: the field only had null or empty values in the sample set.
   profileImgLink String?
   services       Service[]
   profileType    String         @default("admin")
@@ -67,6 +82,8 @@ model User {
   scheduling     Scheduling[]
   barbershopId   String?        @db.ObjectId
   barbershop     Barbershop?    @relation(fields: [barbershopId], references: [id])
+  auditInfoId    String?        @db.ObjectId
+  auditInfo      AuditInfo?     @relation(fields: [auditInfoId], references: [id])
 }
 
 model BankAccount {
@@ -81,6 +98,8 @@ model BankAccount {
   transactions   Transactions[]
   barbershopId   String?         @db.ObjectId
   barbershop     Barbershop?     @relation(fields: [barbershopId], references: [id])
+  auditInfoId    String?         @db.ObjectId
+  auditInfo      AuditInfo?      @relation(fields: [auditInfoId], references: [id])
 }
 
 model PaymentMethod {
@@ -115,6 +134,8 @@ model Scheduling {
   barbershop    Barbershop?      @relation(fields: [barbershopId], references: [id])
   status        SchedulingStatus @default(agendado)
   wasAttended   Boolean          @default(false)
+  auditInfoId   String?          @db.ObjectId
+  auditInfo     AuditInfo?       @relation(fields: [auditInfoId], references: [id])
 }
 
 model Transactions {
@@ -132,6 +153,8 @@ model Transactions {
   user            User          @relation(fields: [userId], references: [id])
   bankAccountId   String?       @db.ObjectId
   bankAccount     BankAccount?  @relation(fields: [bankAccountId], references: [id])
+  auditInfoId     String?       @db.ObjectId
+  auditInfo       AuditInfo?    @relation(fields: [auditInfoId], references: [id])
 }
 
 model Customer {

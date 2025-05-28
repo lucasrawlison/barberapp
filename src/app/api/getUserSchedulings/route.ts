@@ -44,11 +44,11 @@ export async function POST(req: NextRequest) {
 
         // console.log(startDate, finalDate);
 
-        const [schedulings, total] =  await Promise.all(
+        const [schedulings, /*total*/] =  await Promise.all(
           [
             prisma.scheduling.findMany({
-              skip,
-              take: limit,
+              // skip,
+              // take: limit,
               where: {
                 date: {
                   gte: startDate,
@@ -65,24 +65,24 @@ export async function POST(req: NextRequest) {
                 
               },
             }),
-            prisma.scheduling.count({
-              where: {
-                date: {
-                  gte: startDate,
-                  lte: finalDate,
-                },
-              },
-            }),
+            // prisma.scheduling.count({
+            //   where: {
+            //     date: {
+            //       gte: startDate,
+            //       lte: finalDate,
+            //     },
+            //   },
+            // }),
           ]) 
           if (schedulings) {
             return NextResponse.json(
               { message: "schedulings", schedulings,
-                pagination: {
-                  total,
-                  page,
-                  limit,
-                  totalPages: Math.ceil(total / limit),
-                },
+                // pagination: {
+                //   total,
+                //   page,
+                //   limit,
+                //   totalPages: Math.ceil(total / limit),
+                // },
                },
               { status: 200 }
             );
@@ -143,11 +143,11 @@ export async function POST(req: NextRequest) {
         finalDate.setUTCHours(23, 59, 59, 999);
 
         // console.log(startDate, finalDate);
-        const [schedulings, total] = await Promise.all([
+        const [schedulings, /*total*/] = await Promise.all([
 
           prisma.scheduling.findMany({
-            skip,
-              take: limit,
+            // skip,
+            //   take: limit,
             where: {
               AND: [
                 {
@@ -167,30 +167,30 @@ export async function POST(req: NextRequest) {
               customer: true,
             },
           }),
-          prisma.scheduling.count({
-            where: {
-              AND: [
-                {
-                  date: {
-                    gte: startDate,
-                    lte: finalDate,
-                  },
-                },
-                { userId: userId },
-              ],
-            },
-          }),
+          // prisma.scheduling.count({
+          //   where: {
+          //     AND: [
+          //       {
+          //         date: {
+          //           gte: startDate,
+          //           lte: finalDate,
+          //         },
+          //       },
+          //       { userId: userId },
+          //     ],
+          //   },
+          // }),
         ]) 
 
         if (schedulings) {
           return NextResponse.json(
             { message: "schedulings", schedulings,
-              pagination: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit),
-              },
+              // pagination: {
+              //   total,
+              //   page,
+              //   limit,
+              //   totalPages: Math.ceil(total / limit),
+              // },
              },
             { status: 200 }
           );
