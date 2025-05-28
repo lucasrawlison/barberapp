@@ -91,8 +91,6 @@ interface AppointmentCardProps {
 }
 
 export function AppointmentCard({ scheduling }: AppointmentCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pendente":
@@ -125,8 +123,8 @@ export function AppointmentCard({ scheduling }: AppointmentCardProps) {
       }`}
     >
       <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 flex-1">
+        <div className="flex flex-col sm:flex-row items-center justify-between">
+          <div className="w-full mb-4 sm:mb-0 sm:w-max flex items-center space-x-4 flex-1">
             {/* Time */}
             <div className="flex items-center space-x-2 min-w-0">
               <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
@@ -143,9 +141,9 @@ export function AppointmentCard({ scheduling }: AppointmentCardProps) {
                 </p>
               </div>
             </div>
-
+                  
             {/* Client Info */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 ">
               <div className="flex items-center space-x-2 mb-1">
                 <User className="w-4 h-4 text-gray-400" />
                 <p className="font-medium text-gray-900 truncate">
@@ -165,15 +163,15 @@ export function AppointmentCard({ scheduling }: AppointmentCardProps) {
             </div>
           </div>
 
-          <div className="grid items-center justify-items-center grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-2">
-              <Badge
-                className={`${getStatusColor(
-                  scheduling.status
-                )} hover:cursor-default hover:bg-black/15 flex items-center space-x-1 h-6 justify-center`}
-              >
-                {getStatusIcon(scheduling.status)}
-                <span className="capitalize">{scheduling.status}</span>
-              </Badge>
+          <div className=" w-full sm:w-max grid items-center justify-items-end sm:justify-items-end grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-flow-col gap-1 lg:gap-2">
+            <Badge
+              className={`${getStatusColor(
+                scheduling.status
+              )} hover:cursor-default hover:bg-black/15 flex items-center space-x-1 h-6 justify-center`}
+            >
+              {getStatusIcon(scheduling.status)}
+              <span className="capitalize">{scheduling.status}</span>
+            </Badge>
 
             {scheduling.status === "pendente" ||
               (scheduling.status === "agendado" && (
@@ -188,7 +186,7 @@ export function AppointmentCard({ scheduling }: AppointmentCardProps) {
               ))}
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild className="w-10">
                 <Button variant="outline" size="sm">
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
