@@ -88,9 +88,12 @@ interface Scheduling {
 
 interface AppointmentCardProps {
   scheduling: Scheduling;
+  setSelectedScheduling: (value:Scheduling)=>void
 }
 
-export function AppointmentCard({ scheduling }: AppointmentCardProps) {
+export function AppointmentCard({ scheduling,
+  setSelectedScheduling
+ }: AppointmentCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pendente":
@@ -192,27 +195,28 @@ export function AppointmentCard({ scheduling }: AppointmentCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem className="hover:cursor-pointer">
                   <Edit className="w-4 h-4 mr-2" />
                   Editar Agendamento
                 </DropdownMenuItem>
                 {scheduling.status !== "atendido" && (
-                  <DropdownMenuItem onClick={() => console.log("Mudar status")}>
+                  <DropdownMenuItem className="hover:cursor-pointer" onClick={() => console.log("Mudar status")}>
                     <Check className="w-4 h-4 mr-2" />
                     Marcar como Atendido
                   </DropdownMenuItem>
                 )}
                 {scheduling.status !== "atendido" && (
                   <DropdownMenuItem
+                  
                     onClick={() => console.log("Mudar status")}
-                    className="text-red-600"
+                    className="text-red-600 hover:cursor-pointer"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Cancelar Agendamento
                   </DropdownMenuItem>
                 )}
                 {scheduling.status !== "pendente" && (
-                  <DropdownMenuItem onClick={() => console.log("Mudar status")}>
+                  <DropdownMenuItem className="hover:cursor-pointer" onClick={() => console.log("Mudar status")}>
                     <Clock className="w-4 h-4 mr-2" />
                     Marcar como Pendente
                   </DropdownMenuItem>

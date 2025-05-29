@@ -395,6 +395,7 @@ export default function SchedulingApp() {
               <div className="space-y-3">
                 {daySchedulings.map((scheduling) => (
                   <AppointmentCard
+                  setSelectedScheduling={setSelectedScheduling}
                     key={scheduling.id}
                     scheduling={scheduling}
                   />
