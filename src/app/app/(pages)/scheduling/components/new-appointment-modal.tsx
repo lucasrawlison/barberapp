@@ -3,7 +3,21 @@
 import type React from "react";
 import { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
-import { Calendar, Clock, User, Phone, Scissors, FileText } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  User,
+  Phone,
+  Scissors,
+  FileText,
+  UsersIcon,
+  ChevronsLeft,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsRight,
+  Minus,
+  Plus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,9 +32,24 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
+import axios, { isAxiosError } from "axios";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import AddClient from "./addClient";
+import { toast } from "@/hooks/use-toast";
+import formatarEmReal from "@/app/app/utils/formatarEmReal";
 
 interface Pagination {
   total: number;
@@ -93,6 +122,7 @@ interface NewAppointmentModalProps {
   selectedDate: Date;
   newScheduling: Scheduling;
   selectedScheduling: Scheduling | undefined;
+  setSelectedScheduling: Dispatch<SetStateAction<Scheduling | undefined>>;
   setNewScheduling: Dispatch<SetStateAction<Scheduling>>;
 }
 
@@ -102,14 +132,171 @@ export function NewAppointmentModal({
   newScheduling,
   selectedScheduling,
   setNewScheduling,
+  setSelectedScheduling,
 }: NewAppointmentModalProps) {
+  const handleChange = (name: string, value: any) => {
+    setNewScheduling((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  const [isCustomerOpen, setIsCustomerOpen] = useState(false);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerPagination, setCustomerPagination] = useState<Pagination>({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  });
+  const [isloadingTypes, setIsloadingTypes] = useState(false);
+  const [servicesTypes, setServicesTypes] = useState<Type[]>([]);
 
- const handleChange = (name: string, value: any) => {
-  setNewScheduling(prev => ({
-    ...prev,
-    [name]: value,
-  }))
- }
+  const handleGetCustomer = async (pageNumber: number) => {
+    setIsLoadingCustomers(true);
+    try {
+      const response = await axios.get("/api/getCustomers", {
+        params: {
+          page: pageNumber,
+          limit: 10,
+        },
+      });
+      if (response.status === 200) {
+        console.log(response.data.customers);
+        setCustomerPagination(response.data.pagination);
+        setCustomers(response.data.customers);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoadingCustomers(false);
+    }
+  };
+
+  const handleSetChosedCustomer = (customer: Customer | undefined) => {
+    if (selectedScheduling) {
+      setSelectedScheduling({
+        ...selectedScheduling,
+        customer: customer || undefined,
+        customerId: customer?.id || "",
+      });
+    }
+
+    if (newScheduling) {
+      setNewScheduling({
+        ...newScheduling,
+        customer: customer || undefined,
+        customerId: customer?.id || "",
+      });
+    }
+  };
+
+  const getServicesTypes = async () => {
+    try {
+      setIsloadingTypes(true);
+      const response = await axios.post("/api/getServicesTypes");
+      if (response.status === 200) {
+        const { servicesTypes } = response.data;
+        setServicesTypes(servicesTypes);
+        setIsloadingTypes(false);
+      }
+    } catch (error) {
+      if (isAxiosError(error)) {
+        toast({
+          title: "Erro",
+          description: error.response?.data.message,
+          duration: 5000,
+        });
+        console.log(error);
+        setIsloadingTypes(false);
+      }
+    }
+  };
+
+  const handleAddSelect = () => {
+    if (selectedScheduling) {
+      const currentServiceTypes = selectedScheduling.servicesTypes;
+      currentServiceTypes?.push({
+        id: "",
+        name: "Selecione",
+        value: 0,
+      });
+      setSelectedScheduling({
+        ...selectedScheduling,
+        servicesTypes: currentServiceTypes,
+      });
+      return;
+    }
+
+    if (newScheduling) {
+      const currentServiceTypes = newScheduling.servicesTypes;
+      currentServiceTypes?.push({
+        id: "",
+        name: "Selecione",
+        value: 0,
+      });
+      setSelectedScheduling({
+        ...newScheduling,
+        servicesTypes: currentServiceTypes,
+      });
+    }
+  };
+
+  const handelRemoveSelect = (i: number) => {
+    if (
+      newScheduling.servicesTypes.length === 1 ||
+      selectedScheduling?.servicesTypes.length === 1
+    ) {
+      toast({
+        title: "Atenção!",
+        description: "É necessário selecionar ao menos um serviço",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (selectedScheduling) {
+      const selects = selectedScheduling.servicesTypes;
+      const updatedSelects = selects?.filter((_, index) => index !== i);
+      setSelectedScheduling({
+        ...selectedScheduling,
+        servicesTypes: updatedSelects,
+      });
+    }
+    const updatedSelects = newScheduling.servicesTypes.filter(
+      (_, index) => index !== i
+    );
+    setNewScheduling({ ...newScheduling, servicesTypes: updatedSelects });
+  };
+
+  const handleChangeSelect = (index: number, serviceId: string) => {
+    // console.log(index, serviceId);
+    // Encontrar o objeto completo do serviço selecionado
+    const selectedService = servicesTypes.find((s) => s.id === serviceId);
+
+    if (selectedService) {
+      if (selectedScheduling) {
+        const updatedServices = selectedScheduling.servicesTypes;
+        updatedServices[index] = selectedService;
+        setSelectedScheduling({
+          ...selectedScheduling,
+          servicesTypes: updatedServices,
+        });
+      }
+    }
+
+    if (newScheduling) {
+      const updatedServices = newScheduling.servicesTypes;
+      if (selectedService) {
+        updatedServices[index] = selectedService;
+        setNewScheduling({
+          ...newScheduling,
+          servicesTypes: updatedServices,
+        });
+      }
+    }
+  };
 
   if (selectedScheduling) {
     // <Dialog open={isOpen} onOpenChange={onClose}>
@@ -120,7 +307,6 @@ export function NewAppointmentModal({
     //         <span>Agendamento</span>
     //       </DialogTitle>
     //     </DialogHeader>
-
     //     {/* Client Name */}
     //     <div className="space-y-2">
     //       <Label htmlFor="clientName" className="flex items-center space-x-2">
@@ -135,7 +321,6 @@ export function NewAppointmentModal({
     //         required
     //       />
     //     </div>
-
     //     {/* Phone */}
     //     <div className="space-y-2">
     //       <Label htmlFor="phone" className="flex items-center space-x-2">
@@ -150,7 +335,6 @@ export function NewAppointmentModal({
     //         placeholder="+1 (555) 123-4567"
     //       />
     //     </div>
-
     //     {/* Service */}
     //     <div className="space-y-2">
     //       <Label className="flex items-center space-x-2">
@@ -167,7 +351,6 @@ export function NewAppointmentModal({
     //         <SelectContent></SelectContent>
     //       </Select>
     //     </div>
-
     //     {/* Date and Time */}
     //     <div className="grid grid-cols-2 gap-4">
     //       <div className="space-y-2">
@@ -196,7 +379,6 @@ export function NewAppointmentModal({
     //         </Select>
     //       </div>
     //     </div>
-
     //     {/* Barber */}
     //     <div className="space-y-2">
     //       <Label>Barbeiro</Label>
@@ -206,7 +388,6 @@ export function NewAppointmentModal({
     //       // placeholder="Nome do barbeiro"
     //       />
     //     </div>
-
     //     {/* Observation */}
     //     <div className="space-y-2">
     //       <Label htmlFor="observation" className="flex items-center space-x-2">
@@ -221,7 +402,6 @@ export function NewAppointmentModal({
     //         rows={3}
     //       />
     //     </div>
-
     //     {/* Actions */}
     //     <div className="flex justify-end space-x-3 pt-4">
     //       <Button type="button" variant="outline" onClick={onClose}>
@@ -243,42 +423,182 @@ export function NewAppointmentModal({
           </DialogHeader>
 
           {/* Client Name */}
-          <div className="space-y-2">
-            <Label htmlFor="clientName" className="flex items-center space-x-2">
-              <User className="w-4 h-4" />
-              <span>Nome do Cliente *</span>
-            </Label>
+          <Label>Cliente:</Label>
+          <div className="w-full gap-3   flex flex-row justify-center items-center">
             <Input
-              id="clientName"
-              placeholder="Digite o nome do cliente"
-              required
+              value={newScheduling.customer?.name || ""}
+              name="user"
+              id="user"
+              type="text"
+              disabled
+              placeholder={
+                newScheduling.customer?.name || "Selecione um cliente"
+              }
+              className="hover:cursor-default text-xs"
+            />
+            <Dialog
+              open={isCustomerOpen}
+              onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}
+            >
+              <DialogTrigger
+                onClick={() => handleGetCustomer(customerPagination.page)}
+                asChild
+              >
+                <Button className="hover: cursor-pointer">
+                  <UsersIcon />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="h-[550px] flex flex-col gap-4">
+                <DialogHeader>
+                  <DialogTitle>Selecione um cliente</DialogTitle>
+                  <DialogDescription>
+                    Escolha um cliente para registrar o serviço
+                  </DialogDescription>
+                </DialogHeader>
+
+                <Input placeholder="Buscar" className="w-full"></Input>
+                <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
+                  {isLoadingCustomers && (
+                    <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                      <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                    </div>
+                  )}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-black">Nome</TableHead>
+                        <TableHead className="text-center text-black">
+                          Contato
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {customers &&
+                        customers.map((customer) => (
+                          <TableRow
+                            className="hover:cursor-pointer"
+                            key={customer.id}
+                            onClick={() => {
+                              handleSetChosedCustomer(customer);
+                              setIsCustomerOpen(false);
+                            }}
+                          >
+                            <TableCell className="text-sm text-gray-600">
+                              {customer.name}
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600 text-center">
+                              {customer.phone}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <DialogFooter>
+                  <div className="flex items-center justify-center space-x-2 w-full">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleGetCustomer(1)}
+                      disabled={customerPagination.page === 1}
+                    >
+                      <ChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        handleGetCustomer(customerPagination.page - 1)
+                      }
+                      disabled={customerPagination.page === 1}
+                    >
+                      <ChevronLeftIcon className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-medium">
+                      Página {customerPagination.page} de{" "}
+                      {customerPagination.totalPages || 1}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        handleGetCustomer(customerPagination.page + 1)
+                      }
+                      disabled={
+                        customerPagination.page ===
+                          customerPagination.totalPages ||
+                        customerPagination.totalPages === 0
+                      }
+                    >
+                      <ChevronRightIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        handleGetCustomer(customerPagination.totalPages)
+                      }
+                      disabled={
+                        customerPagination.page ===
+                          customerPagination.totalPages ||
+                        customerPagination.totalPages === 0
+                      }
+                    >
+                      <ChevronsRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <AddClient
+              // handleGetCustomers={}
+              // pagination={}
+              setChosedCustomer={handleSetChosedCustomer}
             />
           </div>
 
-          {/* Phone */}
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="flex items-center space-x-2">
-              <Phone className="w-4 h-4" />
-              <span>Telefone (Opcional)</span>
-            </Label>
-            
-          </div>
-
           {/* Service */}
-          <div className="space-y-2">
-            <Label className="flex items-center space-x-2">
-              <Scissors className="w-4 h-4" />
-              <span>Serviço *</span>
-            </Label>
-            <Select
-            // value={formData.service}
-            // onValueChange={(value) => handleChange("service", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um serviço" />
-              </SelectTrigger>
-              <SelectContent></SelectContent>
-            </Select>
+          <Label>Serviço</Label>
+          {newScheduling.servicesTypes.map((select, i) => (
+            <div key={i} className="w-full flex flex-row items-center gap-3">
+              <Select
+                value={select.id}
+                onValueChange={(value) => handleChangeSelect(i, value)}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      select.name + " - " + formatarEmReal(select.value)
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {servicesTypes.map((serviceType) => (
+                    <SelectItem
+                      className="hover:cursor-pointer"
+                      key={serviceType.id}
+                      value={serviceType.id}
+                    >
+                      {serviceType.name +
+                        " - " +
+                        formatarEmReal(serviceType.value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                className="rounded-full size-7 bg-red-700"
+                onClick={() => handelRemoveSelect(i)}
+              >
+                <Minus></Minus>
+              </Button>
+            </div>
+          ))}
+          <div className="flex w-full justify-center mb-8">
+            <Button className="rounded-full size-8" onClick={handleAddSelect}>
+              <Plus />
+            </Button>
           </div>
 
           {/* Date and Time */}
@@ -294,14 +614,8 @@ export function NewAppointmentModal({
               />
             </div>
             <div className="space-y-2">
-              <Label className="flex items-center space-x-2">
-                <Clock className="w-4 h-4" />
-                <span>Horário *</span>
-              </Label>
-              <Select
-              // value={formData.time}
-              // onValueChange={(value) => handleChange("time", value)}
-              >
+              <Label htmlFor="date">Horário *</Label>
+              <Select>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o horário" />
                 </SelectTrigger>
