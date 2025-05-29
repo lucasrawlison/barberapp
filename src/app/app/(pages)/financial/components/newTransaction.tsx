@@ -17,7 +17,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, ChevronLeftIcon, ChevronRightIcon, ChevronsLeft, ChevronsRight, LoaderCircle, Minus, Plus, User, UserSearch, UsersIcon } from "lucide-react";
+import {
+  Check,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeft,
+  ChevronsRight,
+  LoaderCircle,
+  Minus,
+  Plus,
+  User,
+  UserSearch,
+  UsersIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ValueInput from "./valueInput";
 import axios, { isAxiosError } from "axios";
@@ -31,15 +43,32 @@ import {
 } from "@/components/ui/card";
 import Image from "next/image";
 import { toast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import DiscountInput from "./discountInput";
 import AddClient from "./addClient";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Type {
-  id: string
-  name: string
-  value: number
+  id: string;
+  name: string;
+  value: number;
 }
 interface Service {
   id: string;
@@ -52,16 +81,16 @@ interface Service {
   servicesTypes: Type[];
   userId: string;
   user: User | undefined;
-  paymentMethodId: string
+  paymentMethodId: string;
   customerId: string;
-  paymentMethod: PaymentMethod | null
+  paymentMethod: PaymentMethod | null;
   transactions: Transaction[];
 }
 
 interface Transaction {
   id: string;
   description: string;
-  service: Service | null
+  service: Service | null;
   value: number;
   date: string;
   type: string;
@@ -113,16 +142,13 @@ interface Customer {
   email: string;
   phone: string;
   code: string;
-
 }
 interface Pagination {
-
-  total: number
-  page: number
-  limit: number
-  totalPages: number
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
-  
 
 interface NewTransactionProps {
   newTransaction: Transaction | undefined;
@@ -138,8 +164,8 @@ interface NewTransactionProps {
   };
   selectedTransaction: Transaction | undefined;
   setSelectedTransaction: (value: Transaction | undefined) => void;
-  fetchMonthTransactions: ()=> void,
-  fetchChartsData: () => void,
+  fetchMonthTransactions: () => void;
+  fetchChartsData: () => void;
 }
 
 export function NewTransaction({
@@ -172,8 +198,8 @@ export function NewTransaction({
   const [servicesTotalValue, setServicesTotalValue] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false)
-  const [customers, setCustomers] = useState<Customer[]>([])
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerPagination, setCustomerPagination] = useState<Pagination>({
     total: 0,
     page: 1,
@@ -181,10 +207,8 @@ export function NewTransaction({
     totalPages: 0,
   });
 
-  
-
   const eraseData = () => {
-    if(isModalOpen){
+    if (isModalOpen) {
       setCustomerPagination({
         total: 0,
         page: 1,
@@ -193,38 +217,35 @@ export function NewTransaction({
       });
       setIsModalOpen(!isModalOpen);
       setSelectedTransaction(undefined);
-      setNewTransaction(
-        {
+      setNewTransaction({
+        id: "",
+        description: "",
+        value: 0,
+        date: "",
+        type: "",
+        category: "",
+        paymentMethodId: "",
+        paymentMethod: {
           id: "",
-          description: "",
-          value: 0,
-          date: "",
-          type: "",
-          category: "",
-          paymentMethodId: "",
-          paymentMethod: {
+          name: "",
+          bankAccount: {
             id: "",
-            name: "",
-            bankAccount: {
-              id: "",
-              bankName: "",
-              initialValue: 0,
-              agency: "",
-              accountNumber: "",
-              accountType: "",
-              accountOwner: "",
-              transactions: [],
-              paymentMethods: [],
-            },
-            bankId: "",
+            bankName: "",
+            initialValue: 0,
+            agency: "",
+            accountNumber: "",
+            accountType: "",
+            accountOwner: "",
             transactions: [],
-            
+            paymentMethods: [],
           },
-          userId: "",
-          user: null,
-service: null
-        }
-      );
+          bankId: "",
+          transactions: [],
+        },
+        userId: "",
+        user: null,
+        service: null,
+      });
       setSelects([
         {
           id: "",
@@ -232,9 +253,8 @@ service: null
           value: 0,
         },
       ]);
-      setIsSaved(false)
-      setSelectedUser(null)
-      
+      setIsSaved(false);
+      setSelectedUser(null);
     }
   };
 
@@ -260,36 +280,35 @@ service: null
       });
     }
 
-    if(newTransaction){
-
+    if (newTransaction) {
       setSelects((prev) => [...prev, { id: "", name: "Selecione", value: 0 }]);
     }
   };
 
   const handelRemoveSelect = (i: number) => {
-    if(selects.length === 1 || selectedTransaction?.service?.servicesTypes.length === 1){
+    if (
+      selects.length === 1 ||
+      selectedTransaction?.service?.servicesTypes.length === 1
+    ) {
       toast({
         title: "Atenção!",
         description: "É necessário selecionar ao menos um serviço",
-        variant:"destructive",
-        duration: 3000
-
-      })
-      return
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
     }
 
-
-    if(selectedTransaction?.service){
-      const selects = selectedTransaction.service?.servicesTypes
-      const updatedSelects = selects?.filter((_,index) => index !== i)
-      setSelectedTransaction(
-        {...selectedTransaction,
-          service: {
-            ...selectedTransaction.service,
-            servicesTypes: updatedSelects
-          }
-        }
-      )
+    if (selectedTransaction?.service) {
+      const selects = selectedTransaction.service?.servicesTypes;
+      const updatedSelects = selects?.filter((_, index) => index !== i);
+      setSelectedTransaction({
+        ...selectedTransaction,
+        service: {
+          ...selectedTransaction.service,
+          servicesTypes: updatedSelects,
+        },
+      });
     }
     setSelects((prev) => prev.filter((_, index) => index !== i));
   };
@@ -321,8 +340,7 @@ service: null
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if(selectedTransaction){
-
+    if (selectedTransaction) {
       const { name, value } = e.target;
       setSelectedTransaction({
         ...selectedTransaction,
@@ -332,8 +350,7 @@ service: null
             : value,
       });
     }
-    if(newTransaction){
-
+    if (newTransaction) {
       const { name, value } = e.target;
       setNewTransaction({
         ...newTransaction,
@@ -364,7 +381,7 @@ service: null
           userId: selectedUser?.id,
           selectedServices: selects,
           paymentMethodId: newTransaction.paymentMethodId,
-          date: newTransaction.date
+          date: newTransaction.date,
         });
 
         if (response.status === 200) {
@@ -374,15 +391,14 @@ service: null
             duration: 3000,
           });
           // console.log(response);
-         fetchChartsData();
-        fetchMonthTransactions();
-        fetchTransactions(pagination.page);
+          fetchChartsData();
+          fetchMonthTransactions();
+          fetchTransactions(pagination.page);
           setIsSaving(false);
-          setIsSaved(true)
-
+          setIsSaved(true);
         }
       } catch (error) {
-        if(isAxiosError(error)){
+        if (isAxiosError(error)) {
           toast({
             title: "Error",
             description: error.response?.data.message,
@@ -412,15 +428,13 @@ service: null
           // console.log(response);
           fetchTransactions(1);
           fetchChartsData();
-        fetchTransactions(pagination.page)
+          fetchTransactions(pagination.page);
           setIsSaving(false);
-          setIsSaved(true)
-        
+          setIsSaved(true);
         }
       } catch (error) {
-        console.log(error)
-        if(isAxiosError(error)){
-
+        console.log(error);
+        if (isAxiosError(error)) {
           toast({
             title: "Erro",
             description: error.response?.data.message,
@@ -443,20 +457,18 @@ service: null
       });
 
       if (response.status === 200) {
-        console.log(response)
-        toast(
-          {
-            title: "Sucesso!",
-            description: "Transação atualizada.",
-            duration: 3000
-          }
-        )
+        console.log(response);
+        toast({
+          title: "Sucesso!",
+          description: "Transação atualizada.",
+          duration: 3000,
+        });
         fetchChartsData();
         fetchMonthTransactions();
-        fetchTransactions(pagination.page)
+        fetchTransactions(pagination.page);
 
-        setSelectedTransaction(response.data.updateTransaction)
-        setIsSaving(false)
+        setSelectedTransaction(response.data.updateTransaction);
+        setIsSaving(false);
       }
     } catch (error) {
       if (isAxiosError(error)) {
@@ -470,10 +482,6 @@ service: null
       setIsSaving(false);
     }
   };
-
-
-
-
 
   const handleChangeUser = (
     e: React.MouseEvent<HTMLDivElement>,
@@ -490,7 +498,7 @@ service: null
     const selectedService = servicesTypes.find((s) => s.id === serviceId);
 
     if (selectedService) {
-      if(selectedTransaction && selectedTransaction.service){
+      if (selectedTransaction && selectedTransaction.service) {
         const updatedServices = selectedTransaction.service?.servicesTypes;
         updatedServices[index] = selectedService;
         setSelectedTransaction({
@@ -506,8 +514,6 @@ service: null
         updatedServices[index] = selectedService;
         return updatedServices;
       });
-
-
     }
   };
 
@@ -529,14 +535,14 @@ service: null
         setSelectedTransaction(undefined);
         fetchChartsData();
         fetchMonthTransactions();
-        fetchTransactions(pagination.page)
+        fetchTransactions(pagination.page);
         setIsSaving(false);
       }
     } catch (error) {
       console.log(error);
       setIsSaving(false);
     }
-  }
+  };
 
   useEffect(() => {
     handleServiceValues();
@@ -546,122 +552,118 @@ service: null
   //   console.log(selects);
   // }, [selects]);
 
-  useEffect(()=> {
-    if(selectedTransaction){
-      setIsModalOpen(true)
+  useEffect(() => {
+    if (selectedTransaction) {
+      setIsModalOpen(true);
 
-      if(selectedTransaction.service){
-        const total =
-          selectedTransaction.service?.servicesTypes.reduce((acc, service) => {
+      if (selectedTransaction.service) {
+        const total = selectedTransaction.service?.servicesTypes.reduce(
+          (acc, service) => {
             return acc + service.value;
-          }, 0);
-        setServicesTotalValue(total)
+          },
+          0
+        );
+        setServicesTotalValue(total);
       }
     }
-  }, [selectedTransaction])
+  }, [selectedTransaction]);
 
-  const handleSetDesconto =(value: number) => {
-    if(selectedTransaction?.service){
-
+  const handleSetDesconto = (value: number) => {
+    if (selectedTransaction?.service) {
       setSelectedTransaction({
         ...selectedTransaction,
-        service:{
+        service: {
           ...selectedTransaction.service,
-          discount: value
-        }
-        
-      })
+          discount: value,
+        },
+      });
     }
 
-    if(newTransaction?.service){
+    if (newTransaction?.service) {
       setNewTransaction({
         ...newTransaction,
-        service:{
+        service: {
           ...newTransaction.service,
-          discount: value
-        }
-      })
+          discount: value,
+        },
+      });
     }
-  }
+  };
 
   const handleConvertDate = useCallback((date: string) => {
-  const newDate = new Date(date);
+    const newDate = new Date(date);
 
-  const year = newDate.getFullYear();
-  const month = String(newDate.getMonth() + 1).padStart(2, '0'); // mês começa em 0
-  const day = String(newDate.getDate()).padStart(2, '0'); // dia do mês
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, "0"); // mês começa em 0
+    const day = String(newDate.getDate()).padStart(2, "0"); // dia do mês
 
-  const hours = String(newDate.getHours()).padStart(2, '0');
-  const minutes = String(newDate.getMinutes()).padStart(2, '0');
+    const hours = String(newDate.getHours()).padStart(2, "0");
+    const minutes = String(newDate.getMinutes()).padStart(2, "0");
 
-  const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
-  return formatted;
-}, []);
+    const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
+    return formatted;
+  }, []);
 
-const handleSetChosedCustomer = (customer : Customer | undefined) => {
-  if(selectedTransaction?.service ){
+  const handleSetChosedCustomer = (customer: Customer | undefined) => {
+    if (selectedTransaction?.service) {
+      setSelectedTransaction({
+        ...selectedTransaction,
+        service: {
+          ...selectedTransaction?.service,
+          customerId: customer?.id || "",
+          customer: customer || null,
+        },
+      });
+    }
 
-    setSelectedTransaction({...selectedTransaction,
-      service: {
-        ...selectedTransaction?.service,
-        customerId: customer?.id || "",
-        customer: customer || null
-      }
-    })
-  }
+    if (newTransaction?.service) {
+      setNewTransaction({
+        ...newTransaction,
+        service: {
+          ...newTransaction?.service,
+          customerId: customer?.id || "",
+          customer: customer || null,
+        },
+      });
+    }
+  };
 
-  if(newTransaction?.service ){
+  useEffect(() => {}, [
+    selectedTransaction?.service?.discount,
+    selectedTransaction?.service?.servicesValue,
+  ]);
 
-    setNewTransaction({...newTransaction,
-      service: {
-        ...newTransaction?.service,
-        customerId: customer?.id || "",
-        customer: customer || null
-      }
-    })
-  }
+  useEffect(() => {
+    if (selectedTransaction?.service) {
+      setSelectedTransaction({
+        ...selectedTransaction,
+        service: {
+          ...selectedTransaction?.service,
+          servicesValue: selectedTransaction.service.servicesTypes.reduce(
+            (acc, service) => acc + service.value,
+            0
+          ),
+        },
+      });
+    }
+  }, [selectedTransaction?.service?.servicesTypes]);
 
+  useEffect(() => {
+    if (newTransaction?.service) {
+      setNewTransaction({
+        ...newTransaction,
+        service: {
+          ...newTransaction?.service,
+          servicesValue: newTransaction.service.servicesTypes.reduce(
+            (acc, service) => acc + service.value,
+            0
+          ),
+        },
+      });
+    }
+  }, [newTransaction?.service?.servicesTypes]);
 
-}
-
-useEffect(()=>{
-
-},[selectedTransaction?.service?.discount, selectedTransaction?.service?.servicesValue])
-
-useEffect(()=> {
-  if(selectedTransaction?.service){
-
-    setSelectedTransaction({
-      ...selectedTransaction,
-      service: {
-        ...selectedTransaction?.service,
-        servicesValue: selectedTransaction.service.servicesTypes.reduce((acc, service)=> acc + service.value, 0)
-      }
-      
-    })
-  }
-}, [selectedTransaction?.service?.servicesTypes])
-
-useEffect(()=> {
-  if(newTransaction?.service){
-
-    setNewTransaction({
-      ...newTransaction,
-      service: {
-        ...newTransaction?.service,
-        servicesValue: newTransaction.service.servicesTypes.reduce((acc, service)=> acc + service.value, 0)
-      }
-      
-    })
-  }
-}, [newTransaction?.service?.servicesTypes])
-
-
-
-
-
-
-  const handleGetCustomer = async ( pageNumber: number) => {
+  const handleGetCustomer = async (pageNumber: number) => {
     setIsLoadingCustomers(true);
     try {
       const response = await axios.get("/api/getCustomers", {
@@ -671,7 +673,7 @@ useEffect(()=> {
         },
       });
       if (response.status === 200) {
-        console.log(response.data.customers)
+        console.log(response.data.customers);
         setCustomerPagination(response.data.pagination);
         setCustomers(response.data.customers);
       }
@@ -686,24 +688,27 @@ useEffect(()=> {
     console.log(newTransaction);
   }, [newTransaction]);
 
-  useEffect(()=> {
-
-    if(selectedTransaction?.service){
+  useEffect(() => {
+    if (selectedTransaction?.service) {
       setSelectedTransaction({
         ...selectedTransaction,
-        value: (selectedTransaction.service?.servicesValue - selectedTransaction.service?.discount),
+        value:
+          selectedTransaction.service?.servicesValue -
+          selectedTransaction.service?.discount,
         service: {
           ...selectedTransaction.service,
-          value: (selectedTransaction.service?.servicesValue - selectedTransaction.service?.discount)
-        }
-      })
+          value:
+            selectedTransaction.service?.servicesValue -
+            selectedTransaction.service?.discount,
+        },
+      });
     }
-}, [selectedTransaction?.service?.discount, newTransaction?.service?.discount])
+  }, [
+    selectedTransaction?.service?.discount,
+    newTransaction?.service?.discount,
+  ]);
 
-
-
-
-  if(selectedTransaction){
+  if (selectedTransaction) {
     return (
       <Dialog onOpenChange={() => eraseData()} open={isModalOpen}>
         <DialogTrigger onClick={() => setIsModalOpen(true)} asChild>
@@ -723,20 +728,22 @@ useEffect(()=> {
           <Select
             value={selectedTransaction.type}
             name="type"
-            onValueChange={(value) =>{
-              if(selectedTransaction.type === "Receita" && selectedTransaction.category === "Serviço"){
+            onValueChange={(value) => {
+              if (
+                selectedTransaction.type === "Receita" &&
+                selectedTransaction.category === "Serviço"
+              ) {
                 toast({
                   title: "Atenção",
-                  description: "Não é possível alterar o tipo de uma transação de serviço",
+                  description:
+                    "Não é possível alterar o tipo de uma transação de serviço",
                   variant: "destructive",
-                  duration: 5000
-
-                })
-                return
+                  duration: 5000,
+                });
+                return;
               }
-              setSelectedTransaction({ ...selectedTransaction, type: value })
-            }
-            }
+              setSelectedTransaction({ ...selectedTransaction, type: value });
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione" />
@@ -778,9 +785,12 @@ useEffect(()=> {
           ></Input>
           <Label>Valor</Label>
           <ValueInput
-            servicesTotalValue={selectedTransaction.service?.servicesTypes.reduce((acc, service) => {
-            return acc + service.value;
-          }, 0)}
+            servicesTotalValue={selectedTransaction.service?.servicesTypes.reduce(
+              (acc, service) => {
+                return acc + service.value;
+              },
+              0
+            )}
             setNewTransaction={setNewTransaction}
             newTransaction={newTransaction}
             selectedTransaction={selectedTransaction}
@@ -788,14 +798,17 @@ useEffect(()=> {
 
           {selectedTransaction.service && (
             <>
-            <Label>Desconto</Label>
-            <DiscountInput desconto={selectedTransaction.service.discount} setDesconto={handleSetDesconto}/>
+              <Label>Desconto</Label>
+              <DiscountInput
+                desconto={selectedTransaction.service.discount}
+                setDesconto={handleSetDesconto}
+              />
             </>
           )}
 
           <Label htmlFor="date">Data</Label>
           <Input
-          defaultValue={handleConvertDate(selectedTransaction.date)}
+            defaultValue={handleConvertDate(selectedTransaction.date)}
             onChange={handleChange}
             name="date"
             id="date"
@@ -805,19 +818,22 @@ useEffect(()=> {
           <Select
             value={selectedTransaction.category}
             name="category"
-            onValueChange={(value) =>{
-              if(selectedTransaction.category === "Serviço"){
+            onValueChange={(value) => {
+              if (selectedTransaction.category === "Serviço") {
                 toast({
                   title: "Atenção!",
-                  description: "Não é possível alterar a categoria de uma transação de Serviço",
+                  description:
+                    "Não é possível alterar a categoria de uma transação de Serviço",
                   variant: "destructive",
                   duration: 5000,
                 });
                 return;
               }
-              setSelectedTransaction({ ...selectedTransaction, category: value })
-            }
-            }
+              setSelectedTransaction({
+                ...selectedTransaction,
+                category: value,
+              });
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione" />
@@ -858,11 +874,15 @@ useEffect(()=> {
                     className="w-full flex flex-row items-center gap-3"
                   >
                     <Select
-                    value={select.id}
+                      value={select.id}
                       onValueChange={(value) => handleChangeSelect(i, value)}
                     >
                       <SelectTrigger>
-                        <SelectValue  placeholder={select.name + " - " + formatPrice(select.value)} />
+                        <SelectValue
+                          placeholder={
+                            select.name + " - " + formatPrice(select.value)
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {servicesTypes.map((serviceType) => (
@@ -894,7 +914,7 @@ useEffect(()=> {
                     <Plus />
                   </Button>
                 </div>
-                
+
                 <Label>Cliente:</Label>
                 <div className="w-full gap-3   flex flex-row justify-center items-center">
                   <Input
@@ -903,116 +923,131 @@ useEffect(()=> {
                     id="user"
                     type="text"
                     disabled
-                    placeholder={selectedTransaction.service?.customer?.name || "Selecione um cliente"}
+                    placeholder={
+                      selectedTransaction.service?.customer?.name ||
+                      "Selecione um cliente"
+                    }
                     className="hover:cursor-default text-xs"
                   />
-                  <Dialog open={isCustomerOpen} onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}>
-          <DialogTrigger
-            onClick={() => handleGetCustomer(customerPagination.page)}
-            asChild
-          >
-            <Button className="hover: cursor-pointer">
-              <UsersIcon />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="h-[550px] flex flex-col gap-4">
-            <DialogHeader>
-              <DialogTitle>Selecione um cliente</DialogTitle>
-              <DialogDescription>
-                Escolha um cliente para registrar o serviço
-              </DialogDescription>
-            </DialogHeader>
+                  <Dialog
+                    open={isCustomerOpen}
+                    onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}
+                  >
+                    <DialogTrigger
+                      onClick={() => handleGetCustomer(customerPagination.page)}
+                      asChild
+                    >
+                      <Button className="hover: cursor-pointer">
+                        <UsersIcon />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="h-[550px] flex flex-col gap-4">
+                      <DialogHeader>
+                        <DialogTitle>Selecione um cliente</DialogTitle>
+                        <DialogDescription>
+                          Escolha um cliente para registrar o serviço
+                        </DialogDescription>
+                      </DialogHeader>
 
-            <Input placeholder="Buscar" className="w-full"></Input>
-            <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
-              {isLoadingCustomers && (
-                <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
-                  <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
-                </div>
-              )}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-black">Nome</TableHead>
-                    <TableHead className="text-center text-black">
-                      Contato
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {customers &&
-                    customers.map((customer) => (
-                      <TableRow
-                        className="hover:cursor-pointer"
-                        key={customer.id}
-                        onClick={() => {
-                          handleSetChosedCustomer(customer);
-                          setIsCustomerOpen(false);
-                        }}
-                      >
-                        <TableCell className="text-sm text-gray-600">
-                          {customer.name}
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-600 text-center">
-                          {customer.phone}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </div>
+                      <Input placeholder="Buscar" className="w-full"></Input>
+                      <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
+                        {isLoadingCustomers && (
+                          <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                            <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                          </div>
+                        )}
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-black">Nome</TableHead>
+                              <TableHead className="text-center text-black">
+                                Contato
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {customers &&
+                              customers.map((customer) => (
+                                <TableRow
+                                  className="hover:cursor-pointer"
+                                  key={customer.id}
+                                  onClick={() => {
+                                    handleSetChosedCustomer(customer);
+                                    setIsCustomerOpen(false);
+                                  }}
+                                >
+                                  <TableCell className="text-sm text-gray-600">
+                                    {customer.name}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-gray-600 text-center">
+                                    {customer.phone}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                      </div>
 
-            <DialogFooter>
-              <div className="flex items-center justify-center space-x-2 w-full">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleGetCustomer(1)}
-                  disabled={customerPagination.page === 1}
-                >
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleGetCustomer(customerPagination.page - 1)}
-                  disabled={customerPagination.page === 1}
-                >
-                  <ChevronLeftIcon className="h-4 w-4" />
-                </Button>
-                <span className="text-sm font-medium">
-                  Página {customerPagination.page} de {customerPagination.totalPages || 1}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleGetCustomer(customerPagination.page + 1)}
-                  disabled={
-                    customerPagination.page === customerPagination.totalPages ||
-                    customerPagination.totalPages === 0
-                  }
-                >
-                  <ChevronRightIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleGetCustomer(customerPagination.totalPages)}
-                  disabled={
-                    customerPagination.page === customerPagination.totalPages ||
-                    customerPagination.totalPages === 0
-                  }
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                      <DialogFooter>
+                        <div className="flex items-center justify-center space-x-2 w-full">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleGetCustomer(1)}
+                            disabled={customerPagination.page === 1}
+                          >
+                            <ChevronsLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              handleGetCustomer(customerPagination.page - 1)
+                            }
+                            disabled={customerPagination.page === 1}
+                          >
+                            <ChevronLeftIcon className="h-4 w-4" />
+                          </Button>
+                          <span className="text-sm font-medium">
+                            Página {customerPagination.page} de{" "}
+                            {customerPagination.totalPages || 1}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              handleGetCustomer(customerPagination.page + 1)
+                            }
+                            disabled={
+                              customerPagination.page ===
+                                customerPagination.totalPages ||
+                              customerPagination.totalPages === 0
+                            }
+                          >
+                            <ChevronRightIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              handleGetCustomer(customerPagination.totalPages)
+                            }
+                            disabled={
+                              customerPagination.page ===
+                                customerPagination.totalPages ||
+                              customerPagination.totalPages === 0
+                            }
+                          >
+                            <ChevronsRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                   <AddClient
-                  // handleGetCustomers={}
-                  // pagination={}
-                  setChosedCustomer={handleSetChosedCustomer}
+                    // handleGetCustomers={}
+                    // pagination={}
+                    setChosedCustomer={handleSetChosedCustomer}
                   />
                 </div>
                 <Label>Responsável:</Label>
@@ -1129,11 +1164,7 @@ useEffect(()=> {
               <>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button
-                      variant={"destructive"}
-                      disabled={isSaving}
-                      
-                    >
+                    <Button variant={"destructive"} disabled={isSaving}>
                       {isSaving ? (
                         <LoaderCircle className="animate-spin" />
                       ) : (
@@ -1147,12 +1178,15 @@ useEffect(()=> {
                         Você realmente tem certeza?
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        Esta ação não pode ser desfeita. O registro de transação será deletado permanentemente.
+                        Esta ação não pode ser desfeita. O registro de transação
+                        será deletado permanentemente.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeleteTransaction}>Continuar</AlertDialogAction>
+                      <AlertDialogAction onClick={handleDeleteTransaction}>
+                        Continuar
+                      </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -1170,8 +1204,7 @@ useEffect(()=> {
         </DialogContent>
       </Dialog>
     );
-
-  }else{
+  } else {
     return (
       <Dialog onOpenChange={() => eraseData()} open={isModalOpen}>
         <DialogTrigger onClick={() => setIsModalOpen(true)} asChild>
@@ -1191,17 +1224,26 @@ useEffect(()=> {
           <Select
             value={newTransaction?.type}
             name="type"
-            onValueChange={(value) =>{
-              if(!newTransaction)return
-              if(newTransaction.category ==="Serviço" && newTransaction.type === "Receita" && value !== "Receita"){
-                setNewTransaction({...newTransaction,
+            onValueChange={(value) => {
+              if (!newTransaction) return;
+              if (
+                newTransaction.category === "Serviço" &&
+                newTransaction.type === "Receita" &&
+                value !== "Receita"
+              ) {
+                setNewTransaction({
+                  ...newTransaction,
                   service: null,
-                  type: value
+                  type: value,
                 });
                 return;
               }
-              if(value === "Receita" && newTransaction.category === "Serviço"){
-                setNewTransaction({...newTransaction,
+              if (
+                value === "Receita" &&
+                newTransaction.category === "Serviço"
+              ) {
+                setNewTransaction({
+                  ...newTransaction,
                   service: {
                     code: 0,
                     createdAt: new Date(),
@@ -1216,18 +1258,14 @@ useEffect(()=> {
                     transactions: [],
                     user: undefined,
                     userId: "",
-                    value: 0
+                    value: 0,
                   },
-                  type: value
-
-                },)
-              }else{
-                setNewTransaction({...newTransaction,
-                  type: value
-                })
+                  type: value,
+                });
+              } else {
+                setNewTransaction({ ...newTransaction, type: value });
               }
-            }
-            }
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione" />
@@ -1244,7 +1282,7 @@ useEffect(()=> {
               </SelectItem>
             </SelectContent>
           </Select>
-  
+
           <Label>Descrição</Label>
           <Input
             disabled={
@@ -1276,28 +1314,42 @@ useEffect(()=> {
           />
           {newTransaction?.service && (
             <>
-            <Label>Desconto</Label>
-            <DiscountInput desconto={newTransaction.service.discount} setDesconto={handleSetDesconto}/>
+              <Label>Desconto</Label>
+              <DiscountInput
+                desconto={newTransaction.service.discount}
+                setDesconto={handleSetDesconto}
+              />
             </>
           )}
-  
+
           <Label htmlFor="date">Data</Label>
-          <Input onChange={handleChange} name="date" id="date" type="datetime-local" />
+          <Input
+            onChange={handleChange}
+            name="date"
+            id="date"
+            type="datetime-local"
+          />
           <Label>Categoria</Label>
           <Select
             value={newTransaction?.category}
             name="category"
-            onValueChange={(value) =>{
-              if(!newTransaction)return
-              if(newTransaction.category ==="Serviço" && newTransaction.type === "Receita" && value !== "Serviço"){
-                setNewTransaction({...newTransaction,
+            onValueChange={(value) => {
+              if (!newTransaction) return;
+              if (
+                newTransaction.category === "Serviço" &&
+                newTransaction.type === "Receita" &&
+                value !== "Serviço"
+              ) {
+                setNewTransaction({
+                  ...newTransaction,
                   service: null,
-                  category: value
+                  category: value,
                 });
                 return;
               }
-              if(value === "Serviço" && newTransaction.type === "Receita"){
-                setNewTransaction({...newTransaction,
+              if (value === "Serviço" && newTransaction.type === "Receita") {
+                setNewTransaction({
+                  ...newTransaction,
                   service: {
                     code: 0,
                     createdAt: new Date(),
@@ -1312,18 +1364,14 @@ useEffect(()=> {
                     transactions: [],
                     user: undefined,
                     userId: "",
-                    value: 0
+                    value: 0,
                   },
-                  category: value
-
-                },)
-              }else{
-                setNewTransaction({...newTransaction,
-                  category: value
-                })
+                  category: value,
+                });
+              } else {
+                setNewTransaction({ ...newTransaction, category: value });
               }
-            }
-            }
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione" />
@@ -1335,7 +1383,10 @@ useEffect(()=> {
               <SelectItem className=" hover: cursor-pointer" value="Serviço">
                 Serviço
               </SelectItem>
-              <SelectItem className=" hover: cursor-pointer" value="Suprimentos">
+              <SelectItem
+                className=" hover: cursor-pointer"
+                value="Suprimentos"
+              >
                 Suprimentos
               </SelectItem>
               <SelectItem className=" hover: cursor-pointer" value="Aluguel">
@@ -1344,13 +1395,13 @@ useEffect(()=> {
               <SelectItem className=" hover: cursor-pointer" value="Material">
                 Material
               </SelectItem>
-  
+
               <SelectItem className=" hover: cursor-pointer" value="Outros">
                 Outros
               </SelectItem>
             </SelectContent>
           </Select>
-  
+
           {newTransaction?.category === "Serviço" &&
             newTransaction?.type === "Receita" && (
               <>
@@ -1404,116 +1455,131 @@ useEffect(()=> {
                     id="user"
                     type="text"
                     disabled
-                    placeholder={newTransaction.service?.customer?.name || "Selecione um cliente"}
+                    placeholder={
+                      newTransaction.service?.customer?.name ||
+                      "Selecione um cliente"
+                    }
                     className="hover:cursor-default text-xs"
                   />
-                  <Dialog open={isCustomerOpen} onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}>
-          <DialogTrigger
-            onClick={() => handleGetCustomer(customerPagination.page)}
-            asChild
-          >
-            <Button className="hover: cursor-pointer">
-              <UsersIcon />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="h-[550px] flex flex-col gap-4">
-            <DialogHeader>
-              <DialogTitle>Selecione um cliente</DialogTitle>
-              <DialogDescription>
-                Escolha um cliente para registrar o serviço
-              </DialogDescription>
-            </DialogHeader>
+                  <Dialog
+                    open={isCustomerOpen}
+                    onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}
+                  >
+                    <DialogTrigger
+                      onClick={() => handleGetCustomer(customerPagination.page)}
+                      asChild
+                    >
+                      <Button className="hover: cursor-pointer">
+                        <UsersIcon />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="h-[550px] flex flex-col gap-4">
+                      <DialogHeader>
+                        <DialogTitle>Selecione um cliente</DialogTitle>
+                        <DialogDescription>
+                          Escolha um cliente para registrar o serviço
+                        </DialogDescription>
+                      </DialogHeader>
 
-            <Input placeholder="Buscar" className="w-full"></Input>
-            <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
-              {isLoadingCustomers && (
-                <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
-                  <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
-                </div>
-              )}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-black">Nome</TableHead>
-                    <TableHead className="text-center text-black">
-                      Contato
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {customers &&
-                    customers.map((customer) => (
-                      <TableRow
-                        className="hover:cursor-pointer"
-                        key={customer.id}
-                        onClick={() => {
-                          handleSetChosedCustomer(customer);
-                          setIsCustomerOpen(false);
-                        }}
-                      >
-                        <TableCell className="text-sm text-gray-600">
-                          {customer.name}
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-600 text-center">
-                          {customer.phone}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </div>
+                      <Input placeholder="Buscar" className="w-full"></Input>
+                      <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
+                        {isLoadingCustomers && (
+                          <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                            <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                          </div>
+                        )}
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-black">Nome</TableHead>
+                              <TableHead className="text-center text-black">
+                                Contato
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {customers &&
+                              customers.map((customer) => (
+                                <TableRow
+                                  className="hover:cursor-pointer"
+                                  key={customer.id}
+                                  onClick={() => {
+                                    handleSetChosedCustomer(customer);
+                                    setIsCustomerOpen(false);
+                                  }}
+                                >
+                                  <TableCell className="text-sm text-gray-600">
+                                    {customer.name}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-gray-600 text-center">
+                                    {customer.phone}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                      </div>
 
-            <DialogFooter>
-              <div className="flex items-center justify-center space-x-2 w-full">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleGetCustomer(1)}
-                  disabled={customerPagination.page === 1}
-                >
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleGetCustomer(customerPagination.page - 1)}
-                  disabled={customerPagination.page === 1}
-                >
-                  <ChevronLeftIcon className="h-4 w-4" />
-                </Button>
-                <span className="text-sm font-medium">
-                  Página {customerPagination.page} de {customerPagination.totalPages || 1}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleGetCustomer(customerPagination.page + 1)}
-                  disabled={
-                    customerPagination.page === customerPagination.totalPages ||
-                    customerPagination.totalPages === 0
-                  }
-                >
-                  <ChevronRightIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleGetCustomer(customerPagination.totalPages)}
-                  disabled={
-                    customerPagination.page === customerPagination.totalPages ||
-                    customerPagination.totalPages === 0
-                  }
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                      <DialogFooter>
+                        <div className="flex items-center justify-center space-x-2 w-full">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleGetCustomer(1)}
+                            disabled={customerPagination.page === 1}
+                          >
+                            <ChevronsLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              handleGetCustomer(customerPagination.page - 1)
+                            }
+                            disabled={customerPagination.page === 1}
+                          >
+                            <ChevronLeftIcon className="h-4 w-4" />
+                          </Button>
+                          <span className="text-sm font-medium">
+                            Página {customerPagination.page} de{" "}
+                            {customerPagination.totalPages || 1}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              handleGetCustomer(customerPagination.page + 1)
+                            }
+                            disabled={
+                              customerPagination.page ===
+                                customerPagination.totalPages ||
+                              customerPagination.totalPages === 0
+                            }
+                          >
+                            <ChevronRightIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              handleGetCustomer(customerPagination.totalPages)
+                            }
+                            disabled={
+                              customerPagination.page ===
+                                customerPagination.totalPages ||
+                              customerPagination.totalPages === 0
+                            }
+                          >
+                            <ChevronsRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                   <AddClient
-                  // handleGetCustomers={}
-                  // pagination={}
-                  setChosedCustomer={handleSetChosedCustomer}
+                    // handleGetCustomers={}
+                    // pagination={}
+                    setChosedCustomer={handleSetChosedCustomer}
                   />
                 </div>
                 <Label>Responsável:</Label>
@@ -1541,7 +1607,7 @@ useEffect(()=> {
                         </DialogDescription>
                       </DialogHeader>
                       <Input placeholder="Buscar"></Input>
-  
+
                       <div className="rounded-md border">
                         {isLoadingUsers && (
                           <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
@@ -1587,16 +1653,14 @@ useEffect(()=> {
                 </div>
               </>
             )}
-  
+
           <Label>Método de pagamento</Label>
           <Select
-          value={newTransaction?.paymentMethodId}
-            onValueChange={(value) =>
-            {
-              if(!newTransaction)return
-              setNewTransaction({ ...newTransaction, paymentMethodId: value })
-            }
-            }
+            value={newTransaction?.paymentMethodId}
+            onValueChange={(value) => {
+              if (!newTransaction) return;
+              setNewTransaction({ ...newTransaction, paymentMethodId: value });
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione"></SelectValue>
@@ -1615,24 +1679,24 @@ useEffect(()=> {
               ))}
             </SelectContent>
           </Select>
-  
+
           <DialogFooter>
-            
-              {isSaved ? (
-            <Button disabled>
-              Salvo <Check />
-            </Button>
-          ) : (
-            <Button disabled={isSaving} onClick={handleSaveTransaction}>
-              {isSaving ? <LoaderCircle className="animate-spin" /> : "Salvar Transação"}
-            </Button>
-          )}
-            
+            {isSaved ? (
+              <Button disabled>
+                Salvo <Check />
+              </Button>
+            ) : (
+              <Button disabled={isSaving} onClick={handleSaveTransaction}>
+                {isSaving ? (
+                  <LoaderCircle className="animate-spin" />
+                ) : (
+                  "Salvar Transação"
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
     );
-
   }
-
 }

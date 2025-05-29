@@ -287,7 +287,7 @@ export function RegisterCardData({
           type="text"
         ></Input>
         <Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
-          <DialogTrigger onClick={()=>handleGetCustomer(1)} asChild>
+          <DialogTrigger onClick={() => handleGetCustomer(1)} asChild>
             <Button className="hover: cursor-pointer">
               <UsersIcon />
             </Button>
@@ -339,54 +339,57 @@ export function RegisterCardData({
                   </TableBody>
                 </Table>
                 <div className="flex items-center justify-center space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleGetCustomer(1)}
-                                  disabled={pagination.page === 1}
-                                >
-                                  <ChevronsLeft className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleGetCustomer(pagination.page - 1)}
-                                  disabled={pagination.page === 1}
-                                >
-                                  <ChevronLeftIcon className="h-4 w-4" />
-                                </Button>
-                                <span className="text-sm font-medium">
-                                  Página {pagination.page} de {pagination.totalPages || 1}
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleGetCustomer(pagination.page + 1)}
-                                  disabled={
-                                    pagination.page === pagination.totalPages ||
-                                    pagination.totalPages === 0
-                                  }
-                                >
-                                  <ChevronRightIcon className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleGetCustomer(pagination.totalPages)}
-                                  disabled={
-                                    pagination.page === pagination.totalPages ||
-                                    pagination.totalPages === 0
-                                  }
-                                >
-                                  <ChevronsRight className="h-4 w-4" />
-                                </Button>
-                              </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleGetCustomer(1)}
+                    disabled={pagination.page === 1}
+                  >
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleGetCustomer(pagination.page - 1)}
+                    disabled={pagination.page === 1}
+                  >
+                    <ChevronLeftIcon className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-medium">
+                    Página {pagination.page} de {pagination.totalPages || 1}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleGetCustomer(pagination.page + 1)}
+                    disabled={
+                      pagination.page === pagination.totalPages ||
+                      pagination.totalPages === 0
+                    }
+                  >
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleGetCustomer(pagination.totalPages)}
+                    disabled={
+                      pagination.page === pagination.totalPages ||
+                      pagination.totalPages === 0
+                    }
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </DialogContent>
         </Dialog>
-        <AddClient pagination={pagination} setChosedCustomer={setSelectedCustomer}
-        handleGetCustomers={handleGetCustomer} />
+        <AddClient
+          pagination={pagination}
+          setChosedCustomer={setSelectedCustomer}
+          handleGetCustomers={handleGetCustomer}
+        />
       </div>
       <Select onValueChange={(value) => setPaymentMethodsToSave(value)}>
         <SelectTrigger>
@@ -407,40 +410,37 @@ export function RegisterCardData({
       <Separator className="my-4" />
       <Label>Desconto:</Label>
       <ValueInput setDesconto={setDesconto} desconto={desconto} />
-<Separator className="my-4" />
-<div className="flex flex-col gap-2 outline outline-1 p-3 outline-gray-300">
-
+      <Separator className="my-4" />
+      <div className="flex flex-col gap-2 outline outline-1 p-3 outline-gray-300">
         <Label className="mt-3">Resumo:</Label>
-      <Table className="w-full">
-        <TableBody>
-          {serviceToSave.map((service, index) => (
-            <TableRow key={index}>
-              <TableCell className="text-xs text-green-700">
-                {service.name}
-              </TableCell>
-              <TableCell className="text-xs text-green-700 text-right">
-                + {formatarEmReal(service.value)}
-              </TableCell>
-            </TableRow>
-          ))}
-          {desconto> 0 && (
-            <TableRow >
-              <TableCell className="text-xs text-red-700">Desconto</TableCell>
-              <TableCell className="text-xs text-red-700 text-right">
-               - {formatarEmReal(desconto)}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-</div>
+        <Table className="w-full">
+          <TableBody>
+            {serviceToSave.map((service, index) => (
+              <TableRow key={index}>
+                <TableCell className="text-xs text-green-700">
+                  {service.name}
+                </TableCell>
+                <TableCell className="text-xs text-green-700 text-right">
+                  + {formatarEmReal(service.value)}
+                </TableCell>
+              </TableRow>
+            ))}
+            {desconto > 0 && (
+              <TableRow>
+                <TableCell className="text-xs text-red-700">Desconto</TableCell>
+                <TableCell className="text-xs text-red-700 text-right">
+                  - {formatarEmReal(desconto)}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <Separator className="my-4" />
       <div className="flex gap-2 items-center">
         <Label>Total:</Label>
-        <Label className=" text-nowrap">
-          {formatarEmReal(total)}
-        </Label>
+        <Label className=" text-nowrap">{formatarEmReal(total)}</Label>
         <div className="w-full"></div>
         {isSaved ? (
           <Button disabled>

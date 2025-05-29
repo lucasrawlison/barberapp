@@ -115,7 +115,13 @@ export default function SchedulingApp() {
     user: {
       name: "",
     },
-    servicesTypes: [],
+    servicesTypes: [
+      {
+        id: "",
+        name: "Selecione",
+        value: 0,
+      },
+    ],
     status: "agendado",
     wasAttended: false,
   });
@@ -416,6 +422,7 @@ export default function SchedulingApp() {
 
       {/* New Appointment Modal */}
       <NewAppointmentModal
+      setSelectedScheduling={setSelectedScheduling}
         setNewScheduling={setNewScheduling}
         selectedScheduling={selectedScheduling}
         newScheduling={newScheduling}
