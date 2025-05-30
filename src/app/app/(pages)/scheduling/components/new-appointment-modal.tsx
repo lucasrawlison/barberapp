@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { useState } from "react";
 import {
   Calendar,
@@ -140,6 +140,14 @@ export function NewAppointmentModal({
       [name]: value,
     }));
   };
+
+  const formatDate = (date: Date) => {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+
   const [isCustomerOpen, setIsCustomerOpen] = useState(false);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -213,36 +221,7 @@ export function NewAppointmentModal({
     }
   };
 
-  const handleAddSelect = () => {
-    if (selectedScheduling) {
-      const currentServiceTypes = selectedScheduling.servicesTypes;
-      currentServiceTypes?.push({
-        id: "",
-        name: "Selecione",
-        value: 0,
-      });
-      setSelectedScheduling({
-        ...selectedScheduling,
-        servicesTypes: currentServiceTypes,
-      });
-      return;
-    }
-
-    if (newScheduling) {
-      const currentServiceTypes = newScheduling.servicesTypes;
-      currentServiceTypes?.push({
-        id: "",
-        name: "Selecione",
-        value: 0,
-      });
-      setSelectedScheduling({
-        ...newScheduling,
-        servicesTypes: currentServiceTypes,
-      });
-    }
-  };
-
-  const handelRemoveSelect = (i: number) => {
+  const handleRemoveSelect = (i: number) => {
     if (
       newScheduling.servicesTypes.length === 1 ||
       selectedScheduling?.servicesTypes.length === 1
@@ -256,18 +235,23 @@ export function NewAppointmentModal({
       return;
     }
 
-    if (selectedScheduling) {
-      const selects = selectedScheduling.servicesTypes;
-      const updatedSelects = selects?.filter((_, index) => index !== i);
-      setSelectedScheduling({
-        ...selectedScheduling,
-        servicesTypes: updatedSelects,
-      });
-    }
     const updatedSelects = newScheduling.servicesTypes.filter(
       (_, index) => index !== i
     );
+
     setNewScheduling({ ...newScheduling, servicesTypes: updatedSelects });
+  };
+
+  const handleAddSelect = () => {
+    if (newScheduling) {
+      const updatedSelects = newScheduling.servicesTypes;
+      updatedSelects.push({
+        id: "",
+        name: "Selecione",
+        value: 0,
+      });
+      setNewScheduling({ ...newScheduling, servicesTypes: updatedSelects });
+    }
   };
 
   const handleChangeSelect = (index: number, serviceId: string) => {
@@ -298,369 +282,254 @@ export function NewAppointmentModal({
     }
   };
 
-  if (selectedScheduling) {
-    // <Dialog open={isOpen} onOpenChange={onClose}>
-    //   <DialogContent className="sm:max-w-md">
-    //     <DialogHeader>
-    //       <DialogTitle className="flex items-center space-x-2">
-    //         <Calendar className="w-5 h-5" />
-    //         <span>Agendamento</span>
-    //       </DialogTitle>
-    //     </DialogHeader>
-    //     {/* Client Name */}
-    //     <div className="space-y-2">
-    //       <Label htmlFor="clientName" className="flex items-center space-x-2">
-    //         <User className="w-4 h-4" />
-    //         <span>Nome do Cliente *</span>
-    //       </Label>
-    //       <Input
-    //         id="clientName"
-    //         // value={formData.clientName}
-    //         // onChange={(e) => handleChange("clientName", e.target.value)}
-    //         placeholder="Digite o nome do cliente"
-    //         required
-    //       />
-    //     </div>
-    //     {/* Phone */}
-    //     <div className="space-y-2">
-    //       <Label htmlFor="phone" className="flex items-center space-x-2">
-    //         <Phone className="w-4 h-4" />
-    //         <span>Telefone (Opcional)</span>
-    //       </Label>
-    //       <Input
-    //         id="phone"
-    //         type="tel"
-    //         // value={formData.phone}
-    //         // onChange={(e) => handleChange("phone", e.target.value)}
-    //         placeholder="+1 (555) 123-4567"
-    //       />
-    //     </div>
-    //     {/* Service */}
-    //     <div className="space-y-2">
-    //       <Label className="flex items-center space-x-2">
-    //         <Scissors className="w-4 h-4" />
-    //         <span>Serviço *</span>
-    //       </Label>
-    //       <Select
-    //       // value={formData.service}
-    //       // onValueChange={(value) => handleChange("service", value)}
-    //       >
-    //         <SelectTrigger>
-    //           <SelectValue placeholder="Selecione um serviço" />
-    //         </SelectTrigger>
-    //         <SelectContent></SelectContent>
-    //       </Select>
-    //     </div>
-    //     {/* Date and Time */}
-    //     <div className="grid grid-cols-2 gap-4">
-    //       <div className="space-y-2">
-    //         <Label htmlFor="date">Data *</Label>
-    //         <Input
-    //           id="date"
-    //           type="date"
-    //           // value={formData.date}
-    //           // onChange={(e) => handleChange("date", e.target.value)}
-    //           required
-    //         />
-    //       </div>
-    //       <div className="space-y-2">
-    //         <Label className="flex items-center space-x-2">
-    //           <Clock className="w-4 h-4" />
-    //           <span>Horário *</span>
-    //         </Label>
-    //         <Select
-    //         // value={formData.time}
-    //         // onValueChange={(value) => handleChange("time", value)}
-    //         >
-    //           <SelectTrigger>
-    //             <SelectValue placeholder="Selecione o horário" />
-    //           </SelectTrigger>
-    //           <SelectContent></SelectContent>
-    //         </Select>
-    //       </div>
-    //     </div>
-    //     {/* Barber */}
-    //     <div className="space-y-2">
-    //       <Label>Barbeiro</Label>
-    //       <Input
-    //       // value={formData.barber}
-    //       // onChange={(e) => handleChange("barber", e.target.value)}
-    //       // placeholder="Nome do barbeiro"
-    //       />
-    //     </div>
-    //     {/* Observation */}
-    //     <div className="space-y-2">
-    //       <Label htmlFor="observation" className="flex items-center space-x-2">
-    //         <FileText className="w-4 h-4" />
-    //         <span>Observação (Opcional)</span>
-    //       </Label>
-    //       <Textarea
-    //         id="observation"
-    //         // value={formData.observation}
-    //         // onChange={(e) => handleChange("observation", e.target.value)}
-    //         placeholder="Observações especiais ou preferências..."
-    //         rows={3}
-    //       />
-    //     </div>
-    //     {/* Actions */}
-    //     <div className="flex justify-end space-x-3 pt-4">
-    //       <Button type="button" variant="outline" onClick={onClose}>
-    //         Cancelar
-    //       </Button>
-    //       <Button type="submit">Agendar Horário</Button>
-    //     </div>
-    //   </DialogContent>
-    // </Dialog>;
-  } else {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Calendar className="w-5 h-5" />
-              <span>Novo Agendamento</span>
-            </DialogTitle>
-          </DialogHeader>
+  useEffect(() => {
+    getServicesTypes();
+  }, []);
 
-          {/* Client Name */}
-          <Label>Cliente:</Label>
-          <div className="w-full gap-3   flex flex-row justify-center items-center">
-            <Input
-              value={newScheduling.customer?.name || ""}
-              name="user"
-              id="user"
-              type="text"
-              disabled
-              placeholder={
-                newScheduling.customer?.name || "Selecione um cliente"
-              }
-              className="hover:cursor-default text-xs"
-            />
-            <Dialog
-              open={isCustomerOpen}
-              onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5" />
+            <span>Novo Agendamento</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Client Name */}
+        <Label>Cliente:</Label>
+        <div className="w-full gap-3   flex flex-row justify-center items-center">
+          <Input
+            value={newScheduling.customer?.name || ""}
+            name="user"
+            id="user"
+            type="text"
+            disabled
+            placeholder={newScheduling.customer?.name || "Selecione um cliente"}
+            className="hover:cursor-default text-xs"
+          />
+          <Dialog
+            open={isCustomerOpen}
+            onOpenChange={() => setIsCustomerOpen(!isCustomerOpen)}
+          >
+            <DialogTrigger
+              onClick={() => handleGetCustomer(customerPagination.page)}
+              asChild
             >
-              <DialogTrigger
-                onClick={() => handleGetCustomer(customerPagination.page)}
-                asChild
-              >
-                <Button className="hover: cursor-pointer">
-                  <UsersIcon />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="h-[550px] flex flex-col gap-4">
-                <DialogHeader>
-                  <DialogTitle>Selecione um cliente</DialogTitle>
-                  <DialogDescription>
-                    Escolha um cliente para registrar o serviço
-                  </DialogDescription>
-                </DialogHeader>
-
-                <Input placeholder="Buscar" className="w-full"></Input>
-                <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
-                  {isLoadingCustomers && (
-                    <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
-                      <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
-                    </div>
-                  )}
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-black">Nome</TableHead>
-                        <TableHead className="text-center text-black">
-                          Contato
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customers &&
-                        customers.map((customer) => (
-                          <TableRow
-                            className="hover:cursor-pointer"
-                            key={customer.id}
-                            onClick={() => {
-                              handleSetChosedCustomer(customer);
-                              setIsCustomerOpen(false);
-                            }}
-                          >
-                            <TableCell className="text-sm text-gray-600">
-                              {customer.name}
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-600 text-center">
-                              {customer.phone}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                <DialogFooter>
-                  <div className="flex items-center justify-center space-x-2 w-full">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleGetCustomer(1)}
-                      disabled={customerPagination.page === 1}
-                    >
-                      <ChevronsLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        handleGetCustomer(customerPagination.page - 1)
-                      }
-                      disabled={customerPagination.page === 1}
-                    >
-                      <ChevronLeftIcon className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm font-medium">
-                      Página {customerPagination.page} de{" "}
-                      {customerPagination.totalPages || 1}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        handleGetCustomer(customerPagination.page + 1)
-                      }
-                      disabled={
-                        customerPagination.page ===
-                          customerPagination.totalPages ||
-                        customerPagination.totalPages === 0
-                      }
-                    >
-                      <ChevronRightIcon className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        handleGetCustomer(customerPagination.totalPages)
-                      }
-                      disabled={
-                        customerPagination.page ===
-                          customerPagination.totalPages ||
-                        customerPagination.totalPages === 0
-                      }
-                    >
-                      <ChevronsRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            <AddClient
-              // handleGetCustomers={}
-              // pagination={}
-              setChosedCustomer={handleSetChosedCustomer}
-            />
-          </div>
-
-          {/* Service */}
-          <Label>Serviço</Label>
-          {newScheduling.servicesTypes.map((select, i) => (
-            <div key={i} className="w-full flex flex-row items-center gap-3">
-              <Select
-                value={select.id}
-                onValueChange={(value) => handleChangeSelect(i, value)}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      select.name + " - " + formatarEmReal(select.value)
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {servicesTypes.map((serviceType) => (
-                    <SelectItem
-                      className="hover:cursor-pointer"
-                      key={serviceType.id}
-                      value={serviceType.id}
-                    >
-                      {serviceType.name +
-                        " - " +
-                        formatarEmReal(serviceType.value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                className="rounded-full size-7 bg-red-700"
-                onClick={() => handelRemoveSelect(i)}
-              >
-                <Minus></Minus>
+              <Button className="hover: cursor-pointer">
+                <UsersIcon />
               </Button>
-            </div>
-          ))}
-          <div className="flex w-full justify-center mb-8">
-            <Button className="rounded-full size-8" onClick={handleAddSelect}>
-              <Plus />
-            </Button>
-          </div>
+            </DialogTrigger>
+            <DialogContent className="h-[550px] flex flex-col gap-4">
+              <DialogHeader>
+                <DialogTitle>Selecione um cliente</DialogTitle>
+                <DialogDescription>
+                  Escolha um cliente para registrar o serviço
+                </DialogDescription>
+              </DialogHeader>
 
-          {/* Date and Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Data *</Label>
-              <Input
-                id="date"
-                type="date"
-                // value={formData.date}
-                // onChange={(e) => handleChange("date", e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="date">Horário *</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o horário" />
-                </SelectTrigger>
-                <SelectContent></SelectContent>
-              </Select>
-            </div>
-          </div>
+              <Input placeholder="Buscar" className="w-full"></Input>
+              <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
+                {isLoadingCustomers && (
+                  <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                    <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                  </div>
+                )}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-black">Nome</TableHead>
+                      <TableHead className="text-center text-black">
+                        Contato
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customers &&
+                      customers.map((customer) => (
+                        <TableRow
+                          className="hover:cursor-pointer"
+                          key={customer.id}
+                          onClick={() => {
+                            handleSetChosedCustomer(customer);
+                            setIsCustomerOpen(false);
+                          }}
+                        >
+                          <TableCell className="text-sm text-gray-600">
+                            {customer.name}
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600 text-center">
+                            {customer.phone}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-          {/* Barber */}
-          <div className="space-y-2">
-            <Label>Barbeiro</Label>
-            <Input
-            // value={formData.barber}
-            // onChange={(e) => handleChange("barber", e.target.value)}
-            // placeholder="Nome do barbeiro"
-            />
-          </div>
+              <DialogFooter>
+                <div className="flex items-center justify-center space-x-2 w-full">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleGetCustomer(1)}
+                    disabled={customerPagination.page === 1}
+                  >
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      handleGetCustomer(customerPagination.page - 1)
+                    }
+                    disabled={customerPagination.page === 1}
+                  >
+                    <ChevronLeftIcon className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-medium">
+                    Página {customerPagination.page} de{" "}
+                    {customerPagination.totalPages || 1}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      handleGetCustomer(customerPagination.page + 1)
+                    }
+                    disabled={
+                      customerPagination.page ===
+                        customerPagination.totalPages ||
+                      customerPagination.totalPages === 0
+                    }
+                  >
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      handleGetCustomer(customerPagination.totalPages)
+                    }
+                    disabled={
+                      customerPagination.page ===
+                        customerPagination.totalPages ||
+                      customerPagination.totalPages === 0
+                    }
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <AddClient
+            // handleGetCustomers={}
+            // pagination={}
+            setChosedCustomer={handleSetChosedCustomer}
+          />
+        </div>
 
-          {/* Observation */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="observation"
-              className="flex items-center space-x-2"
+        {/* Service */}
+        <Label>Serviço</Label>
+        {newScheduling.servicesTypes.map((select, i) => (
+          <div key={i} className="w-full flex flex-row items-center gap-3">
+            <Select
+              value={select.id}
+              onValueChange={(value) => handleChangeSelect(i, value)}
             >
-              <FileText className="w-4 h-4" />
-              <span>Observação (Opcional)</span>
-            </Label>
-            <Textarea
-              id="observation"
-              // value={formData.observation}
-              // onChange={(e) => handleChange("observation", e.target.value)}
-              placeholder="Observações especiais ou preferências..."
-              rows={3}
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    select.name + " - " + formatarEmReal(select.value)
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {servicesTypes.map((service) => (
+                  <SelectItem
+                    key={service.id}
+                    value={service.id}
+                    className="text-sm hover:bg-gray-100 hover:cursor-pointer"
+                  >
+                    {service.name} - {formatarEmReal(service.value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              className="rounded-full size-7 bg-red-700"
+              onClick={() => handleRemoveSelect(i)}
+            >
+              <Minus></Minus>
+            </Button>
+          </div>
+        ))}
+        <div className="flex w-full justify-center mb-8">
+          <Button className="rounded-full size-8" onClick={handleAddSelect}>
+            <Plus />
+          </Button>
+        </div>
+
+        {/* Date and Time */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="date">Data *</Label>
+            <Input
+              id="date"
+              type="date"
+              value={
+                newScheduling.date  || ""
+              }
+              onChange={(e) => handleChange("date", e.target.value)}
+              required
             />
           </div>
-
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit">Agendar Horário</Button>
+          <div className="space-y-2">
+            <Label htmlFor="date">Horário *</Label>
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o horário" />
+              </SelectTrigger>
+              <SelectContent></SelectContent>
+            </Select>
           </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+        </div>
+
+        {/* Barber */}
+        <div className="space-y-2">
+          <Label>Barbeiro</Label>
+          <Input
+          // value={formData.barber}
+          // onChange={(e) => handleChange("barber", e.target.value)}
+          // placeholder="Nome do barbeiro"
+          />
+        </div>
+
+        {/* Observation */}
+        <div className="space-y-2">
+          <Label htmlFor="observation" className="flex items-center space-x-2">
+            <FileText className="w-4 h-4" />
+            <span>Observação (Opcional)</span>
+          </Label>
+          <Textarea
+            id="observation"
+            // value={formData.observation}
+            // onChange={(e) => handleChange("observation", e.target.value)}
+            placeholder="Observações especiais ou preferências..."
+            rows={3}
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end space-x-3 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit">Agendar Horário</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
+// }

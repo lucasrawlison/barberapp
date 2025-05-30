@@ -106,9 +106,17 @@ export default function SchedulingApp() {
     limit: 10,
     totalPages: 0,
   });
+
+  const formatDate = (date: Date) => {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${year}-${month}-${day}`;
+    };
+    
   const [newScheduling, setNewScheduling] = useState<Scheduling>({
     id: "",
-    date: "",
+    date: formatDate(new Date()),
     time: "",
     description: "",
     userId: "",
@@ -128,6 +136,8 @@ export default function SchedulingApp() {
   const [selectedScheduling, setSelectedScheduling] = useState<
     Scheduling | undefined
   >(undefined);
+
+   
 
   const handleGetAllSchedulings = async (pageNumber: number) => {
     setIsLoadingSchedulings(true);
