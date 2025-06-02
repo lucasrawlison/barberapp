@@ -5,10 +5,7 @@ import { Dispatch, SetStateAction, useEffect } from "react";
 import { useState } from "react";
 import {
   Calendar,
-  Clock,
   User,
-  Phone,
-  Scissors,
   FileText,
   UsersIcon,
   ChevronsLeft,
@@ -17,6 +14,7 @@ import {
   ChevronsRight,
   Minus,
   Plus,
+  UserSearch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +48,15 @@ import {
 import AddClient from "./addClient";
 import { toast } from "@/hooks/use-toast";
 import formatarEmReal from "@/app/app/utils/formatarEmReal";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 interface Pagination {
   total: number;
@@ -59,7 +66,12 @@ interface Pagination {
 }
 
 interface User {
+  id: string;
   name: string;
+  email: string;
+  login: string;
+  profileType: string;
+  profileImgLink: string;
 }
 
 interface Type {
@@ -141,8 +153,6 @@ export function NewAppointmentModal({
     }));
   };
 
- 
-
   const [isCustomerOpen, setIsCustomerOpen] = useState(false);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -152,8 +162,14 @@ export function NewAppointmentModal({
     limit: 10,
     totalPages: 0,
   });
+  const { data: session } = useSession();
   const [isloadingTypes, setIsloadingTypes] = useState(false);
   const [servicesTypes, setServicesTypes] = useState<Type[]>([]);
+  const [isLoadingHours, setIsLoadingHours] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [isUsersOpen, setIsUsersOpen] = useState(false);
+  const [isLoadingActiveUser, setIsLoadingActiveUser] = useState(false);
 
   const handleGetCustomer = async (pageNumber: number) => {
     setIsLoadingCustomers(true);
@@ -173,6 +189,28 @@ export function NewAppointmentModal({
       console.log(error);
     } finally {
       setIsLoadingCustomers(false);
+    }
+  };
+
+  const handleGetUsers = async () => {
+    if (!isOpen) {
+      setIsUsersOpen(true);
+    }
+
+    setIsLoadingUsers(true);
+
+    try {
+      const response = await axios.post("/api/getUsers");
+      if (response.status === 200) {
+        setIsLoadingUsers(false);
+        setUsers(response.data.users);
+        // setIsUsersOpen(false);
+      }
+    } catch (error) {
+      setIsUsersOpen(false);
+
+      setIsLoadingUsers(false);
+      console.log(error);
     }
   };
 
@@ -277,10 +315,44 @@ export function NewAppointmentModal({
     }
   };
 
-  useEffect(() => {
-    getServicesTypes();
-  }, []);
+  const handleGetActiveUser = async () => {
+    setIsLoadingActiveUser(true);
+    try {
+      const response = await axios.post("/api/getActiveUser", {
+        id: session?.user?.id,
+      });
 
+      if (response.status === 200) {
+        const activeUser = response.data;
+        setNewScheduling((prev) => ({
+          ...prev,
+          userId: activeUser.id,
+          user: activeUser,
+        }));
+        setIsLoadingActiveUser(false);
+      }
+    } catch (error) {
+      setIsLoadingActiveUser(false);
+
+      if (isAxiosError(error)) {
+        toast({
+          title: "Erro ao buscar usuário ativo",
+          description:
+            error.response?.data?.message ||
+            "Ocorreu um erro ao buscar o usuário ativo.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+  
+  }, [newScheduling.user, ]);
+
+  useEffect(()=> {
+    handleGetActiveUser();
+  },[])
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -473,9 +545,7 @@ export function NewAppointmentModal({
             <Input
               id="date"
               type="date"
-              value={
-                newScheduling.date  || ""
-              }
+              value={newScheduling.date || ""}
               onChange={(e) => handleChange("date", e.target.value)}
               required
             />
@@ -492,15 +562,79 @@ export function NewAppointmentModal({
         </div>
 
         {/* Barber */}
-        <div className="space-y-2">
-          <Label>Barbeiro</Label>
+        <Label className="mt-4">Responsável:</Label>
+        <div className="w-full gap-3   flex flex-row justify-center items-center">
           <Input
-          // value={formData.barber}
-          // onChange={(e) => handleChange("barber", e.target.value)}
-          // placeholder="Nome do barbeiro"
+            value={isLoadingActiveUser ? ("Carregando...") : (newScheduling.user?.name)}
+            name="user"
+            id="user"
+            type="text"
+            disabled
+            placeholder="Selecione um usuário"
+            className="hover:cursor-default text-xs"
           />
-        </div>
+          <Dialog
+            onOpenChange={() => setIsUsersOpen(!isUsersOpen)}
+            open={isUsersOpen}
+          >
+            <DialogTrigger onClick={handleGetUsers} asChild>
+              <Button>
+                <UserSearch></UserSearch>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Buscar</DialogTitle>
+                <DialogDescription>
+                  Selecione um usuário para o serviço
+                </DialogDescription>
+              </DialogHeader>
+              <Input placeholder="Buscar"></Input>
 
+              <div className="rounded-md border">
+                {isLoadingUsers && (
+                  <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
+                    <div className="w-1/2 bg-sky-500 h-full animate-slideIn absolute left-0 rounded-lg"></div>
+                  </div>
+                )}
+              </div>
+              <div className="grid gap-3 grid-cols-3 overflow-auto min-h-[400px] items-center justify-center">
+                {users?.map((user) => (
+                  <Card
+                    key={user.id}
+                    className=" hover:cursor-pointer hover:shadow-md  transition-all"
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-xs text-center">
+                        {user.name}
+                      </CardTitle>
+                      <CardDescription className="text-center">
+                        {user.profileType}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="w-full flex items-center justify-center">
+                        {user.profileImgLink ? (
+                          <Image
+                            className=" rounded-full"
+                            src={user.profileImgLink}
+                            alt={user.name}
+                            width={60}
+                            height={60}
+                          ></Image>
+                        ) : (
+                          <User size={60}></User>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+         
         {/* Observation */}
         <div className="space-y-2">
           <Label htmlFor="observation" className="flex items-center space-x-2">

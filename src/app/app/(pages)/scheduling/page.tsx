@@ -22,6 +22,7 @@ import { HistorySection } from "./components/history-section";
 import axios, { isAxiosError } from "axios";
 import { useSession } from "next-auth/react";
 import { toast } from "@/hooks/use-toast";
+import { set } from "date-fns";
 
 // Mock data
 
@@ -33,7 +34,12 @@ interface Pagination {
 }
 
 interface User {
+  id: string;
   name: string;
+  email: string;
+  login: string;
+  profileType: string;
+  profileImgLink: string;
 }
 
 interface Type {
@@ -121,7 +127,12 @@ export default function SchedulingApp() {
     description: "",
     userId: "",
     user: {
+      id: "",
+      email: "",
       name: "",
+      login: "",
+      profileType: "",
+      profileImgLink: "",
     },
     servicesTypes: [
       {
@@ -199,6 +210,8 @@ export default function SchedulingApp() {
     }
   };
 
+ 
+
   useEffect(() => {
     if (session?.user?.id) {
       handleGetAllSchedulings(1);
@@ -214,6 +227,10 @@ export default function SchedulingApp() {
   useEffect(()=>{
     console.log(newScheduling)
   },[newScheduling])
+
+  useEffect(()=> {
+
+  },[]) 
 
   return (
     <div className="overflow-auto bg-gray-50">

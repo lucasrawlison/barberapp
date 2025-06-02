@@ -31,7 +31,12 @@ interface Pagination {
 }
 
 interface User {
+  id: string;
   name: string;
+  email: string;
+  login: string;
+  profileType: string;
+  profileImgLink: string;
 }
 
 interface Type {

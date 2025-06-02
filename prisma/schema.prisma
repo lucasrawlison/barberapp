@@ -8,11 +8,11 @@ datasource db {
 }
 
 model AuditInfo {
-  id          String          @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  createdBy   String?
-  updatedBy   String?
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
 
   services     Service[]
   users        User[]
@@ -29,8 +29,8 @@ model ServicesTypes {
 
 model Barbershop {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
-  openAt       DateTime?
-  closeAt      DateTime?
+  openAt       String?
+  closeAt      String?
   name         String?
   address      String?
   phone        String?
@@ -80,6 +80,8 @@ model User {
   profileType    String         @default("admin")
   transactions   Transactions[]
   scheduling     Scheduling[]
+  breakAt        String?
+  breakEndAt     String?
   barbershopId   String?        @db.ObjectId
   barbershop     Barbershop?    @relation(fields: [barbershopId], references: [id])
   auditInfoId    String?        @db.ObjectId
