@@ -143,7 +143,7 @@ export function BanksInfo ({ banks, isLoadingBanks }:BankInfoProps) {
                                   : acc;
                               }, bank.initialValue) -
                                 bank.transactions.reduce((acc, transaction) => {
-                                  return transaction.type === "Despesa"
+                                  return transaction.type === "Despesa" || transaction.type === "Saque"
                                     ? acc + transaction.value
                                     : acc;
                                 }, 0)

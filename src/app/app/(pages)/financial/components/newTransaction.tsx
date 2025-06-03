@@ -758,6 +758,9 @@ export function NewTransaction({
               <SelectItem className=" hover: cursor-pointer" value="Depósito">
                 Depósito
               </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Saque">
+                Saque
+              </SelectItem>
             </SelectContent>
           </Select>
 
@@ -1279,6 +1282,9 @@ export function NewTransaction({
               </SelectItem>
               <SelectItem className=" hover: cursor-pointer" value="Depósito">
                 Depósito
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Saque">
+                Saque
               </SelectItem>
             </SelectContent>
           </Select>
