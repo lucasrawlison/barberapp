@@ -751,6 +751,9 @@ useEffect(()=> {
               <SelectItem className=" hover: cursor-pointer" value="Depósito">
                 Depósito
               </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Saque">
+                Saque
+              </SelectItem>
             </SelectContent>
           </Select>
 
@@ -1241,6 +1244,9 @@ useEffect(()=> {
               </SelectItem>
               <SelectItem className=" hover: cursor-pointer" value="Depósito">
                 Depósito
+              </SelectItem>
+              <SelectItem className=" hover: cursor-pointer" value="Saque">
+                Saque
               </SelectItem>
             </SelectContent>
           </Select>
