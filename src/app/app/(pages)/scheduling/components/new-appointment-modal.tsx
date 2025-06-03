@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -57,6 +58,7 @@ import {
 } from "@/components/ui/card";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import gerarHorariosComIntervalo from "@/app/app/utils/gerarHorarioDinamico";
 
 interface Pagination {
   total: number;
@@ -72,6 +74,9 @@ interface User {
   login: string;
   profileType: string;
   profileImgLink: string;
+  breakAt: string;
+  breakEndAt: string;
+  barbershop: Barbershop;
 }
 
 interface Type {
@@ -106,6 +111,8 @@ interface Customer {
 interface Barbershop {
   id: string;
   name: string;
+  openAt: string;
+  closeAt: string;
 }
 
 interface Scheduling {
@@ -164,8 +171,8 @@ export function NewAppointmentModal({
   });
   const { data: session } = useSession();
   const [isloadingTypes, setIsloadingTypes] = useState(false);
-  const [servicesTypes, setServicesTypes] = useState<Type[]>([]);
   const [isLoadingHours, setIsLoadingHours] = useState(false);
+  const [servicesTypes, setServicesTypes] = useState<Type[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isUsersOpen, setIsUsersOpen] = useState(false);
@@ -346,16 +353,27 @@ export function NewAppointmentModal({
     }
   };
 
+
+  const handleSetSchedulingHours = () => {
+    if (newScheduling.user) {
+    const {breakAt, breakEndAt} = newScheduling.user;
+    const {openAt, closeAt} = newScheduling.user.barbershop
+     const hours = gerarHorariosComIntervalo(openAt, closeAt,60, breakAt, breakEndAt);
+     console.log(hours)
+    }
+  };
+
   useEffect(() => {
-  
+    handleSetSchedulingHours();
   }, [newScheduling.user, ]);
 
   useEffect(()=> {
     handleGetActiveUser();
   },[])
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="h-[600px] overflow-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Calendar className="w-5 h-5" />

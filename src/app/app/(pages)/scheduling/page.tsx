@@ -40,6 +40,9 @@ interface User {
   login: string;
   profileType: string;
   profileImgLink: string;
+  breakAt: string;
+  breakEndAt: string;
+  barbershop: Barbershop;
 }
 
 interface Type {
@@ -74,6 +77,8 @@ interface Customer {
 interface Barbershop {
   id: string;
   name: string;
+  openAt: string;
+  closeAt: string;
 }
 
 interface Scheduling {
@@ -133,6 +138,14 @@ export default function SchedulingApp() {
       login: "",
       profileType: "",
       profileImgLink: "",
+      breakAt: "12:00",
+      breakEndAt: "13:00",
+      barbershop: {
+        id: "",
+        name: "",
+        openAt: "09:00",
+        closeAt: "19:30",
+      },
     },
     servicesTypes: [
       {

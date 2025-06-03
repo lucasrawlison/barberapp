@@ -30,6 +30,7 @@ interface Pagination {
   totalPages: number;
 }
 
+
 interface User {
   id: string;
   name: string;
@@ -37,6 +38,9 @@ interface User {
   login: string;
   profileType: string;
   profileImgLink: string;
+  breakAt: string;
+  breakEndAt: string;
+  barbershop: Barbershop;
 }
 
 interface Type {
@@ -71,6 +75,8 @@ interface Customer {
 interface Barbershop {
   id: string;
   name: string;
+  openAt: string;
+  closeAt: string;
 }
 
 interface Scheduling {

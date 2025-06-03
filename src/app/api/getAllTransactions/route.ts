@@ -47,10 +47,18 @@ export async function GET(request: Request) {
          service:{
           include: {
             customer: true,
-            user:true,
+            user:{
+              include: {
+                barbershop: true,
+              },
+            }
           }
          },
-         user: true
+         user: {
+          include: {
+            barbershop: true,
+          },
+         }
         },
       }),
       prisma.transactions.count(),

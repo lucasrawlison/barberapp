@@ -708,6 +708,22 @@ export function NewTransaction({
     newTransaction?.service?.discount,
   ]);
 
+  const handleChangeValue = (value: number) => {
+    console.log("handleChangeValue", value);
+    if (selectedTransaction) {
+      setSelectedTransaction({
+        ...selectedTransaction,
+        value: value,
+      });
+    }
+    if (newTransaction) {
+      setNewTransaction({
+        ...newTransaction,
+        value: value,
+      });
+    }
+  };
+
   if (selectedTransaction) {
     return (
       <Dialog onOpenChange={() => eraseData()} open={isModalOpen}>
@@ -794,7 +810,7 @@ export function NewTransaction({
               },
               0
             )}
-            setNewTransaction={setNewTransaction}
+            handleChangeValue={handleChangeValue}
             newTransaction={newTransaction}
             selectedTransaction={selectedTransaction}
           />
@@ -1314,7 +1330,7 @@ export function NewTransaction({
           <Label>Valor</Label>
           <ValueInput
             servicesTotalValue={servicesTotalValue}
-            setNewTransaction={setNewTransaction}
+            handleChangeValue={handleChangeValue}
             newTransaction={newTransaction}
             selectedTransaction={undefined}
           />

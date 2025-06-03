@@ -76,12 +76,12 @@ interface BankAccount {
 }
 
 interface ValueInputProps {
-  setNewTransaction : (value: Transaction | undefined) => void
+  handleChangeValue : (value: number) => void
   newTransaction: Transaction | undefined
   servicesTotalValue: number | undefined
   selectedTransaction: Transaction | undefined
 }
-export default function ValueInput({setNewTransaction, newTransaction, servicesTotalValue, selectedTransaction} : ValueInputProps) {
+export default function ValueInput({handleChangeValue, newTransaction, servicesTotalValue, selectedTransaction} : ValueInputProps) {
   const [numericString, setNumericString] = useState<string>("")
   const [displayValue, setDisplayValue] = useState<string>("R$ 0,00")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -101,10 +101,9 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
 
     const floatValue = getFloatValue(numericString);
 
-    setNewTransaction({
-      ...newTransaction,
-      value: floatValue,
-    });
+    handleChangeValue(floatValue)
+
+
   }, [numericString]);
   // Formata a string como moeda brasileira (R$)
   const formatCurrency = (value: string | number): string => {
@@ -168,9 +167,9 @@ export default function ValueInput({setNewTransaction, newTransaction, servicesT
     inputRef.current?.focus()
   }, [])
 
-  useEffect(()=> {
-    console.log(selectedTransaction)
-  },[selectedTransaction])
+  // useEffect(()=> {
+  //   console.log(selectedTransaction)
+  // },[selectedTransaction])
 
 
   useEffect(()=>{

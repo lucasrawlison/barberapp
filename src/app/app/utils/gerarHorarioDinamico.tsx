@@ -30,7 +30,7 @@ function minutosParaHhmm(totalMinutos: number): string {
  * @param fimIntervalo     - Formato "HH:mm" para fim do descanso (ex: "14:00")
  * @returns Array de strings ["HH:mm", ...] com os horários válidos de início.
  */
-function gerarHorariosComIntervalo(
+export default function gerarHorariosComIntervalo(
   horaAbertura: string,
   horaFechamento: string,
   duracaoMinutos: number,

@@ -28,11 +28,11 @@ const handleConvertDate = (date: string) => {
 };
 
 export async function POST(req: NextRequest) {
-    const url = process.env.NEXT_PUBLIC_WPPSERVER_URL;
-    console.log("url: ",url)
+  const url = process.env.NEXT_PUBLIC_WPPSERVER_URL;
+  console.log("url: ", url);
   try {
     const body = await req.json();
-    console.log("ESTE É O BODY--------------------------: ", body)
+    console.log("ESTE É O BODY--------------------------: ", body);
     const {
       value,
       userId,
@@ -96,47 +96,83 @@ export async function POST(req: NextRequest) {
       where: { id: paymentMethodId },
     });
 
-    if (paymentMethod?.name === "Não Pago") {
-       const service = await prisma.service.create({
+    const auditInfo = await prisma.auditInfo.create({
       data: {
-        value,
-        servicesValue,
-        discount,
-        createdAt: date ? new Date(date) : new Date(),
-        userId,
-        servicesTypes: selectedServices,
-        code: randomCode.toString(),
-        paymentMethodId,
-        customerId: customerId ?? null,
-      },
-      include: {
-        paymentMethod: true,
-        customer: true,
-        user: true,
+        createdBy: userId,
       },
     });
 
-    console.log(service);
-    type ServiceType = { name: string };
-    if (service) {
-      const serviceList = service.servicesTypes as ServiceType[];
+    if (paymentMethod?.name === "Não Pago") {
+      const service = await prisma.service.create({
+        data: {
+          value,
+          servicesValue,
+          discount,
+          createdAt: date ? new Date(date) : new Date(),
+          userId,
+          servicesTypes: selectedServices,
+          code: randomCode.toString(),
+          paymentMethodId,
+          customerId: customerId ?? null,
+          auditInfoId: auditInfo.id,
+        },
+        include: {
+          paymentMethod: true,
+          customer: true,
+          user: true,
+          auditInfo: true,
+        },
+      });
 
-      //Envia mensagens para os admins e para o usuário que registrou o serviço
-      if (url) {
-        try {
-          const admins = await prisma.user.findMany({
-            where: {
-              profileType: "admin",
-              notifications: true,
-              phone: { not: null },
-            },
-          });
+      console.log(service);
+      type ServiceType = { name: string };
+      if (service) {
+        const serviceList = service.servicesTypes as ServiceType[];
 
-          if (admins) {
-            admins.map(async (admin) => {
+        //Envia mensagens para os admins e para o usuário que registrou o serviço
+        if (url) {
+          try {
+            const admins = await prisma.user.findMany({
+              where: {
+                profileType: "admin",
+                notifications: true,
+                phone: { not: null },
+              },
+            });
+
+            if (admins) {
+              admins.map(async (admin) => {
+                try {
+                  const wppResponse = await axios.post(url, {
+                    number: "55" + admin.phone,
+                    message: `📝 Novo serviço registrado!\n\n
+📌 Usuário: ${service.user.name}
+${service.discount > 0 && `💸 Desconto: ${formatPrice(service.discount)}`}
+Serviços:\n${
+                      serviceList &&
+                      serviceList
+                        .map((service) => `* ${service.name}`)
+                        .join("\n")
+                    }
+💲 Valor: ${formatPrice(service.value)}
+📅 Data: ${handleConvertDate(service.createdAt.toString())}\n
+-----------------------------------`,
+                  });
+
+                  console.log(wppResponse.data);
+                } catch (error) {
+                  console.error(
+                    "Erro ao enviar mensagem via wppconnect",
+                    error
+                  );
+                }
+              });
+            }
+
+            if (user.notifications && user.profileType !== "admin") {
               try {
                 const wppResponse = await axios.post(url, {
-                  number: "55" + admin.phone,
+                  number: "55" + user.phone,
                   message: `📝 Novo serviço registrado!\n\n
 📌 Usuário: ${service.user.name}
 ${service.discount > 0 && `💸 Desconto: ${formatPrice(service.discount)}`}
@@ -151,103 +187,110 @@ Serviços:\n${
 
                 console.log(wppResponse.data);
               } catch (error) {
-                console.error("Erro ao enviar mensagem via wppconnect", error);
+                console.error(
+                  "Erro ao enviar mensagem via wppconnect para o usuário que registrou o serviço",
+                  error
+                );
               }
-            });
-          }
-
-          if (user.notifications && user.profileType !== "admin") {
-            try {
-              const wppResponse = await axios.post(url, {
-                number: "55" + user.phone,
-                message: `📝 Novo serviço registrado!\n\n
-📌 Usuário: ${service.user.name}
-${service.discount > 0 && `💸 Desconto: ${formatPrice(service.discount)}`}
-Serviços:\n${
-                  serviceList &&
-                  serviceList.map((service) => `* ${service.name}`).join("\n")
-                }
-💲 Valor: ${formatPrice(service.value)}
-📅 Data: ${handleConvertDate(service.createdAt.toString())}\n
------------------------------------`,
-              });
-
-              console.log(wppResponse.data);
-            } catch (error) {
-              console.error(
-                "Erro ao enviar mensagem via wppconnect para o usuário que registrou o serviço",
-                error
-              );
             }
+          } catch (error) {
+            console.error(
+              "erro ao buscar admins ou erro ao enviar mensagens",
+              error
+            );
           }
-        } catch (error) {
-          console.error(
-            "erro ao buscar admins ou erro ao enviar mensagens",
-            error
-          );
+        } else {
+          console.error("url api wppconnect offline");
         }
-      } else {
-        console.error("url api wppconnect offline");
       }
-    }
 
-    return NextResponse.json(
-      // { message: "New service inserted", service },
-      { status: 200 }
-    );
-    }else{
-    const service = await prisma.service.create({
-      data: {
-        value,
-        servicesValue,
-        discount,
-        createdAt: date ? new Date(date) : new Date(),
-        userId,
-        servicesTypes: selectedServices,
-        code: randomCode.toString(),
-        paymentMethodId,
-        customerId: customerId ?? null,
-        transactions: {
-          create: {
-            value,
-            date: date ? new Date(date) : new Date(),
-            paymentMethodId,
-            description: `Serviço de código ${randomCode}`,
-            userId,
-            type: "Receita",
-            category: "Serviço",
-            bankAccountId: paymentMethod?.bankId,
+      return NextResponse.json(
+        // { message: "New service inserted", service },
+        { status: 200 }
+      );
+    } else {
+      const service = await prisma.service.create({
+        data: {
+          value,
+          servicesValue,
+          discount,
+          createdAt: date ? new Date(date) : new Date(),
+          userId,
+          servicesTypes: selectedServices,
+          code: randomCode.toString(),
+          paymentMethodId,
+          customerId: customerId ?? null,
+          auditInfoId: auditInfo.id,
+
+          transactions: {
+            create: {
+              value,
+              date: date ? new Date(date) : new Date(),
+              paymentMethodId,
+              description: `Serviço de código ${randomCode}`,
+              userId,
+              type: "Receita",
+              category: "Serviço",
+              bankAccountId: paymentMethod?.bankId,
+            },
           },
         },
-      },
-      include: {
-        paymentMethod: true,
-        customer: true,
-        user: true,
-      },
-    });
+        include: {
+          paymentMethod: true,
+          customer: true,
+          user: true,
+        },
+      });
 
-    console.log(service);
-    type ServiceType = { name: string };
-    if (service) {
-      const serviceList = service.servicesTypes as ServiceType[];
+      console.log(service);
+      type ServiceType = { name: string };
+      if (service) {
+        const serviceList = service.servicesTypes as ServiceType[];
 
-      //Envia mensagens para os admins e para o usuário que registrou o serviço
-      if (url) {
-        try {
-          const admins = await prisma.user.findMany({
-            where: {
-              profileType: "admin",
-              notifications: true,
-              phone: { not: null },
-            },
-          });
+        //Envia mensagens para os admins e para o usuário que registrou o serviço
+        if (url) {
+          try {
+            const admins = await prisma.user.findMany({
+              where: {
+                profileType: "admin",
+                notifications: true,
+                phone: { not: null },
+              },
+            });
 
-          if (admins) {
-            admins.map(async (admin) => {
+            if (admins) {
+              admins.map(async (admin) => {
+                try {
+                  const wppResponse = await axios.post(url, {
+                    number: "55" + admin.phone,
+                    message: `📝 Novo serviço registrado!\n\n
+📌 Usuário: ${service.user.name}
+${service.discount > 0 && `💸 Desconto: ${formatPrice(service.discount)}`}
+Serviços:\n${
+                      serviceList &&
+                      serviceList
+                        .map((service) => `* ${service.name}`)
+                        .join("\n")
+                    }
+💲 Valor: ${formatPrice(service.value)}
+📅 Data: ${handleConvertDate(service.createdAt.toString())}\n
+-----------------------------------`,
+                  });
+
+                  console.log(wppResponse.data);
+                } catch (error) {
+                  console.error(
+                    "Erro ao enviar mensagem via wppconnect",
+                    error
+                  );
+                }
+              });
+            }
+
+            if (user.notifications && user.profileType !== "admin") {
               try {
                 const wppResponse = await axios.post(url, {
-                  number: "55" + admin.phone,
+                  number: "55" + user.phone,
                   message: `📝 Novo serviço registrado!\n\n
 📌 Usuário: ${service.user.name}
 ${service.discount > 0 && `💸 Desconto: ${formatPrice(service.discount)}`}
@@ -262,51 +305,28 @@ Serviços:\n${
 
                 console.log(wppResponse.data);
               } catch (error) {
-                console.error("Erro ao enviar mensagem via wppconnect", error);
+                console.error(
+                  "Erro ao enviar mensagem via wppconnect para o usuário que registrou o serviço",
+                  error
+                );
               }
-            });
-          }
-
-          if (user.notifications && user.profileType !== "admin") {
-            try {
-              const wppResponse = await axios.post(url, {
-                number: "55" + user.phone,
-                message: `📝 Novo serviço registrado!\n\n
-📌 Usuário: ${service.user.name}
-${service.discount > 0 && `💸 Desconto: ${formatPrice(service.discount)}`}
-Serviços:\n${
-                  serviceList &&
-                  serviceList.map((service) => `* ${service.name}`).join("\n")
-                }
-💲 Valor: ${formatPrice(service.value)}
-📅 Data: ${handleConvertDate(service.createdAt.toString())}\n
------------------------------------`,
-              });
-
-              console.log(wppResponse.data);
-            } catch (error) {
-              console.error(
-                "Erro ao enviar mensagem via wppconnect para o usuário que registrou o serviço",
-                error
-              );
             }
+          } catch (error) {
+            console.error(
+              "erro ao buscar admins ou erro ao enviar mensagens",
+              error
+            );
           }
-        } catch (error) {
-          console.error(
-            "erro ao buscar admins ou erro ao enviar mensagens",
-            error
-          );
+        } else {
+          console.error("url api wppconnect offline");
         }
-      } else {
-        console.error("url api wppconnect offline");
       }
-    }
 
-    return NextResponse.json(
-      // { message: "New service inserted", service },
-      { status: 200 }
-    );
-  }
+      return NextResponse.json(
+        // { message: "New service inserted", service },
+        { status: 200 }
+      );
+    }
     // }
   } catch (error) {
     console.error("Error inserting service", error);
