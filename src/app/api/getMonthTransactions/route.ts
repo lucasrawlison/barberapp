@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       },
     });
 
-    if (transactions) {
+    if (transactions) {      
       // console.log(transactions)
       return NextResponse.json(
         { message: "transactions", transactions },
