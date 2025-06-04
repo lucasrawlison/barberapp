@@ -59,6 +59,7 @@ import {
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import gerarHorariosComIntervalo from "@/app/app/utils/gerarHorarioDinamico";
+import { set, setHours } from "date-fns";
 
 interface Pagination {
   total: number;
@@ -177,6 +178,7 @@ export function NewAppointmentModal({
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isUsersOpen, setIsUsersOpen] = useState(false);
   const [isLoadingActiveUser, setIsLoadingActiveUser] = useState(false);
+  const [schedulingHours, setSchedulingHours] = useState<string[]>([]);
 
   const handleGetCustomer = async (pageNumber: number) => {
     setIsLoadingCustomers(true);
@@ -240,12 +242,14 @@ export function NewAppointmentModal({
   };
 
   const getServicesTypes = async () => {
+    console.log("Fetching services types...");
     try {
       setIsloadingTypes(true);
       const response = await axios.post("/api/getServicesTypes");
       if (response.status === 200) {
         const { servicesTypes } = response.data;
         setServicesTypes(servicesTypes);
+        console.log("Services Types: ", servicesTypes);
         setIsloadingTypes(false);
       }
     } catch (error) {
@@ -295,8 +299,6 @@ export function NewAppointmentModal({
   };
 
   const handleChangeSelect = (index: number, serviceId: string) => {
-    // console.log(index, serviceId);
-    // Encontrar o objeto completo do serviço selecionado
     const selectedService = servicesTypes.find((s) => s.id === serviceId);
 
     if (selectedService) {
@@ -323,6 +325,7 @@ export function NewAppointmentModal({
   };
 
   const handleGetActiveUser = async () => {
+    console.log("Fetching active user...");
     setIsLoadingActiveUser(true);
     try {
       const response = await axios.post("/api/getActiveUser", {
@@ -331,11 +334,11 @@ export function NewAppointmentModal({
 
       if (response.status === 200) {
         const activeUser = response.data;
-        setNewScheduling((prev) => ({
-          ...prev,
+        setNewScheduling({
+          ...newScheduling,
           userId: activeUser.id,
           user: activeUser,
-        }));
+        });
         setIsLoadingActiveUser(false);
       }
     } catch (error) {
@@ -353,23 +356,36 @@ export function NewAppointmentModal({
     }
   };
 
-
   const handleSetSchedulingHours = () => {
     if (newScheduling.user) {
-    const {breakAt, breakEndAt} = newScheduling.user;
-    const {openAt, closeAt} = newScheduling.user.barbershop
-     const hours = gerarHorariosComIntervalo(openAt, closeAt,60, breakAt, breakEndAt);
-     console.log(hours)
+      const { breakAt, breakEndAt } = newScheduling.user;
+      const { openAt, closeAt } = newScheduling.user.barbershop;
+      const hours = gerarHorariosComIntervalo(
+        openAt,
+        closeAt,
+        60,
+        breakAt,
+        breakEndAt
+      );
+      console.log("Horas: ", hours);
+      setSchedulingHours(hours);
     }
   };
 
   useEffect(() => {
     handleSetSchedulingHours();
-  }, [newScheduling.user, ]);
+  }, [newScheduling.user]);
 
-  useEffect(()=> {
+  useEffect(() => {
+    getServicesTypes();
+    handleSetSchedulingHours();
     handleGetActiveUser();
-  },[])
+  },[]);
+
+
+  useEffect(() => {
+    console.log("New Scheduling: ", newScheduling);
+  }, [newScheduling]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -570,11 +586,21 @@ export function NewAppointmentModal({
           </div>
           <div className="space-y-2">
             <Label htmlFor="date">Horário *</Label>
-            <Select>
+            <Select onValueChange={(value) => handleChange("time", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o horário" />
               </SelectTrigger>
-              <SelectContent></SelectContent>
+              <SelectContent>
+                {schedulingHours.map((hour) => (
+                  <SelectItem
+                    key={hour}
+                    value={hour}
+                    className="text-sm hover:bg-gray-100 hover:cursor-pointer"
+                  >
+                    {hour}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
         </div>
@@ -583,7 +609,9 @@ export function NewAppointmentModal({
         <Label className="mt-4">Responsável:</Label>
         <div className="w-full gap-3   flex flex-row justify-center items-center">
           <Input
-            value={isLoadingActiveUser ? ("Carregando...") : (newScheduling.user?.name)}
+            value={
+              isLoadingActiveUser ? "Carregando..." : newScheduling.user?.name
+            }
             name="user"
             id="user"
             type="text"
@@ -621,6 +649,14 @@ export function NewAppointmentModal({
                   <Card
                     key={user.id}
                     className=" hover:cursor-pointer hover:shadow-md  transition-all"
+                    onClick={() => {
+                      setNewScheduling((prev) => ({
+                        ...prev,
+                        userId: user.id,
+                        user: user,
+                      }));
+                      setIsUsersOpen(false);
+                    }}
                   >
                     <CardHeader>
                       <CardTitle className="text-xs text-center">
@@ -651,8 +687,7 @@ export function NewAppointmentModal({
             </DialogContent>
           </Dialog>
         </div>
-        
-         
+
         {/* Observation */}
         <div className="space-y-2">
           <Label htmlFor="observation" className="flex items-center space-x-2">
@@ -661,8 +696,8 @@ export function NewAppointmentModal({
           </Label>
           <Textarea
             id="observation"
-            // value={formData.observation}
-            // onChange={(e) => handleChange("observation", e.target.value)}
+            value={newScheduling.description || ""}
+            onChange={(e) => handleChange("description", e.target.value)}
             placeholder="Observações especiais ou preferências..."
             rows={3}
           />

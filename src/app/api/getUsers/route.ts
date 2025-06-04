@@ -8,6 +8,9 @@ export async function POST() {
 
     const users = await prisma.user.findMany({
       include:{
+        transactions: true,
+        scheduling: true,
+        barbershop: true,
         services:true
       }
     });

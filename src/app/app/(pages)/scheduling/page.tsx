@@ -468,7 +468,43 @@ export default function SchedulingApp() {
         selectedScheduling={selectedScheduling}
         newScheduling={newScheduling}
         isOpen={isNewAppointmentOpen}
-        onClose={() => setIsNewAppointmentOpen(false)}
+        onClose={() => {
+          setIsNewAppointmentOpen(false)
+          setSelectedScheduling(undefined);
+          setNewScheduling({
+    id: "",
+    date: formatDate(new Date()),
+    time: "",
+    description: "",
+    userId: "",
+    user: {
+      id: "",
+      email: "",
+      name: "",
+      login: "",
+      profileType: "",
+      profileImgLink: "",
+      breakAt: "12:00",
+      breakEndAt: "13:00",
+      barbershop: {
+        id: "",
+        name: "",
+        openAt: "09:00",
+        closeAt: "19:30",
+      },
+    },
+    servicesTypes: [
+      {
+        id: "",
+        name: "Selecione",
+        value: 0,
+      },
+    ],
+    status: "agendado",
+    wasAttended: false,
+  })
+        }
+      }
         selectedDate={selectedDate}
       />
     </div>
