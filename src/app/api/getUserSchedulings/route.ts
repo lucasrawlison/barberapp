@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
               // skip,
               // take: limit,
               where: {
-                date: {
+                dateTime: {
                   gte: startDate,
                   lte: finalDate,
                 },
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
             where: {
               AND: [
                 {
-                  date: {
+                  dateTime: {
                     gte: startDate,
                     lte: finalDate,
                   },

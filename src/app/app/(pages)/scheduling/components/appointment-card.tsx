@@ -83,6 +83,7 @@ interface Scheduling {
   id: string;
   date: string;
   time: string;
+  dateTime: Date;
   description?: string;
   userId: string;
   user: User;
@@ -147,7 +148,7 @@ export function AppointmentCard({ scheduling,
               <div>
                 <p className="font-semibold text-gray-900">{scheduling.time}</p>
                 <p className="text-xs text-gray-500">
-                  {new Date(`${scheduling.date}`).toLocaleString("pt-br", {
+                  {new Date(`${scheduling.dateTime}`).toLocaleString("pt-br", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",

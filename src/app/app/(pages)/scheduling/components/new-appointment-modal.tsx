@@ -15,6 +15,7 @@ import {
   Minus,
   Plus,
   UserSearch,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +60,6 @@ import {
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import gerarHorariosComIntervalo from "@/app/app/utils/gerarHorarioDinamico";
-import { set, setHours } from "date-fns";
 
 interface Pagination {
   total: number;
@@ -173,6 +173,7 @@ export function NewAppointmentModal({
   const { data: session } = useSession();
   const [isloadingTypes, setIsloadingTypes] = useState(false);
   const [isLoadingHours, setIsLoadingHours] = useState(false);
+  const [isLoadingScheduling, setIsLoadingScheduling] = useState(false);
   const [servicesTypes, setServicesTypes] = useState<Type[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
@@ -371,6 +372,65 @@ export function NewAppointmentModal({
       setSchedulingHours(hours);
     }
   };
+
+  const handleCreateScheduling = () => async () => {
+    setIsLoadingScheduling(true);
+    try {
+      const response = await axios.post("/api/createScheduling", {
+        scheduling: newScheduling,
+      });
+      if (response.status === 200) {
+            setIsLoadingScheduling(false);
+
+        toast({
+          title: "Agendamento criado com sucesso!",
+          description: "O agendamento foi registrado com sucesso.",
+          duration: 3000,
+        });
+        setSelectedScheduling(response.data.newScheduling);
+        setNewScheduling({
+          id: "",
+          date: "",
+          time: "",
+          description: "",
+          userId: "",
+          user: {
+            id: "",
+            name: "",
+            email: "",
+            login: "",
+            profileType: "",
+            profileImgLink: "",
+            breakAt: "",
+            breakEndAt: "",
+            barbershop: {
+              id: "",
+              name: "",
+              openAt: "",
+              closeAt: "",
+            },
+          },
+          servicesTypes: [{ id: "", name: "Selecione", value: 0 }],
+          customerId: "",
+          customer: undefined,
+          barbershopId: "",
+          barbershop: undefined,
+          status: "pendente",
+        });
+        onClose();
+      }
+    } catch (error) {
+      if(isAxiosError(error)) {
+        setIsLoadingScheduling(false);
+        toast({
+          title: "Erro ao criar agendamento",
+          description: error.response?.data.message || "Ocorreu um erro ao criar o agendamento.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+    }
+  }
 
   useEffect(() => {
     handleSetSchedulingHours();
@@ -708,7 +768,9 @@ export function NewAppointmentModal({
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">Agendar Horário</Button>
+          <Button disabled={isLoadingScheduling} type="submit" onClick={handleCreateScheduling()}>{isLoadingScheduling ? (<Loader2 className=" animate-spin"/>): (
+            "Agendar horário"
+          )}</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -122,7 +122,8 @@ enum SchedulingStatus {
 
 model Scheduling {
   id            String           @id @default(auto()) @map("_id") @db.ObjectId
-  date          DateTime         @default(now())
+  dateTime      DateTime         @unique
+  date          String
   time          String
   description   String?
   userId        String           @db.ObjectId
