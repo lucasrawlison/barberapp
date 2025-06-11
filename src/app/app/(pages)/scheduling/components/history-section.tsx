@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter, Calendar, Loader2, LoaderCircle, RotateCw } from "lucide-react"
+import { Search, Filter, Calendar, RotateCw } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +17,15 @@ interface Pagination {
 }
 
 interface User {
-  name: string
+  id: string;
+  name: string;
+  email: string;
+  login: string;
+  profileType: string;
+  profileImgLink: string;
+  breakAt: string;
+  breakEndAt: string;
+  barbershop: Barbershop;
 }
 
 interface Type {
@@ -35,7 +43,7 @@ interface Service {
   createdAt: Date;
   servicesTypes: Type[];
   user: User;
-  paymentMethodId: string
+  paymentMethodId: string;
   customerId: string;
   customer: Customer;
   // paymentMethod: PaymentMethod
@@ -52,12 +60,15 @@ interface Customer {
 interface Barbershop {
   id: string;
   name: string;
+  openAt: string;
+  closeAt: string;
 }
 
 interface Scheduling {
   id: string;
   date: string;
   time: string;
+  dateTime: Date;
   description?: string;
   userId: string;
   user: User;
@@ -76,10 +87,9 @@ interface HistorySectionProps {
   schedulings: Scheduling[] | undefined
   handleGetAllSchedulings: (value: number)=> void
   pagination: Pagination
-  isLoadingSchedulings: boolean
 }
 
-export function HistorySection({ isLoadingSchedulings,schedulings, pagination, handleGetAllSchedulings }: HistorySectionProps) {
+export function HistorySection({ schedulings, pagination, handleGetAllSchedulings }: HistorySectionProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [serviceFilter, setServiceFilter] = useState("all")

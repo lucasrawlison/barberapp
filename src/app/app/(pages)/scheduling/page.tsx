@@ -22,7 +22,6 @@ import { HistorySection } from "./components/history-section";
 import axios, { isAxiosError } from "axios";
 import { useSession } from "next-auth/react";
 import { toast } from "@/hooks/use-toast";
-import { set } from "date-fns";
 
 // Mock data
 
@@ -81,10 +80,12 @@ interface Barbershop {
   closeAt: string;
 }
 
+
 interface Scheduling {
   id: string;
   date: string;
   time: string;
+  dateTime: Date;
   description?: string;
   userId: string;
   user: User;
@@ -129,6 +130,7 @@ export default function SchedulingApp() {
     id: "",
     date: formatDate(new Date()),
     time: "",
+    dateTime: new Date(),
     description: "",
     userId: "",
     user: {
@@ -203,7 +205,7 @@ export default function SchedulingApp() {
       });
 
       if (response.status === 200) {
-        const { schedulings, pagination } = response.data;
+        const { schedulings, } = response.data;
         setDaySchedulings(schedulings);
         setIsLoadingDaySchedulings(false);
         console.log(schedulings);
@@ -441,7 +443,7 @@ export default function SchedulingApp() {
               <div className="space-y-3">
                 {daySchedulings.map((scheduling) => (
                   <AppointmentCard
-                  setSelectedScheduling={setSelectedScheduling}
+                  // setSelectedScheduling={setSelectedScheduling}
                     key={scheduling.id}
                     scheduling={scheduling}
                   />
@@ -455,7 +457,7 @@ export default function SchedulingApp() {
               schedulings={schedulings}
               pagination={pagination}
               handleGetAllSchedulings={handleGetAllSchedulings}
-              isLoadingSchedulings={isLoadingSchedulings}
+              // isLoadingSchedulings={isLoadingSchedulings}
             />
           </TabsContent>
         </Tabs>
@@ -475,6 +477,7 @@ export default function SchedulingApp() {
     id: "",
     date: formatDate(new Date()),
     time: "",
+    dateTime: new Date(),
     description: "",
     userId: "",
     user: {

@@ -4,41 +4,41 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 
-interface BankAccount {
-  id: string
-  bankName: string
-}
+// interface BankAccount {
+//   id: string
+//   bankName: string
+// }
 
-interface PaymentMethod {
-  id: string
-  name: string
-  bankAccount: BankAccount
-}
+// interface PaymentMethod {
+//   id: string
+//   name: string
+//   bankAccount: BankAccount
+// }
 
-interface Type {
-  id: string
-  name: string
-  value: number
-}
+// interface Type {
+//   id: string
+//   name: string
+//   value: number
+// }
 
-interface User {
-  name: string
-}
+// interface User {
+//   name: string
+// }
 
-interface Service {
-  id: string
-  code: number
-  value: number
-  servicesValue: number
-  discount: number
-  createdAt: Date
-  servicesTypes: Type[]
-  user: User
-  paymentMethodId: string
-  customerId: string
-  customer: Customer
-  paymentMethod: PaymentMethod
-}
+// interface Service {
+//   id: string
+//   code: number
+//   value: number
+//   servicesValue: number
+//   discount: number
+//   createdAt: Date
+//   servicesTypes: Type[]
+//   user: User
+//   paymentMethodId: string
+//   customerId: string
+//   customer: Customer
+//   paymentMethod: PaymentMethod
+// }
 
 interface Customer {
   id: string
@@ -46,7 +46,7 @@ interface Customer {
   code: string
   email: string
   phone: string
-  services: Service[]
+  // services: Service[]
 }
 
 type PhoneInputProps = {

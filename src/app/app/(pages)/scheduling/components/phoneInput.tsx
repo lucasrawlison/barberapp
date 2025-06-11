@@ -10,6 +10,11 @@ interface Customer {
     email: string;
     phone: string;
     code: string;
+    services: Services[];
+  }
+
+  interface Services {
+    id: string;
   }
 
 type PhoneInputProps = {

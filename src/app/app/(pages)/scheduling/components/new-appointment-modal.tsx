@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
-  DialogClose,
+  // DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -120,6 +120,7 @@ interface Scheduling {
   id: string;
   date: string;
   time: string;
+  dateTime: Date;
   description?: string;
   userId: string;
   user: User;
@@ -154,7 +155,10 @@ export function NewAppointmentModal({
   setNewScheduling,
   setSelectedScheduling,
 }: NewAppointmentModalProps) {
-  const handleChange = (name: string, value: any) => {
+  const handleChange = <K extends keyof Scheduling>(
+    name: K,
+    value: Scheduling[K]
+  ) => {
     setNewScheduling((prev) => ({
       ...prev,
       [name]: value,
@@ -171,8 +175,8 @@ export function NewAppointmentModal({
     totalPages: 0,
   });
   const { data: session } = useSession();
-  const [isloadingTypes, setIsloadingTypes] = useState(false);
-  const [isLoadingHours, setIsLoadingHours] = useState(false);
+  const [, setIsloadingTypes] = useState(false);
+  // const [isLoadingHours, ysetIsLoadingHours] = useState(false);
   const [isLoadingScheduling, setIsLoadingScheduling] = useState(false);
   const [servicesTypes, setServicesTypes] = useState<Type[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -392,6 +396,7 @@ export function NewAppointmentModal({
           id: "",
           date: "",
           time: "",
+          dateTime: new Date(),
           description: "",
           userId: "",
           user: {

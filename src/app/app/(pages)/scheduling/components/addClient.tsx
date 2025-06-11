@@ -23,7 +23,11 @@ interface Customer {
   email: string;
   phone: string;
   code: string;
+services: Service[];
+}
 
+interface Service {
+  id: string;
 }
 
 
@@ -49,6 +53,7 @@ export default function AddClient({setChosedCustomer} : AddClientsProps) {
   const [newCustomer, setNewCustomer] = useState<Customer>({
     id: "",
     name: "",
+    services: [],
     email: "",
     phone: "",
     code:"",
@@ -136,6 +141,7 @@ export default function AddClient({setChosedCustomer} : AddClientsProps) {
           name: "",
           email: "",
           phone: "",
+          services: [],
           code:"",
         });
         setSelectedCustomer(undefined);

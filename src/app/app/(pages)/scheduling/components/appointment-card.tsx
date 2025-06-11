@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import {
   Clock,
   User,
   Scissors,
-  FileText,
   MoreHorizontal,
   Check,
   X,
@@ -23,13 +21,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import formatarTelefone from "@/app/app/utils/formatarTelefone";
 import Link from "next/link";
-interface Pagination {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
 
 interface User {
   id: string;
@@ -100,11 +91,10 @@ interface Scheduling {
 
 interface AppointmentCardProps {
   scheduling: Scheduling;
-  setSelectedScheduling: (value:Scheduling)=>void
 }
 
 export function AppointmentCard({ scheduling,
-  setSelectedScheduling
+  
  }: AppointmentCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {

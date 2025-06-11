@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { getNextSequence } from "../utils/getNextSequence";
+// import { getNextSequence } from "../utils/getNextSequence";
 
 const prisma = new PrismaClient();
 
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const { scheduling } = body;
     const {
       time,
-      barbershop,
+      // barbershop,
       customer,
       date,
       user,
