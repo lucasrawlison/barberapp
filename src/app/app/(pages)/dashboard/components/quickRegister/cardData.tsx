@@ -184,25 +184,26 @@ export function CardData({
     }
   };
 
-  const handleGetCustomer = async (pageNumber: number) => {
-    setIsLoadingCustomers(true);
-    try {
-      const response = await axios.get("/api/getCustomers", {
-        params: {
-          page: pageNumber,
-          limit: 10,
-        },
-      });
-      if (response.status === 200) {
-        setPagination(response.data.pagination);
-        setCustomers(response.data.customers);
+  const handleGetCustomer = async ( pageNumber: number, search?: string ) => {
+      setIsLoadingCustomers(true);
+      try {
+        const response = await axios.get("/api/getCustomers", {
+          params: {
+            search: search || "",
+            page: pageNumber,
+            limit: 10,
+          },
+        });
+        if (response.status === 200) {
+          setPagination(response.data.pagination);
+          setCustomers(response.data.customers);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoadingCustomers(false);
       }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoadingCustomers(false);
-    }
-  };
+    };
 
   useEffect(() => {
 
@@ -277,7 +278,9 @@ export function CardData({
               </DialogDescription>
             </DialogHeader>
 
-            <Input placeholder="Buscar" className="w-full"></Input>
+            <Input onChange={(e)=> {
+              handleGetCustomer(1, e.target.value);
+            }} placeholder="Buscar" className="w-full"></Input>
             <div className="flex flex-col gap-2  max-h-96 overflow-auto w-full">
               {isLoadingCustomers && (
                 <div className="h-1 bg-slate-400 w-full overflow-hidden relative">

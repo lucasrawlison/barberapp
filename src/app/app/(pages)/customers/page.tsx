@@ -54,7 +54,6 @@ interface Customer {
 
 export default function ClientesDashboard() {
   const [customers, setCustomers] = useState<Customer[]>([])
-  const [busca, setBusca] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined)
   const [pagination, setPagination] = useState({
@@ -64,27 +63,26 @@ export default function ClientesDashboard() {
     totalPages: 0,
   })
 
-  const handleGetCustomers = async (pageNumber: number) => {
-    setIsLoading(true)
+  const handleGetCustomers = async ( pageNumber: number, search?: string ) => {
+    setIsLoading(true);
     try {
       const response = await axios.get("/api/getCustomers", {
         params: {
+          search: search || "",
           page: pageNumber,
           limit: 10,
         },
-      })
-      if(response.status === 200){
-        setPagination(response.data.pagination)
-      setCustomers(response.data.customers)
-        console.log(response.data.customers)
+      });
+      if (response.status === 200) {
+        setPagination(response.data.pagination);
+        setCustomers(response.data.customers);
       }
     } catch (error) {
-      console.log(error)
-      setIsLoading(false)
-    }finally {
-      setIsLoading(false)
+      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
 
   useEffect(()=> {
@@ -108,11 +106,11 @@ export default function ClientesDashboard() {
             <div className="relative flex-1 md:max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+              
                 type="search"
                 placeholder="Buscar clientes..."
                 className="pl-8"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
+                onChange={(e) => handleGetCustomers(1, e.target.value)}
               />
             </div>
           </div>

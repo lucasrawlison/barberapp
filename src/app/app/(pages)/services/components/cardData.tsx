@@ -241,11 +241,12 @@ export function CardData({
     }
   };
 
-  const handleGetCustomer = async ( pageNumber: number) => {
+  const handleGetCustomer = async ( pageNumber: number, search?: string ) => {
     setIsLoadingCustomers(true);
     try {
       const response = await axios.get("/api/getCustomers", {
         params: {
+          search: search || "",
           page: pageNumber,
           limit: 10,
         },
@@ -335,15 +336,20 @@ export function CardData({
                 <UsersIcon />
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="">
               <DialogHeader>
                 <DialogTitle>Clientes</DialogTitle>
                 <DialogDescription>
                   Selecione um cliente para o serviço
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex flex-col items-center justify-center">
-                <Input placeholder="Buscar" className="w-full" />
+              <div className= "h-[350px] flex flex-col justify-start">
+                <Input onChange={(e)=>{
+                  console.log(e.target.value)
+                  handleGetCustomer(1,e.target.value)
+                }
+                } 
+                  placeholder="Buscar" className="w-full min-h-[30px] max-h-[30px]" />
                 <div className="flex flex-col gap-2 mt-4 max-h-96 overflow-auto w-full">
                   {isLoadingCustomers && (
                     <div className="h-1 bg-slate-400 w-full overflow-hidden relative">
