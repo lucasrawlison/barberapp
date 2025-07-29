@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 const prisma = new PrismaClient();
 
 export async function POST(req : NextRequest) {
+    const body = await req.json();
+    console.log("Este é o body: ", body);
+    const {id} = body;
     
     try {
-        const body = await req.json();
-        console.log("Este é o body: ", body);
-        const {id} = body;
 
 
         const activeUser = await prisma.user.findUnique({

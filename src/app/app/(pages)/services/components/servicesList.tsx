@@ -42,11 +42,12 @@ interface Customer {
   phone: string;
 }
 interface Transaction {
-  date: Date,
-  description: string,
-  type: string,
-  value: number
-
+  date: Date;
+  description: string;
+  type: string;
+  value: number;
+  paymentMethod: PaymentMethod;
+  bankAccount: BankAccount;
 }
 interface Service {
   id: string;
@@ -353,7 +354,7 @@ export function ServicesList() {
                         <User size={"14px"}/>
                         </span>
                       ): ""}
-                    {service.transactions.length > 0 ? (
+                    {service.transactions.reduce((acc, transaction)=> acc + transaction.value, 0) >= service.value  ? (
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                         Pago
                       </span>

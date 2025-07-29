@@ -113,7 +113,10 @@ export async function POST(req: NextRequest) {
                include:{bankAccount:true}
              },
              customer: true,
-             transactions: true,
+             transactions: {
+              include: {paymentMethod: true, bankAccount: true}
+             },
+            
  
              
            },

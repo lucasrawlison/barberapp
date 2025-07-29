@@ -67,7 +67,8 @@ interface Transaction {
   description: string,
   type: string,
   value: number
-
+  paymentMethod: PaymentMethod
+  bankAccount: BankAccount
 }
 
 interface Service {
