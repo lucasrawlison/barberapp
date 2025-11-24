@@ -176,42 +176,88 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 ### Diagrama de Fluxo
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#3B82F6','primaryTextColor':'#fff','primaryBorderColor':'#1E3A8A','lineColor':'#6B7280','secondaryColor':'#10B981','tertiaryColor':'#F59E0B'}}}%%
 sequenceDiagram
-    participant U as Usuário
-    participant L as /login
-    participant A as NextAuth
-    participant P as Prisma
-    participant D as MongoDB
-    participant M as Middleware
-    participant App as /app/*
+    autonumber
+    actor U as 👤 Usuário
+    participant L as 🌐 /login<br/>(Página)
+    participant A as 🔐 NextAuth
+    participant P as 🗄️ Prisma<br/>ORM
+    participant D as 💾 MongoDB
+    participant M as 🛡️ Middleware
+    participant App as 📱 /app/*<br/>(Protegido)
 
-    U->>L: Acessa /login
-    U->>L: Preenche email/senha
-    L->>A: submit credentials
-    A->>P: findFirst(email OR login)
-    P->>D: Query usuário
-    D-->>P: Retorna user ou null
-    P-->>A: user data
-    
-    alt Usuário não encontrado
-        A-->>L: return null (erro)
-        L-->>U: "Credenciais inválidas"
-    else Usuário inativo
-        A-->>L: return null (erro)
-        L-->>U: "Usuário inativo"
-    else Senha incorreta
-        A-->>L: return null (erro)
-        L-->>U: "Credenciais inválidas"
-    else Autenticação OK
-        A->>A: Cria JWT token
-        A->>A: Cria sessão
-        A-->>L: Autenticado
-        L-->>U: Redireciona para /app
-        U->>App: Acessa página protegida
-        M->>M: Valida sessão
-        M-->>App: Acesso permitido
-        App-->>U: Renderiza página
+    %% Fluxo Principal
+    rect rgb(240, 249, 255)
+        Note over U,L: Fase 1: Acesso Inicial
+        U->>+L: GET /login
+        L-->>-U: Exibe formulário de login
     end
+
+    rect rgb(240, 249, 255)
+        Note over U,A: Fase 2: Autenticação
+        U->>+L: Submit (email, senha)
+        L->>+A: signIn("credentials", {...})
+        
+        Note over A: Validação Inicial
+        A->>A: Verifica credenciais fornecidas
+        A->>A: Valida tipo de dados
+        
+        A->>+P: findFirst({ OR:[email, login] })
+        P->>+D: db.user.findFirst(...)
+        D-->>-P: user document | null
+        P-->>-A: User object | null
+    end
+
+    %% Fluxos Alternativos
+    alt ❌ Usuário não encontrado
+        rect rgb(254, 242, 242)
+            Note over A,L: ERRO: Credenciais Inválidas
+            A-->>L: return null
+            L-->>U: "Credenciais inválidas"
+        end
+        
+    else ❌ Usuário inativo
+        rect rgb(254, 242, 242)
+            Note over A,L: ERRO: Conta Desativada
+            A->>A: Verifica user.active === false
+            A-->>L: return null
+            L-->>U: "Usuário inativo"
+        end
+        
+    else ❌ Senha incorreta
+        rect rgb(254, 242, 242)
+            Note over A,L: ERRO: Senha Incorreta
+            A->>A: Compara senha (plaintext)
+            Note right of A: ⚠️ TODO: Implementar bcrypt
+            A-->>L: return null
+            L-->>U: "Credenciais inválidas"
+        end
+        
+    else ✅ Autenticação bem-sucedida
+        rect rgb(240, 253, 244)
+            Note over A,App: SUCESSO: Login Autorizado
+            
+            A->>A: Valida senha user.password === input
+            A->>A: Cria JWT Token<br/>{id, email, name, image}
+            A->>A: Cria Session Cookie
+            A-->>-L: { success: true, session }
+            
+            L-->>-U: Redirect → /app/dashboard
+            
+            Note over U,App: Fase 3: Acesso Protegido
+            U->>+App: GET /app/dashboard
+            App->>+M: Middleware Check
+            M->>M: Valida JWT Token
+            M->>M: Verifica expiração
+            M-->>-App: ✓ Token válido
+            
+            App->>App: Renderiza conteúdo<br/>Server Component
+            App-->>-U: HTML da página protegida
+        end
+    end
+
+    Note over U,App: 🎉 Usuário autenticado e navegando
 ```
 
 ### Passo a Passo
@@ -638,18 +684,60 @@ npx ts-node prisma/seed.ts
 ## 📊 Fluxograma de Decisão de Acesso
 
 ```mermaid
+%%{init: {'theme':'base', 'flowchart':{'curve':'basis'}}}%%
 flowchart TD
-    Start([Usuário tenta acessar rota]) --> CheckRoute{Rota pública?}
-    CheckRoute -->|Sim /login| Allow[Permitir acesso]
-    CheckRoute -->|Não /app/*| CheckSession{Tem sessão?}
-    CheckSession -->|Não| Redirect[Redirecionar para /login]
-    CheckSession -->|Sim| ValidateSession{Sessão válida?}
-    ValidateSession -->|Não| Redirect
-    ValidateSession -->|Sim| CheckActive{Usuário ativo?}
-    CheckActive -->|Não| Logout[Encerrar sessão] --> Redirect
-    CheckActive -->|Sim| Allow
-    Allow --> End([Acesso concedido])
+    Start([🌐 Usuário tenta<br/>acessar rota])
+    
+    CheckRoute{🔍 Rota pública?<br/>/login, /api/auth}
+    CheckSession{🔐 Tem sessão<br/>JWT válida?}
+    ValidateSession{✅ Sessão válida?<br/>Token não expirado?}
+    CheckActive{👤 Usuário ativo?<br/>user.active === true}
+    
+    AllowPublic[✅ Permitir acesso<br/>Rota pública]
+    AllowProtected[✅ Permitir acesso<br/>Rota protegida]
+    Redirect[🚫 Redirecionar<br/>→ /login]
+    Logout[⚠️ Encerrar sessão<br/>Limpar cookies]
+    
+    End([🎯 Finalizado])
+    
+    %% Fluxo Principal
+    Start --> CheckRoute
+    
+    %% Rota Pública
+    CheckRoute -->|✅ Sim<br/>/login| AllowPublic
+    AllowPublic --> End
+    
+    %% Rota Protegida
+    CheckRoute -->|❌ Não<br/>/app/*| CheckSession
+    
+    %% Verificação de Sessão
+    CheckSession -->|❌ Não<br/>cookie ausente| Redirect
+    CheckSession -->|✅ Sim<br/>cookie presente| ValidateSession
+    
+    %% Validação da Sessão
+    ValidateSession -->|❌ Não<br/>expirado/inválido| Redirect
+    ValidateSession -->|✅ Sim<br/>token OK| CheckActive
+    
+    %% Verificação de Usuário Ativo
+    CheckActive -->|❌ Não<br/>user.active = false| Logout
+    Logout --> Redirect
+    CheckActive -->|✅ Sim<br/>user.active = true| AllowProtected
+    AllowProtected --> End
+    
     Redirect --> End
+    
+    %% Estilos
+    classDef successClass fill:#10B981,stroke:#059669,stroke-width:2px,color:#fff
+    classDef errorClass fill:#EF4444,stroke:#DC2626,stroke-width:2px,color:#fff
+    classDef warningClass fill:#F59E0B,stroke:#D97706,stroke-width:2px,color:#fff
+    classDef decisionClass fill:#3B82F6,stroke:#2563EB,stroke-width:2px,color:#fff
+    classDef startEnd fill:#6B7280,stroke:#4B5563,stroke-width:2px,color:#fff
+    
+    class AllowPublic,AllowProtected successClass
+    class Redirect errorClass
+    class Logout warningClass
+    class CheckRoute,CheckSession,ValidateSession,CheckActive decisionClass
+    class Start,End startEnd
 ```
 
 ---

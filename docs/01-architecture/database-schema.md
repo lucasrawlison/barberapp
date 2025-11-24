@@ -37,52 +37,179 @@ O BarberApp utiliza **MongoDB** como banco de dados, gerenciado através do **Pr
 ## 📊 Diagrama ER (Entity-Relationship)
 
 ```mermaid
+---
+title: BarberApp Database Schema
+---
 erDiagram
-    Barbershop ||--o{ User : "tem"
+    %% Entidade Central
+    Barbershop {
+        ObjectId id PK
+        string name
+        string address
+        string phone
+        string email
+        string openAt
+        string closeAt
+        string description
+    }
+
+    %% Usuários do Sistema
+    User {
+        ObjectId id PK
+        string code UK "USR001"
+        string name
+        string email UK
+        string login UK
+        string password
+        string profileType "admin/barber"
+        boolean active
+        boolean isRoot
+        string phone
+        string breakAt
+        string breakEndAt
+        ObjectId barbershopId FK
+    }
+
+    %% Clientes
+    Customer {
+        ObjectId id PK
+        string code UK "CLI001"
+        string name
+        string phone
+        string email "opcional"
+    }
+
+    %% Serviços Realizados
+    Service {
+        ObjectId id PK
+        string code UK "SRV001"
+        float value
+        float servicesValue
+        float discount
+        json servicesTypes
+        datetime createdAt
+        ObjectId userId FK
+        ObjectId customerId FK
+        ObjectId paymentMethodId FK
+        ObjectId barbershopId FK
+    }
+
+    %% Agendamentos
+    Scheduling {
+        ObjectId id PK
+        datetime dateTime UK
+        string date
+        string time
+        string status "agendado/atendido/cancelado"
+        boolean wasAttended
+        string description
+        json servicesTypes
+        ObjectId userId FK
+        ObjectId customerId FK
+        ObjectId serviceId FK
+        ObjectId barbershopId FK
+    }
+
+    %% Transações Financeiras
+    Transactions {
+        ObjectId id PK
+        string description
+        float value
+        datetime date
+        string type "Receita/Despesa"
+        string category
+        ObjectId userId FK
+        ObjectId serviceId FK
+        ObjectId paymentMethodId FK
+        ObjectId bankAccountId FK
+    }
+
+    %% Métodos de Pagamento
+    PaymentMethod {
+        ObjectId id PK
+        string name "PIX/Dinheiro/Cartão"
+        ObjectId bankId FK
+    }
+
+    %% Contas Bancárias
+    BankAccount {
+        ObjectId id PK
+        string bankName
+        float initialValue
+        string agency
+        string accountNumber
+        string accountType
+        string accountOwner
+        ObjectId barbershopId FK
+    }
+
+    %% Auditoria
+    AuditInfo {
+        ObjectId id PK
+        datetime createdAt
+        datetime updatedAt
+        string createdBy
+        string updatedBy
+    }
+
+    %% Catálogo de Serviços
+    ServicesTypes {
+        ObjectId id PK
+        string name "Corte/Barba"
+        float value
+    }
+
+    %% Contadores
+    Counters {
+        string id PK "user/customer/service"
+        int count
+    }
+
+    %% === RELACIONAMENTOS ===
+    
+    %% Barbershop como Hub Central
+    Barbershop ||--o{ User : "emprega"
     Barbershop ||--o{ Service : "oferece"
     Barbershop ||--o{ BankAccount : "possui"
     Barbershop ||--o{ Scheduling : "gerencia"
-    
+
+    %% User (Profissional)
     User ||--o{ Service : "realiza"
-    User ||--o{ Scheduling : "agenda"
+    User ||--o{ Scheduling : "atende"
     User ||--o{ Transactions : "registra"
-    User }o--|| AuditInfo : "auditado por"
-    User }o--|| Barbershop : "pertence a"
-    
+
+    %% Customer (Cliente)
     Customer ||--o{ Service : "contrata"
-    Customer ||--o{ Scheduling : "agenda"
-    
-    Service }o--|| User : "realizado por"
-    Service }o--|| Customer : "para"
-    Service }o--|| PaymentMethod : "pago com"
-    Service ||--o{ Transactions : "gera"
-    Service ||--o{ Scheduling : "inclui"
-    Service }o--|| AuditInfo : "auditado"
-    
+    Customer ||--o{ Scheduling : "marca"
+
+    %% Service (Serviço Prestado)
+    Service }o--|| User : "executado_por"
+    Service }o--o| Customer : "cliente"
+    Service }o--|| PaymentMethod : "pago_via"
+    Service ||--o{ Transactions : "gera_transacao"
+    Service ||--o{ Scheduling : "vincula_agenda"
+
+    %% Scheduling (Agendamento)
     Scheduling }o--|| User : "profissional"
-    Scheduling }o--|| Customer : "cliente"
-    Scheduling }o--|| Service : "serviço"
-    Scheduling }o--|| AuditInfo : "auditado"
-    
-    BankAccount ||--o{ PaymentMethod : "tem"
-    BankAccount ||--o{ Transactions : "registra"
-    BankAccount }o--|| AuditInfo : "auditado"
-    
-    PaymentMethod }o--|| BankAccount : "vinculado a"
-    PaymentMethod ||--o{ Service : "usado em"
-    PaymentMethod ||--o{ Transactions : "processa"
-    
-    Transactions }o--|| User : "criado por"
-    Transactions }o--|| Service : "referente a"
-    Transactions }o--|| PaymentMethod : "método"
-    Transactions }o--|| BankAccount : "conta"
-    Transactions }o--|| AuditInfo : "auditado"
-    
-    AuditInfo ||--o{ User : "audita"
-    AuditInfo ||--o{ Service : "audita"
-    AuditInfo ||--o{ BankAccount : "audita"
-    AuditInfo ||--o{ Scheduling : "audita"
-    AuditInfo ||--o{ Transactions : "audita"
+    Scheduling }o--o| Customer : "cliente"
+    Scheduling }o--o| Service : "servico_realizado"
+
+    %% Transactions (Financeiro)
+    Transactions }o--|| User : "lancado_por"
+    Transactions }o--o| Service : "referente_a"
+    Transactions }o--|| PaymentMethod : "forma_pagamento"
+    Transactions }o--o| BankAccount : "destino"
+
+    %% BankAccount e PaymentMethod
+    BankAccount ||--o{ PaymentMethod : "oferece"
+    BankAccount ||--o{ Transactions : "recebe"
+
+    %% Auditoria (Opcional)
+    User }o--o| AuditInfo : "auditado"
+    Service }o--o| AuditInfo : "auditado"
+    Scheduling }o--o| AuditInfo : "auditado"
+    Transactions }o--o| AuditInfo : "auditado"
+    BankAccount }o--o| AuditInfo : "auditado"
 ```
 
 ---

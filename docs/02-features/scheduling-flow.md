@@ -326,18 +326,37 @@ model Scheduling {
 ### Ciclo de Vida de um Agendamento
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#3B82F6','primaryBorderColor':'#1E3A8A','lineColor':'#6B7280'}}}%%
 stateDiagram-v2
-    [*] --> pendente : Criado sem confirmação
-    [*] --> agendado : Criado confirmado
+    direction LR
     
-    pendente --> agendado : Confirmar
-    pendente --> cancelado : Cancelar
+    [*] --> pendente : 🆕 Criado<br/>sem confirmação
+    [*] --> agendado : ✅ Criado<br/>confirmado
     
-    agendado --> atendido : Concluir atendimento
-    agendado --> cancelado : Cancelar
+    pendente --> agendado : ✓ Confirmar
+    pendente --> cancelado : ✗ Cancelar
     
-    atendido --> [*]
-    cancelado --> [*]
+    agendado --> atendido : 🎉 Concluir<br/>atendimento
+    agendado --> cancelado : ✗ Cancelar
+    
+    atendido --> [*] : Estado Final<br/>🟢 Completo
+    cancelado --> [*] : Estado Final<br/>🔴 Cancelado
+    
+    note right of pendente
+        🟡 Aguardando<br/>confirmação
+    end note
+    
+    note right of agendado
+        🔵 Confirmado<br/>aguardando data
+    end note
+    
+    note right of atendido
+        🟢 Serviço<br/>realizado
+    end note
+    
+    note right of cancelado
+        🔴 Não será<br/>realizado
+    end note
 ```
 
 ### Transições de Status
@@ -430,53 +449,111 @@ const validateScheduling = (data: SchedulingData) => {
 ### Fluxo de Criação de Agendamento
 
 ```mermaid
+%%{init: {'theme':'base', 'flowchart':{'curve':'basis', 'padding':20}}}%%
 flowchart TD
-    Start([Usuário acessa /scheduling]) --> SelectDate[Selecionar Data]
-    SelectDate --> FetchSchedules[Buscar agendamentos existentes]
-    FetchSchedules --> GenerateSlots[Gerar horários disponíveis]
-    GenerateSlots --> DisplaySlots[Exibir horários livres]
+    Start([📅 Acessa<br/>/scheduling])
+    SelectDate[📆 Selecionar<br/>Data]
+    FetchSchedules[🔍 Buscar<br/>agendamentos<br/>existentes]
+    GenerateSlots[⚙️ Gerar<br/>horários<br/>disponíveis]
+    DisplaySlots[📋 Exibir<br/>horários livres]
+    SelectTime{⏰ Selecionar<br/>Horário}
+    SelectCustomer[👤 Selecionar<br/>Cliente]
+    SelectServices[✂️ Selecionar<br/>Serviços]
+    AddNotes[📝 Adicionar<br/>Observações?]
+    Submit[📤 Enviar<br/>para API]
+    Validate{✓ Validação<br/>OK?}
+    ShowError[❌ Exibir<br/>Erro]
+    CheckConflict{🔒 Horário<br/>livre?}
+    Create[✨ Criar<br/>Agendamento]
+    Success[🎉 Sucesso!]
+    End([🔄 Atualizar<br/>calendário])
     
-    DisplaySlots --> SelectTime{Selecionar Horário}
-    SelectTime --> SelectCustomer[Selecionar Cliente]
-    SelectCustomer --> SelectServices[Selecionar Serviços]
-    SelectServices --> AddNotes[Adicionar Observações?]
+    Start --> SelectDate
+    SelectDate --> FetchSchedules
+    FetchSchedules --> GenerateSlots
+    GenerateSlots --> DisplaySlots
+    DisplaySlots --> SelectTime
+    SelectTime --> SelectCustomer
+    SelectCustomer --> SelectServices
+    SelectServices --> AddNotes
+    AddNotes --> Submit
+    Submit --> Validate
     
-    AddNotes --> Submit[Enviar para API]
-    Submit --> Validate{Validação}
-    
-    Validate -->|Erro| ShowError[Exibir Erro]
+    Validate -->|❌ Erro| ShowError
     ShowError --> SelectTime
     
-    Validate -->|OK| CheckConflict{Horário livre?}
-    CheckConflict -->|Conflito| ShowError
-    CheckConflict -->|Livre| Create[Criar Agendamento]
+    Validate -->|✅ OK| CheckConflict
+    CheckConflict -->|⚠️ Conflito| ShowError
+    CheckConflict -->|✓ Livre| Create
     
-    Create --> Success[Sucesso!]
-    Success --> End([Atualizar calendário])
+    Create --> Success
+    Success --> End
+    
+    %% Estilos
+    classDef processClass fill:#3B82F6,stroke:#1E3A8A,stroke-width:2px,color:#fff
+    classDef decisionClass fill:#F59E0B,stroke:#D97706,stroke-width:2px,color:#fff
+    classDef errorClass fill:#EF4444,stroke:#DC2626,stroke-width:2px,color:#fff
+    classDef successClass fill:#10B981,stroke:#059669,stroke-width:2px,color:#fff
+    classDef startEnd fill:#6B7280,stroke:#4B5563,stroke-width:2px,color:#fff
+    
+    class SelectDate,FetchSchedules,GenerateSlots,DisplaySlots,SelectCustomer,SelectServices,AddNotes,Submit,Create processClass
+    class SelectTime,Validate,CheckConflict decisionClass
+    class ShowError errorClass
+    class Success successClass
+    class Start,End startEnd
 ```
 
 ### Algoritmo de Horários Disponíveis
 
 ```mermaid
+%%{init: {'theme':'base', 'flowchart':{'curve':'basis', 'padding':15}}}%%
 flowchart TD
-    Start([Início]) --> GetParams[Obter parâmetros:<br/>abertura, fechamento,<br/>intervalo, duração]
-    GetParams --> ConvertMinutes[Converter tudo<br/>para minutos]
-    ConvertMinutes --> InitLoop[atual = abertura]
+    Start([🎬 Início])
+    GetParams[📥 Obter parâmetros:<br/>• abertura<br/>• fechamento<br/>• intervalo<br/>• duração]
+    ConvertMinutes[🔄 Converter<br/>para minutos<br/>desde 00:00]
+    InitLoop[⚙️ Inicializar:<br/>atual = abertura]
+    CheckFits{⏰ Cabe?<br/>atual+duração<br/>≤ fechamento}
+    CalcEnd[📊 Calcular:<br/>fim = atual<br/>+ duração]
+    CheckOverlap{🔍 Sobrepõe<br/>intervalo?}
+    Skip[⏭️ Pular<br/>horário<br/>bloqueado]
+    AddSlot[✅ Adicionar<br/>horário à<br/>lista []]
+    Increment[➕ Incrementar:<br/>atual +=<br/>duração]
+    Return[📤 Retornar<br/>lista completa]
+    End([🏁 Fim])
     
-    InitLoop --> CheckFits{atual + duração<br/><= fechamento?}
-    CheckFits -->|Não| Return[Retornar lista]
+    Start --> GetParams
+    GetParams --> ConvertMinutes
+    ConvertMinutes --> InitLoop
+    InitLoop --> CheckFits
     
-    CheckFits -->|Sim| CalcEnd[fim = atual + duração]
-    CalcEnd --> CheckOverlap{Sobrepõe<br/>intervalo?}
+    CheckFits -->|❌ Não<br/>passou horário| Return
+    CheckFits -->|✅ Sim<br/>cabe horário| CalcEnd
     
-    CheckOverlap -->|Sim| Skip[Pular horário]
-    CheckOverlap -->|Não| AddSlot[Adicionar à lista]
+    CalcEnd --> CheckOverlap
     
-    Skip --> Increment[atual += duração]
+    CheckOverlap -->|✅ Sim<br/>conflita| Skip
+    CheckOverlap -->|❌ Não<br/>livre| AddSlot
+    
+    Skip --> Increment
     AddSlot --> Increment
     Increment --> CheckFits
     
-    Return --> End([Fim])
+    Return --> End
+    
+    %% Estilos
+    classDef initClass fill:#3B82F6,stroke:#1E3A8A,stroke-width:2px,color:#fff
+    classDef processClass fill:#6366F1,stroke:#4F46E5,stroke-width:2px,color:#fff
+    classDef decisionClass fill:#F59E0B,stroke:#D97706,stroke-width:2px,color:#fff
+    classDef actionClass fill:#10B981,stroke:#059669,stroke-width:2px,color:#fff
+    classDef skipClass fill:#EF4444,stroke:#DC2626,stroke-width:2px,color:#fff
+    classDef endClass fill:#6B7280,stroke:#4B5563,stroke-width:2px,color:#fff
+    
+    class GetParams,ConvertMinutes initClass
+    class InitLoop,CalcEnd,Increment processClass
+    class CheckFits,CheckOverlap decisionClass
+    class AddSlot actionClass
+    class Skip skipClass
+    class Start,Return,End endClass
 ```
 
 ---
